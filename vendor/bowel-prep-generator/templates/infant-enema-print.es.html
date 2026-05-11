@@ -53,7 +53,7 @@
   h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
   h2 { font-size: 12.5pt; margin: 10pt 0 3pt 0; font-weight: 600; break-after: avoid; }
   h3 { font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600; break-after: avoid; }
-  p { margin: 3pt 0; orphans: 3; widows: 3; }
+  p { margin: 3pt 0; orphans: 2; widows: 2; }
   ul, ol { margin: 3pt 0 3pt 16pt; padding: 0; }
   li { margin: 1pt 0; }
   strong { font-weight: 700; }
@@ -127,6 +127,7 @@
     font-weight: 600;
     color: #0e2233;
     margin: 1pt 0 1pt 0;
+    white-space: nowrap;
   }
   .band-label {
     font-family: "Inter", sans-serif;
@@ -219,7 +220,7 @@
     border-collapse: collapse;
     margin: 4pt 0 8pt 0;
     font-size: 10pt;
-    break-inside: avoid;
+    break-inside: auto;
   }
   thead { display: table-header-group; }
   th {

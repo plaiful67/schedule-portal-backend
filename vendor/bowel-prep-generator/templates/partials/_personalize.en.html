@@ -43,6 +43,21 @@
   }
   .pz-banner-actions a:hover { text-decoration: underline; }
   .pz-bookmark-hint { display: block; margin-top: 6px; color: #1f4d12; font-weight: 500; }
+  /* Print/Save-as-PDF button shown on personalized pages — replaces the
+     static PDF download link (which only has the generic timeline). */
+  .pz-print-btn {
+    display: block; width: 100%; margin: 10px 0 0;
+    padding: 10px 14px;
+    font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
+    background: #0e4a82; color: #fff;
+    border: 1px solid #0e4a82; border-radius: 8px;
+    cursor: pointer; text-align: center;
+  }
+  .pz-print-btn:hover { background: #0c3e6e; }
+  /* When the page is personalized, hide the static PDF download (it only
+     ships the generic timeline; the Print button on the banner is what
+     produces a personalized handout). */
+  .pz-hide { display: none !important; }
 
   /* Print-only footer block — QR + URL — appended on personalized pages.
      Hidden on screen; shown on print. The QR is rendered at apply-time
@@ -73,6 +88,7 @@
     .other-bands, .breadcrumb, .lang-toggle { display: none !important; }
     .pz-banner-actions { display: none !important; }
     .pz-bookmark-hint { display: none !important; }
+    .pz-print-btn { display: none !important; }
     /* Personalize banner: keep visible (proves it's the customized version) but quieter. */
     .pz-banner { background: #fff; border: 1px solid #888; box-shadow: none; color: #000; }
     .pz-banner strong { color: #000; }
@@ -141,6 +157,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     bannerCopy:      'Copy link',
     bannerSend:      'Send link',
     bannerCopied:    'Copied!',
+    bannerPrint:     '🖨️ Print / Save as PDF',
     bookmarkHint:    '💾 Save this link — bookmark it or add it to your home screen so you can reopen it anytime.',
     qrFooterTitle:   'Reopen the live, personalized version',
     qrFooterPrompt:  'Scan the QR code or visit:',
@@ -225,6 +242,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     var b = document.getElementById('pz-banner'); if (b) b.remove();
     var f = document.getElementById('pz-print-footer'); if (f) f.remove();
+    var pdfLink = document.querySelector('.pdf-download');
+    if (pdfLink) pdfLink.classList.remove('pz-hide');
   }
 
   function makeBanner() {
@@ -250,7 +269,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     b.innerHTML =
       '<div><strong>' + STR.bannerPrefix + '</strong> ' + when + '.</div>' +
       '<div class="pz-banner-actions">' + actionsHtml + '</div>' +
-      '<span class="pz-bookmark-hint">' + STR.bookmarkHint + '</span>';
+      '<span class="pz-bookmark-hint">' + STR.bookmarkHint + '</span>' +
+      '<button id="pz-print-btn" class="pz-print-btn" type="button">' + STR.bannerPrint + '</button>';
 
     document.getElementById('pz-clear').onclick = function(e) {
       e.preventDefault();
@@ -271,7 +291,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         navigator.share({ title: STR.shareTitle, url: location.href }).catch(function() {});
       };
     }
+    document.getElementById('pz-print-btn').onclick = function() { window.print(); };
     var btn = document.getElementById('pz-customize-btn'); if (btn) btn.remove();
+    // Hide the static "Download printable PDF" link — that PDF reflects the
+    // generic schedule, not the personalized one. The Print button above
+    // saves the personalized version (Save as PDF in the print dialog).
+    var pdfLink = document.querySelector('.pdf-download');
+    if (pdfLink) pdfLink.classList.add('pz-hide');
   }
 
   function showCustomize() {

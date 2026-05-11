@@ -19,9 +19,9 @@ RENDER := $(PYTHON) scripts/render.py
 SCC_OUT       := $(HOME)/Desktop/peds-gi-system/bowel-prep-handouts
 PMCH_OUT      := $(HOME)/Desktop/peds-gi-system/bowel-prep-handouts-pmch
 REVIEW_OUT    := $(HOME)/Desktop/peds-gi-system/bowel-prep-pdf-review
-CHEATSHEET_OUT := $(HOME)/Desktop/peds-gi-system/cheatsheet-giready
+CHEATSHEET_OUT := $(HOME)/Desktop/peds-gi-system/doses-giready
 
-.PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
+.PHONY: help install render render-scc render-pmch render-pdf render-pdf-light \
         render-combined render-directions sites-colonoscopy sites-combined \
         sites-cheatsheet sites \
         render-all clean-pdf-review
@@ -29,6 +29,7 @@ CHEATSHEET_OUT := $(HOME)/Desktop/peds-gi-system/cheatsheet-giready
 help:
 	@echo "Targets:"
 	@echo "  install            Create .venv and install dependencies (run once)."
+	@echo "  render             Deploy-ready render (render-pdf + render-combined + render-directions)"
 	@echo "  render-scc         Render DOCX + HTML for SCC into $(SCC_OUT)"
 	@echo "  render-pmch        Render DOCX + HTML for PMCH into $(PMCH_OUT)"
 	@echo "  render-pdf         Render colonoscopy print PDFs (color) for both locations -> $(REVIEW_OUT)"
@@ -80,6 +81,12 @@ sites-cheatsheet:
 	$(RENDER) --variant cheat-sheet --out "$(CHEATSHEET_OUT)"
 
 sites: sites-colonoscopy sites-combined sites-cheatsheet
+
+# `render` is the deploy-ready alias that the meta repo calls via
+# `render-bowel-prep`. Mirrors what egd-handout-generator and
+# flex-sig-handout-generator expose as their top-level `render` target so the
+# three skills present a consistent surface.
+render: render-pdf render-combined render-directions
 
 render-all: render-scc render-pmch render-pdf render-pdf-light render-combined render-directions
 

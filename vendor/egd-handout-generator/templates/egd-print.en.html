@@ -90,7 +90,10 @@
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 12pt; margin-top: 2pt;
   }
-  .doc-title { font-size: 17pt; font-weight: 600; color: #0e2233; margin: 1pt 0; }
+  /* 17pt is intentional: EGD's cover h1 is short ("Upper Endoscopy") so it can
+     carry a heavier weight than bowel-prep / flex-sig (16pt). See
+     docs/DEVELOPER_HANDOFF.md "Per-skill style conventions". */
+  .doc-title { font-size: 17pt; font-weight: 600; color: #0e2233; margin: 1pt 0; white-space: nowrap; }
   .band-label {
     font-family: "Inter", sans-serif; font-size: 12pt; font-weight: 600;
     color: #b03a00; margin-top: 2pt;

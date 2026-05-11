@@ -77,9 +77,16 @@
     font-size: 18px; font-weight: 700; color: #0e2233;
     line-height: 1.2;
   }
-  .band-card .band-lb {
+  .band-card .band-lb-inline {
+    display: inline-block;
     font-family: "Inter", sans-serif;
-    font-size: 13px; color: #3a3a3a;
+    font-size: 16px; font-weight: 700; color: #b03a00;
+    margin-left: 4px;
+    letter-spacing: -0.005em;
+  }
+  .band-card .band-note {
+    font-family: "Inter", sans-serif;
+    font-size: 13px; color: #3a3a3a; font-weight: 500;
     margin-top: 3px;
   }
   .band-card .band-arrow {
@@ -105,7 +112,8 @@
     .band-card { background: #252525; border-color: #3a3a3a; color: #e0e0e0; }
     .band-card:active { background: #2f3a48; }
     .band-card .band-label { color: #e0e0e0; }
-    .band-card .band-lb { color: #bbb; }
+    .band-card .band-lb-inline { color: #ff9b6b; }
+    .band-card .band-note { color: #bbb; }
     .band-card .band-arrow { color: #5eb3f6; }
     .footer { color: #888; border-top-color: #3a3a3a; }
   }

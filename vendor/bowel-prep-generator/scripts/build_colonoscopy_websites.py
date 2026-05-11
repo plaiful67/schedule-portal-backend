@@ -84,17 +84,29 @@ BAND_LABELS = {
     "over-50":        {"en": "Over 50 kg",          "es": "Más de 50 kg"},
 }
 
-# lb-equivalent + protocol disambiguation (shown as the page subtitle).
+# lb-equivalent (shown bracketed inline with the kg label so it pops).
 BAND_LB = {
-    "under-15":       {"en": "Under 33 lb · MiraLAX option",
-                       "es": "Menos de 33 lb · opción MiraLAX"},
-    "under-15-enema": {"en": "Under 33 lb · clear liquids + saline enema",
-                       "es": "Menos de 33 lb · líquidos claros + enema"},
-    "15-20":          {"en": "33–44 lb",            "es": "33–44 lb"},
-    "21-30":          {"en": "46–66 lb",            "es": "46–66 lb"},
-    "31-40":          {"en": "68–88 lb",            "es": "68–88 lb"},
-    "41-50":          {"en": "90–110 lb",           "es": "90–110 lb"},
-    "over-50":        {"en": "Over 110 lb",         "es": "Más de 110 lb"},
+    "under-15":       {"en": "[Under 33 lb]",        "es": "[Menos de 33 lb]"},
+    "under-15-enema": {"en": "[Under 33 lb]",        "es": "[Menos de 33 lb]"},
+    "15-20":          {"en": "[33–44 lb]",       "es": "[33–44 lb]"},
+    "21-30":          {"en": "[46–66 lb]",       "es": "[46–66 lb]"},
+    "31-40":          {"en": "[68–88 lb]",       "es": "[68–88 lb]"},
+    "41-50":          {"en": "[90–110 lb]",      "es": "[90–110 lb]"},
+    "over-50":        {"en": "[Over 110 lb]",        "es": "[Más de 110 lb]"},
+}
+
+# Protocol disambiguation note (shown as the page subtitle, only when the
+# kg range alone is ambiguous — i.e. the two infant variants).
+BAND_NOTE = {
+    "under-15":       {"en": "MiraLAX option",
+                       "es": "Opción MiraLAX"},
+    "under-15-enema": {"en": "Clear liquids + saline enema",
+                       "es": "Líquidos claros + enema salino"},
+    "15-20":          {"en": "", "es": ""},
+    "21-30":          {"en": "", "es": ""},
+    "31-40":          {"en": "", "es": ""},
+    "41-50":          {"en": "", "es": ""},
+    "over-50":        {"en": "", "es": ""},
 }
 
 HTML_TITLE_BAND_EN = "Colonoscopy Prep — {label} — What to Expect"
@@ -171,11 +183,13 @@ def render_band_cards(bands_by_id, lang, band_ids):
         path = bands_by_id[bid]["mobile_path"]
         label = BAND_LABELS[bid][lang]
         lb = BAND_LB[bid][lang]
+        note = BAND_NOTE[bid][lang]
+        note_html = f'    <div class="band-note">{note}</div>\n' if note else ""
         arrow = "View instructions →" if lang == "en" else "Ver instrucciones →"
         cards.append(
             f'  <a class="band-card" href="{path}/">\n'
-            f'    <div class="band-label">{label}</div>\n'
-            f'    <div class="band-lb">{lb}</div>\n'
+            f'    <div class="band-label">{label} <span class="band-lb-inline">{lb}</span></div>\n'
+            f'{note_html}'
             f'    <div class="band-arrow">{arrow}</div>\n'
             f'  </a>'
         )
@@ -305,6 +319,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
         "{{LANDING_HREF}}":       landing_href,
         "{{BAND_LB}}":            BAND_LB[band["id"]][lang],
+        "{{BAND_NOTE}}":          BAND_NOTE[band["id"]][lang],
         "{{MAPS_URL}}":           maps_url,
         "{{YOUTUBE_URL}}":        youtube_url,
         "{{PORTAL_URL}}":         portal_url,

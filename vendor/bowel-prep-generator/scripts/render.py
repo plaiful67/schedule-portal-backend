@@ -136,7 +136,6 @@ def build_precleanout_block(band, lang):
         intro_one = ("<strong>If yes, start a pre-cleanout</strong> before the regular "
                      "prep timeline below:")
         date_tmpl = " &mdash; <em>start on {date}</em>"
-        outro = "Call or message the office with any questions."
     else:
         title  = "&#9888;&#65039; ¿Antecedente o sospecha de estreñimiento?"
         intro_two = ("<strong>Si la respuesta es sí, comience una pre-limpieza</strong> antes "
@@ -145,7 +144,6 @@ def build_precleanout_block(band, lang):
         intro_one = ("<strong>Si la respuesta es sí, comience una pre-limpieza</strong> antes "
                      "del cronograma regular de preparación:")
         date_tmpl = " &mdash; <em>comenzar el {date}</em>"
-        outro = "Llame o envíe un mensaje a la oficina con cualquier pregunta."
 
     def _opt_li(label, text, offset):
         date_span = ""
@@ -163,12 +161,11 @@ def build_precleanout_block(band, lang):
         if not b_lbl:
             b_lbl = "Option B &mdash; higher dose, shorter duration" if lang == "en" else "Opción B &mdash; dosis mayor, duración más corta"
         body = (
-            f'  <p style="margin: 0 0 8px;">{intro_two}</p>\n'
-            f'  <ul class="precleanout-options" style="margin: 0 0 8px; padding-left: 20px;">\n'
+            f'  <p style="margin: 0 0 3px;">{intro_two}</p>\n'
+            f'  <ul class="precleanout-options" style="margin: 0; padding-left: 20px;">\n'
             f'{_opt_li(a_lbl, a_text, a_off)}\n'
             f'{_opt_li(b_lbl, b_text, b_off)}\n'
-            f'  </ul>\n'
-            f'  <p style="margin: 0;">{outro}</p>'
+            f'  </ul>'
         )
         return (
             f'<div class="callout">\n'
@@ -177,7 +174,7 @@ def build_precleanout_block(band, lang):
             f'</div>'
         )
 
-    # Single-option: separate lead, dose, maintenance, and outro into 4 paragraphs
+    # Single-option: separate lead, dose, and maintenance into 3 tight paragraphs
     # so the MiraLAX dose stands on its own line at-a-glance. Dose-token <strong>
     # tags come from the YAML (precleanout_a_text_{lang}); the maintenance string
     # already wraps the daily dose in <strong>.
@@ -191,13 +188,12 @@ def build_precleanout_block(band, lang):
     else:
         lead = ("&#9888;&#65039; <strong>Si hay antecedente o sospecha de "
                 "estreñimiento, haga una pre-limpieza:</strong>")
-    maintenance_p = (f'  <p style="margin: 0 0 6px;">{maintenance}</p>\n'
+    maintenance_p = (f'  <p style="margin: 0;">{maintenance}</p>\n'
                      if maintenance else "")
     body = (
-        f'  <p style="margin: 0 0 6px;">{lead}</p>\n'
-        f'  <p style="margin: 0 0 6px;">{a_text}{a_date_span}</p>\n'
+        f'  <p style="margin: 0 0 3px;">{lead}</p>\n'
+        f'  <p style="margin: 0 0 3px;">{a_text}{a_date_span}</p>\n'
         f'{maintenance_p}'
-        f'  <p style="margin: 0;">{outro}</p>'
     )
     return (
         f'<div class="callout">\n'
@@ -241,9 +237,10 @@ def build_contingency_block(band, lang, location):
                       f'data-pz-template=" &mdash; by {{time}}"></span>')
         return (
             '<div class="contingency-body">\n'
-            f'  <p class="contingency-lead"><strong>If the prep isn\'t working &mdash; backup plan:</strong> '
-            f'if your child\'s stools are still <strong>not clear or pale yellow {trigger} hours after '
-            f'starting the BIG PREP</strong>, follow this rescue plan.</p>\n'
+            f'  <p class="contingency-lead"><strong class="rescue-heading">Rescue plan</strong> &mdash; '
+            f'if stools are still <strong>not clear or pale yellow {trigger} hours after starting '
+            f'the BIG PREP</strong>, or if the prep doesn\'t seem to be working, give extra MiraLAX as below '
+            f'(finish the morning dose at least <strong>{npo_hours} hours before</strong> the procedure):</p>\n'
             '  <ul>\n'
             f'    <li><strong>Evening (continue MiraLAX):</strong> Give <strong>{ev_caps} more {cap_word_ev} '
             f'of MiraLAX in {ev_oz} oz of Gatorade</strong>, ending by bedtime.</li>\n'
@@ -264,9 +261,10 @@ def build_contingency_block(band, lang, location):
                   f'data-pz-template=" &mdash; antes de las {{time}}"></span>')
     return (
         '<div class="contingency-body">\n'
-        f'  <p class="contingency-lead"><strong>Si la preparación no está funcionando &mdash; plan de respaldo:</strong> '
-        f'si las heces de su niño aún <strong>no son claras o amarillas pálidas {trigger} horas después '
-        f'de iniciar la BIG PREP</strong>, siga este plan de rescate.</p>\n'
+        f'  <p class="contingency-lead"><strong class="rescue-heading">Plan de rescate</strong> &mdash; '
+        f'si las heces aún <strong>no son claras o amarillas pálidas {trigger} horas después de iniciar '
+        f'la BIG PREP</strong>, o si la preparación no parece funcionar, dé MiraLAX adicional como se indica '
+        f'(termine la dosis de la mañana al menos <strong>{npo_hours} horas antes</strong> del procedimiento):</p>\n'
         '  <ul>\n'
         f'    <li><strong>Por la noche (continúe el MiraLAX):</strong> Dé <strong>{ev_caps} {cap_word_ev} más '
         f'de MiraLAX en {ev_oz} oz de Gatorade</strong>, terminando antes de acostarse.</li>\n'
@@ -955,7 +953,7 @@ def render_pdf_print(template_path, replacements, out_path,
 #
 # The cheat sheet is a different shape from the patient handouts: a single
 # at-a-glance reference of every dosing/timing/policy number across all
-# weight bands and both locations. It's deployed to cheatsheet.giready.com
+# weight bands and both locations. It's deployed to doses.giready.com
 # as an unlisted (X-Robots-Tag: noindex) staff-only page, and is also a
 # printable PDF for desk reference.
 #
@@ -1146,7 +1144,7 @@ def build_cheatsheet_replacements(bands_all, locations):
 
 
 def render_cheatsheet(out_dir):
-    """Render the staff cheat sheet — both HTML (for cheatsheet.giready.com) and
+    """Render the staff cheat sheet — both HTML (for doses.giready.com) and
     a 1-page landscape PDF (for printing). Outputs to:
       - out_dir/index.html           (same content, served as the website root)
       - out_dir/bowel-prep-cheatsheet.pdf
@@ -1173,7 +1171,7 @@ def render_cheatsheet(out_dir):
 
     out_dir.mkdir(parents=True, exist_ok=True)
     # HTML: written as index.html so a Cloudflare Pages deploy serves the page
-    # at cheatsheet.giready.com/ directly. Also write a copy under the named
+    # at doses.giready.com/ directly. Also write a copy under the named
     # filename so a local --out folder still has a stable artifact.
     html_index = out_dir / "index.html"
     html_index.write_text(html, encoding="utf-8")

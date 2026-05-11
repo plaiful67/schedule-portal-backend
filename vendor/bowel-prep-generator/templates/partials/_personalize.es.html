@@ -43,6 +43,18 @@
   }
   .pz-banner-actions a:hover { text-decoration: underline; }
   .pz-bookmark-hint { display: block; margin-top: 6px; color: #1f4d12; font-weight: 500; }
+  /* Print/Save-as-PDF button shown on personalized pages — replaces the
+     static PDF download link (which only has the generic timeline). */
+  .pz-print-btn {
+    display: block; width: 100%; margin: 10px 0 0;
+    padding: 10px 14px;
+    font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
+    background: #0e4a82; color: #fff;
+    border: 1px solid #0e4a82; border-radius: 8px;
+    cursor: pointer; text-align: center;
+  }
+  .pz-print-btn:hover { background: #0c3e6e; }
+  .pz-hide { display: none !important; }
 
   .pz-print-footer { display: none; }
   @media print {
@@ -68,6 +80,7 @@
     .other-bands, .breadcrumb, .lang-toggle { display: none !important; }
     .pz-banner-actions { display: none !important; }
     .pz-bookmark-hint { display: none !important; }
+    .pz-print-btn { display: none !important; }
     .pz-banner { background: #fff; border: 1px solid #888; box-shadow: none; color: #000; }
     .pz-banner strong { color: #000; }
     @page { margin: 0.5in; size: letter; }
@@ -127,6 +140,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     bannerCopy:      'Copiar enlace',
     bannerSend:      'Enviar enlace',
     bannerCopied:    '¡Copiado!',
+    bannerPrint:     '🖨️ Imprimir / Guardar como PDF',
     bookmarkHint:    '💾 Guarde este enlace — agréguelo a marcadores o a la pantalla de inicio para volver a abrirlo cuando lo necesite.',
     qrFooterTitle:   'Vuelva a abrir la versión personalizada en línea',
     qrFooterPrompt:  'Escanee el código QR o visite:',
@@ -212,6 +226,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     });
     var b = document.getElementById('pz-banner'); if (b) b.remove();
     var f = document.getElementById('pz-print-footer'); if (f) f.remove();
+    var pdfLink = document.querySelector('.pdf-download');
+    if (pdfLink) pdfLink.classList.remove('pz-hide');
   }
 
   function makeBanner() {
@@ -237,7 +253,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     b.innerHTML =
       '<div><strong>' + STR.bannerPrefix + '</strong> ' + when + '.</div>' +
       '<div class="pz-banner-actions">' + actionsHtml + '</div>' +
-      '<span class="pz-bookmark-hint">' + STR.bookmarkHint + '</span>';
+      '<span class="pz-bookmark-hint">' + STR.bookmarkHint + '</span>' +
+      '<button id="pz-print-btn" class="pz-print-btn" type="button">' + STR.bannerPrint + '</button>';
 
     document.getElementById('pz-clear').onclick = function(e) {
       e.preventDefault();
@@ -258,7 +275,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         navigator.share({ title: STR.shareTitle, url: location.href }).catch(function() {});
       };
     }
+    document.getElementById('pz-print-btn').onclick = function() { window.print(); };
     var btn = document.getElementById('pz-customize-btn'); if (btn) btn.remove();
+    var pdfLink = document.querySelector('.pdf-download');
+    if (pdfLink) pdfLink.classList.add('pz-hide');
   }
 
   function showCustomize() {
