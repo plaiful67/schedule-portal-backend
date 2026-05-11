@@ -26,6 +26,8 @@ GCP_REGION="${GCP_REGION:-us-central1}"
 SERVICE_NAME="${SERVICE_NAME:-schedule-portal}"
 ALLOWED_ORIGINS="${ALLOWED_ORIGINS:-https://schedule.giready.com,https://meds.giready.com}"
 QR_BASE_URL="${QR_BASE_URL:-https://schedule.giready.com/v}"
+MIN_INSTANCES="${MIN_INSTANCES:-0}"
+MAX_INSTANCES="${MAX_INSTANCES:-5}"
 
 if [[ -z "${GCP_PROJECT}" ]]; then
   echo "FATAL: no GCP project set. Run \`gcloud config set project ...\`" >&2
@@ -45,11 +47,11 @@ gcloud run deploy "${SERVICE_NAME}" \
   --allow-unauthenticated \
   --memory 1Gi \
   --cpu 1 \
-  --min-instances 1 \
-  --max-instances 5 \
+  --min-instances "${MIN_INSTANCES}" \
+  --max-instances "${MAX_INSTANCES}" \
   --concurrency 4 \
   --timeout 60s \
-  --set-env-vars "ALLOWED_ORIGINS=${ALLOWED_ORIGINS},QR_BASE_URL=${QR_BASE_URL},PORTAL_SKILL_SOURCE=vendor"
+  --set-env-vars "^|^ALLOWED_ORIGINS=${ALLOWED_ORIGINS}|QR_BASE_URL=${QR_BASE_URL}|PORTAL_SKILL_SOURCE=vendor"
 
 URL=$(gcloud run services describe "${SERVICE_NAME}" --region "${GCP_REGION}" --format='value(status.url)')
 echo

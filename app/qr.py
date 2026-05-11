@@ -45,3 +45,15 @@ def png_to_data_uri(png: bytes) -> str:
 
 def deep_link_qr_data_uri(payload: dict[str, Any]) -> str:
     return png_to_data_uri(png_bytes(deep_link_url(payload)))
+
+
+# meds.giready.com is a fixed URL — build the QR once and reuse it across requests.
+MEDS_REFERENCE_URL = "https://meds.giready.com"
+_MEDS_REFERENCE_QR: str | None = None
+
+
+def meds_reference_qr_data_uri() -> str:
+    global _MEDS_REFERENCE_QR
+    if _MEDS_REFERENCE_QR is None:
+        _MEDS_REFERENCE_QR = png_to_data_uri(png_bytes(MEDS_REFERENCE_URL))
+    return _MEDS_REFERENCE_QR

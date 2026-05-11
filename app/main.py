@@ -8,6 +8,7 @@ Endpoints:
 from __future__ import annotations
 
 import os
+from datetime import datetime, time
 
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,11 +17,12 @@ from . import medications
 from .adapters import bowel_prep, combined, egd
 from .adapters._paths import skill_source
 from .personalization import (
-    build_stop_meds_block,
+    build_followup_block,
+    build_meds_reference_callout,
     format_appt_date,
     format_time_12h,
 )
-from .qr import deep_link_qr_data_uri
+from .qr import meds_reference_qr_data_uri
 from .schemas import RenderRequest
 
 app = FastAPI(title="schedule.giready.com", version="0.1.0")
@@ -40,7 +42,10 @@ app.add_middleware(
 )
 
 
-@app.get("/healthz")
+# Path is /__health (not /healthz or /health) because Cloud Run's load
+# balancer reserves /healthz and /health at the GFE layer — they 404 before
+# the request reaches the container.
+@app.get("/__health")
 def healthz():
     return {
         "ok": True,
@@ -69,11 +74,21 @@ def render(req: RenderRequest):
     appt_date_human = format_appt_date(req.appointment_date, req.language)
     appt_time = format_time_12h(req.appointment_time)
     arrival_time = format_time_12h(req.arrival_time)
-    stop_block = build_stop_meds_block(req.stop_meds, req.language)
+    # Per-med list (sorted by hold-days descending) + footer pointer to
+    # meds.giready.com so families can verify anything that wasn't selected.
+    meds_callout = build_meds_reference_callout(
+        req.stop_meds, req.language, meds_reference_qr_data_uri()
+    )
 
-    # QR encodes the request payload so the viewer page can reconstruct.
-    qr_payload = req.model_dump(mode="json")
-    qr_uri = deep_link_qr_data_uri(qr_payload)
+    # Combined datetime drives both the cover-row mobile URL (#d=&t= hash)
+    # and the pz-only span substitutions (rescue-cutoff clock time, etc.).
+    appt_dt = datetime.combine(
+        req.appointment_date, time.fromisoformat(req.appointment_time)
+    )
+
+    followup_block_html = build_followup_block(
+        req.followup_date, req.followup_time, req.language
+    )
 
     common = dict(
         location_id=req.location_id,
@@ -81,8 +96,9 @@ def render(req: RenderRequest):
         appt_date_human=appt_date_human,
         appt_time_display=appt_time,
         arrival_time_display=arrival_time,
-        stop_meds_block_html=stop_block,
-        deep_link_qr_data_uri=qr_uri,
+        stop_meds_block_html=meds_callout,
+        followup_block_html=followup_block_html,
+        appt_dt=appt_dt,
     )
 
     if req.procedure_type == "bowel_prep":

@@ -223,8 +223,9 @@
     border: 2pt solid #0e2233; border-radius: 6pt;
     background: #f7f8fa; page-break-inside: avoid;
   }
-  .appt-row { display: flex; justify-content: space-between; gap: 16pt; }
-  .appt-block { flex: 1; }
+  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+  .appt-block { flex: 1 1 0; min-width: 0; }
+  .appt-block.appt-block-date { flex: 2 1 0; }
   .appt-label {
     font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
     color: #555; margin-bottom: 2pt;
@@ -232,24 +233,53 @@
   .appt-value {
     font-family: "Source Serif 4", Georgia, serif;
     font-size: 14pt; font-weight: 700; color: #0e2233;
+    white-space: nowrap;
   }
-  .appt-location { margin-top: 6pt; font-size: 10pt; color: #0e4a82; font-weight: 600; }
-
-  /* --- Stop-meds block --- */
-  .stop-meds {
-    margin: 10pt 0; padding: 10pt 14pt;
-    border-left: 3pt solid #b03030; background: #fff5f3;
+  /* --- Standalone narrow follow-up appointment callout --- */
+  .followup-callout {
+    margin: 8pt 0; padding: 6pt 12pt;
+    border-left: 3pt solid #0e4a82;
+    background: #f5f8fb;
+    display: flex; align-items: baseline; gap: 8pt;
     page-break-inside: avoid;
   }
-  .stop-meds h3 {
-    font-size: 11pt; margin: 0 0 6pt 0; color: #b03030;
+  .followup-callout .followup-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; font-weight: 600;
+  }
+  .followup-callout .followup-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11pt; font-weight: 600; color: #0e2233;
+  }
+  .followup-callout.fallback .followup-value {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;
+  }
+
+  /* --- Meds-reference callout: per-med list + footer pointer --- */
+  .meds-reference {
+    margin: 10pt 0; padding: 8pt 12pt;
+    border-left: 3pt solid #d4900b; background: #fff8e6;
+    page-break-inside: avoid;
+  }
+  .meds-reference-row { display: flex; align-items: center; gap: 12pt; }
+  .meds-reference h3 {
+    font-size: 10pt; margin: 0 0 4pt 0; color: #8a5a00;
     text-transform: uppercase; letter-spacing: 0.03em;
   }
-  .stop-meds ul { margin: 0; padding-left: 18pt; }
-  .stop-meds li { margin: 2pt 0; font-size: 10pt; }
-  .stop-meds .med-name { font-weight: 700; color: #0e2233; }
-  .stop-meds .med-hold { color: #555; }
-  .stop-meds .med-note { display: block; font-size: 9pt; color: #555; font-style: italic; }
+  .meds-reference p { margin: 0; font-size: 9.5pt; color: #333; }
+  .meds-reference ul { margin: 4pt 0 6pt 0; padding-left: 18pt; }
+  .meds-reference li { font-size: 10pt; margin: 1pt 0; color: #333; }
+  .meds-reference .med-note {
+    display: block; font-size: 8.5pt; color: #555; font-style: italic; margin-top: 1pt;
+  }
+  .meds-reference .meds-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10pt; padding-top: 6pt; margin-top: 4pt;
+    border-top: 1pt solid #e8d49a;
+    font-size: 8.5pt; font-style: italic; color: #555;
+  }
+  .meds-reference .meds-qr { width: 32pt; height: 32pt; flex-shrink: 0; }
 </style>
 </head>
 <body>
@@ -281,12 +311,12 @@
 <!-- ============================================================= -->
 <section class="appt-callout">
   <div class="appt-row">
-    <div class="appt-block">
+    <div class="appt-block appt-block-date">
       <div class="appt-label">Procedure date</div>
       <div class="appt-value">{{APPT_DATE_HUMAN}}</div>
     </div>
     <div class="appt-block">
-      <div class="appt-label">Arrival time</div>
+      <div class="appt-label">Arrival</div>
       <div class="appt-value">{{ARRIVAL_TIME}}</div>
     </div>
     <div class="appt-block">
@@ -294,13 +324,9 @@
       <div class="appt-value">{{APPT_TIME}}</div>
     </div>
   </div>
-  <div class="appt-location">at {{LOCATION_NAME}}</div>
 </section>
 
-<!-- STOP MEDS block (personalized handout only) -->
-{{STOP_MEDS_BLOCK}}
-
-<!-- LOCATION -->
+<!-- LOCATION (moved up to sit right under the appointment callout) -->
 <section class="location">
   <div class="location-text">
     <div class="label">Procedure Location</div>
@@ -316,6 +342,12 @@
     </a>
   </div>
 </section>
+
+<!-- Follow-up appointment (narrow standalone callout) -->
+{{FOLLOWUP_BLOCK_HTML}}
+
+<!-- MEDS REFERENCE block (personalized handout only) -->
+{{STOP_MEDS_BLOCK}}
 
 <!-- ABOUT -->
 <h2 class="step"><span class="icon">&#128214;</span> About the Procedure</h2>

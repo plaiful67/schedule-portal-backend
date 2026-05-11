@@ -11,12 +11,12 @@ from __future__ import annotations
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # Weight bands as they appear in dosing.yaml (band.id values).
 # Phase 1 ships only bowel_prep; the other unions are stubbed for forward-compat.
-BowelPrepBand = Literal["under-15", "15-20", "21-30", "31-40", "41-50", "51-65", "66-80", "81+"]
+BowelPrepBand = Literal["under-15", "15-20", "21-30", "31-40", "41-50", "over-50"]
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
 
@@ -27,6 +27,10 @@ class _Base(BaseModel):
     appointment_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")
     arrival_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")
     stop_meds: list[str] = Field(default_factory=list, max_length=20)
+    # Optional follow-up appointment. If absent, the handout prints a
+    # "Call the office to schedule a follow-up appointment." fallback.
+    followup_date: date | None = None
+    followup_time: str | None = Field(default=None, pattern=r"^\d{2}:\d{2}$")
 
     @field_validator("appointment_date")
     @classmethod
@@ -34,6 +38,16 @@ class _Base(BaseModel):
         if v < date.today():
             raise ValueError("appointment_date must be today or later")
         return v
+
+    @model_validator(mode="after")
+    def _followup_pair(self):
+        if (self.followup_date is None) != (self.followup_time is None):
+            raise ValueError(
+                "followup_date and followup_time must both be set or both be omitted"
+            )
+        if self.followup_date is not None and self.followup_date < self.appointment_date:
+            raise ValueError("followup_date must be on or after appointment_date")
+        return self
 
 
 class BowelPrepRequest(_Base):

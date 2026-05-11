@@ -7,6 +7,8 @@ variant="combined".
 """
 from __future__ import annotations
 
+from datetime import datetime
+
 from . import bowel_prep
 
 
@@ -19,7 +21,8 @@ def render_pdf(
     appt_time_display: str,
     arrival_time_display: str,
     stop_meds_block_html: str,
-    deep_link_qr_data_uri: str,
+    followup_block_html: str,
+    appt_dt: datetime,
 ) -> bytes:
     return bowel_prep.render_pdf(
         band_id=band_id,
@@ -29,6 +32,7 @@ def render_pdf(
         appt_time_display=appt_time_display,
         arrival_time_display=arrival_time_display,
         stop_meds_block_html=stop_meds_block_html,
-        deep_link_qr_data_uri=deep_link_qr_data_uri,
+        followup_block_html=followup_block_html,
+        appt_dt=appt_dt,
         variant="combined",
     )

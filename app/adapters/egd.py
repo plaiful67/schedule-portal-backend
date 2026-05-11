@@ -7,11 +7,13 @@ from __future__ import annotations
 import importlib.util
 import re
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import yaml
 
+from .. import personalization
 from ._paths import skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -84,7 +86,8 @@ def render_pdf(
     appt_time_display: str,
     arrival_time_display: str,
     stop_meds_block_html: str,
-    deep_link_qr_data_uri: str,
+    followup_block_html: str,
+    appt_dt: datetime,
 ) -> bytes:
     """Produce a personalized EGD-only PDF as bytes."""
     from weasyprint import HTML
@@ -99,10 +102,13 @@ def render_pdf(
         **skill.build_egd_placeholders(procedure, lang, location=location),
     }
 
-    # Compute URL placeholders + the maps QR (deep-link QR replaces the mobile QR).
+    # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
+    # destination page personalizes itself via its built-in _personalize JS.
     proc_data = _load_procedure_data()
     sub = location.get("mobile_subdomain", "") or proc_data.get("mobile_site", {}).get("subdomain", "egd")
-    mobile_url = f"https://{sub}.giready.com/" + ("es/" if lang == "es" else "")
+    lang_seg = "es/" if lang == "es" else ""
+    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
+    mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
     youtube_url = skill._qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
     portal_url = skill._qr_target("portal_url")
@@ -119,10 +125,11 @@ def render_pdf(
     }
 
     personalization_replacements = {
-        "{{APPT_DATE_HUMAN}}": appt_date_human,
-        "{{APPT_TIME}}":       appt_time_display,
-        "{{ARRIVAL_TIME}}":    arrival_time_display,
-        "{{STOP_MEDS_BLOCK}}": stop_meds_block_html,
+        "{{APPT_DATE_HUMAN}}":      appt_date_human,
+        "{{APPT_TIME}}":            appt_time_display,
+        "{{ARRIVAL_TIME}}":         arrival_time_display,
+        "{{STOP_MEDS_BLOCK}}":      stop_meds_block_html,
+        "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
 
     html = TEMPLATE_PATH.read_text(encoding="utf-8")
@@ -130,15 +137,18 @@ def render_pdf(
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))
 
-    # Swap the QR <img id> srcs: mobile → deep-link, others → their data URIs.
+    # Swap the QR <img id> srcs to data URIs (mobile QR encodes the personalized URL).
     qr_uris = {
-        "qr-mobile":  deep_link_qr_data_uri,
+        "qr-mobile":  skill._png_to_data_uri(skill._generate_qr(mobile_url)),
         "qr-maps":    skill._png_to_data_uri(skill._generate_qr(maps_url)) if maps_url else "",
         "qr-youtube": skill._png_to_data_uri(skill._generate_qr(youtube_url)) if youtube_url else "",
         "qr-portal":  skill._png_to_data_uri(skill._generate_qr(portal_url)) if portal_url else "",
         "qr-gikids":  skill._png_to_data_uri(skill._generate_qr(gikids_url)) if gikids_url else "",
     }
     html = skill._inject_qr_into_imgs(html, qr_uris)
+
+    # Procedure-time-driven clock-time substitutions (mirrors mobile pz-only JS).
+    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
 
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:

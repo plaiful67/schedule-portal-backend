@@ -12,13 +12,34 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# WeasyPrint needs Pango, Cairo, gdk-pixbuf, libffi. The skill templates
-# @import Inter + Source Serif 4 from Google Fonts; WeasyPrint fetches them
-# at render time over Cloud Run's outbound internet. DejaVu is the fallback.
+# WeasyPrint needs Pango, Cairo, gdk-pixbuf, libffi.
+#
+# Fonts: skill templates @import Inter + Source Serif 4 from Google Fonts.
+# WeasyPrint won't reliably fetch web fonts at render time (Cloud Run
+# outbound + Pango font-matching quirks), so we bake the families into
+# the image and let the @font-face declarations resolve locally:
+#   - fonts-inter         (Debian bookworm; Inter variable font)
+#   - fonts-dejavu-core   (universal fallback for any remaining glyphs)
+#   - fonts-symbola       (monochrome emoji + Unicode-symbol fallback —
+#                          covers ⚠️ 💊 📞 🍽️ etc. so they print crisply
+#                          on B&W clinic laser printers)
+#   - Source Serif 4      (downloaded from google/fonts repo at build time)
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libpango-1.0-0 libpangoft2-1.0-0 libcairo2 libgdk-pixbuf-2.0-0 \
-      libffi-dev shared-mime-info fonts-dejavu-core ca-certificates \
+      libffi-dev shared-mime-info fonts-dejavu-core fonts-inter fonts-symbola \
+      fontconfig ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
+
+# Source Serif 4 (variable font, OFL-licensed). Pinned to a specific commit
+# in google/fonts so builds are reproducible.
+ARG GOOGLE_FONTS_SHA=main
+RUN mkdir -p /usr/share/fonts/truetype/sourceserif4 \
+ && curl -fsSL -o /usr/share/fonts/truetype/sourceserif4/SourceSerif4-Roman.ttf \
+      "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/sourceserif4/SourceSerif4%5Bopsz%2Cwght%5D.ttf" \
+ && curl -fsSL -o /usr/share/fonts/truetype/sourceserif4/SourceSerif4-Italic.ttf \
+      "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/sourceserif4/SourceSerif4-Italic%5Bopsz%2Cwght%5D.ttf" \
+ && fc-cache -fv >/dev/null \
+ && fc-list | grep -iE "inter|source serif" | head -6
 
 WORKDIR /app
 
