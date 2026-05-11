@@ -238,8 +238,8 @@ meds:
     hold_days: 7
 
   - id: lithium
-    category: stimulants
+    category: mood_stabilizer
     primary_name: "Lithium"
     search_aliases: ["lithium", "Lithobid", "Eskalith"]
-    hold_text: "Hold 72 hours before procedure"
+    hold_text: "Stop 72 hrs before procedure if possible, after verifying with prescribing provider."
     hold_days: 3
