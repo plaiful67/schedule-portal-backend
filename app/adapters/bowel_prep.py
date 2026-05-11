@@ -94,7 +94,6 @@ def render_pdf(
     appt_date_human: str,
     appt_time_display: str,
     arrival_time_display: str,
-    stop_meds_block_html: str,
     followup_block_html: str,
     appt_dt: datetime,
     variant: Literal["standard", "combined"] = "standard",
@@ -145,17 +144,16 @@ def render_pdf(
         "{{APPT_DATE_HUMAN}}":      appt_date_human,
         "{{APPT_TIME}}":            appt_time_display,
         "{{ARRIVAL_TIME}}":         arrival_time_display,
-        "{{STOP_MEDS_BLOCK}}":      stop_meds_block_html,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
 
-    # Load the personalized template + the skill's partials.
+    # Load the personalized template + the skill's partials. Post-phase-2 the
+    # _medications_note partial carries the standardized yellow callout
+    # (drug list + meds.giready.com QR + verify line), so we let it render
+    # rather than suppress it — replaces the older server-side STOP_MEDS_BLOCK
+    # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
     partials = skill._load_partials(lang)
-    # Suppress the generic "Medications" warning callout — the personalized
-    # handout already displays the scheduler-selected meds list in .meds-reference
-    # and the generic warning duplicates that content one page later.
-    partials["{{PARTIAL_MEDICATIONS_NOTE}}"] = ""
     all_replacements = {**partials, **replacements, **qr_replacements, **personalization_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))

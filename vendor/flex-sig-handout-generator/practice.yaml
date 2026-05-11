@@ -34,6 +34,9 @@ qr_targets:
   # No flex-sig-specific GIKids page exists; using the colonoscopy page as the
   # closest deep-dive (Sebastian's call — same prep concepts, same anatomy).
   gikids_url:     "https://gikids.org/tests-procedures/colonoscopy/"
+  # Patient-facing medication checker — scanned/visited from the Medications
+  # callout in the handout. Mirrors the scheduler-portal med list.
+  meds_giready_url: "https://meds.giready.com"
 
 # Maps URL embedded in the original DOCX templates' placeholder Maps QR PNG.
 # Kept for parity with bowel-prep skill; not currently used by the PDF-only

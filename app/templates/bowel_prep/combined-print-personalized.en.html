@@ -636,9 +636,6 @@
 <!-- Follow-up appointment (narrow standalone callout) -->
 {{FOLLOWUP_BLOCK_HTML}}
 
-<!-- MEDS REFERENCE block (personalized handout only) -->
-{{STOP_MEDS_BLOCK}}
-
 <!-- ============================================================= -->
 <!-- WHAT ARE THESE PROCEDURES (combined-handout intro)           -->
 <!-- ============================================================= -->
@@ -683,9 +680,10 @@
   </tbody>
 </table>
 
-<!-- Generic "Medications" callout removed in the personalized fork -
-     the .meds-reference block above already shows the scheduler-selected
-     stop list, so the warning would be duplicative. -->
+<!-- Phase 3: Medications callout restored via the standardized partial.
+     The partial carries the per-band drug list + meds.giready.com QR +
+     verify-row, replacing the older server-side STOP_MEDS_BLOCK injection. -->
+{{PARTIAL_MEDICATIONS_NOTE}}
 
 {{HTML_PRECLEANOUT_BLOCK}}
 

@@ -117,6 +117,9 @@ def build_egd_placeholders(procedure, lang, location=None):
         "{{NPO_BREASTMILK}}":     str(npo.get("breastmilk_hours", 4)),
         "{{NPO_CLEAR}}":          str(clear_hours),
         "{{NPO_THICKENER}}":      str(npo.get("thickener_hours", 6)),
+        # Phase 2: meds.giready.com QR shown inside the Medications callout
+        # on every mobile HTML and print PDF.
+        "{{MEDS_GIREADY_QR}}":    _meds_giready_qr_data_uri(),
     }
 
 
@@ -142,6 +145,21 @@ def _png_to_data_uri(png_bytes):
     if not png_bytes:
         return ""
     return "data:image/png;base64," + base64.b64encode(png_bytes).decode("ascii")
+
+
+_MEDS_GIREADY_QR_DATA_URI_CACHE = None
+
+
+def _meds_giready_qr_data_uri():
+    """Return the meds.giready.com QR as a data URI. Constant per process —
+    URL doesn't change per location/lang — so cache after first generation.
+    Used inside the Medications callout on the mobile + print handouts."""
+    global _MEDS_GIREADY_QR_DATA_URI_CACHE
+    if _MEDS_GIREADY_QR_DATA_URI_CACHE is not None:
+        return _MEDS_GIREADY_QR_DATA_URI_CACHE
+    url = _qr_target("meds_giready_url")
+    _MEDS_GIREADY_QR_DATA_URI_CACHE = _png_to_data_uri(_generate_qr(url, size_px=150))
+    return _MEDS_GIREADY_QR_DATA_URI_CACHE
 
 
 def _inject_qr_into_imgs(html, qr_uris):

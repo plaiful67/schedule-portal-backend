@@ -85,7 +85,6 @@ def render_pdf(
     appt_date_human: str,
     appt_time_display: str,
     arrival_time_display: str,
-    stop_meds_block_html: str,
     followup_block_html: str,
     appt_dt: datetime,
 ) -> bytes:
@@ -128,7 +127,6 @@ def render_pdf(
         "{{APPT_DATE_HUMAN}}":      appt_date_human,
         "{{APPT_TIME}}":            appt_time_display,
         "{{ARRIVAL_TIME}}":         arrival_time_display,
-        "{{STOP_MEDS_BLOCK}}":      stop_meds_block_html,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
 

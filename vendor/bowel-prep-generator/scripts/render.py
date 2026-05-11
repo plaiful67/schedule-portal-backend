@@ -543,6 +543,12 @@ def build_strings(band, lang, location=None):
         "{{HTML_PRECLEANOUT_BLOCK}}": build_precleanout_block(band, lang),
         "{{HTML_CONTINGENCY_BLOCK}}": build_contingency_block(band, lang, location),
         "{{HTML_MEDICATIONS_DRUGS}}": _medications_drugs(band, lang),
+        # Phase-2: meds.giready.com QR + verify line appended inside the
+        # Medications callout on every mobile HTML and print PDF. Constant
+        # across band/location/lang — the URL never changes. The DOCX
+        # templates don't reference this token (DOCX update deferred to a
+        # follow-up phase), so substitution is a no-op there.
+        "{{MEDS_GIREADY_QR}}": _meds_giready_qr_data_uri(),
         # DOCX placeholders
         "{{DOCX_HEADING}}": band[f"docx_heading_{lang}"],
         "{{DOCX_DULCOLAX_LONG}}": docx_dulcolax_long,                  # total dose, used in Plan Ahead
@@ -565,6 +571,7 @@ def build_infant_strings(band, lang):
         "{{WARNING_WEIGHT}}": band[f"warning_weight_{lang}"],
         "{{DOCX_HEADING}}": band[f"docx_heading_{lang}"],
         "{{HTML_MEDICATIONS_DRUGS}}": _medications_drugs(band, lang),
+        "{{MEDS_GIREADY_QR}}": _meds_giready_qr_data_uri(),
     }
 
 
@@ -623,6 +630,35 @@ def _generate_mobile_qr(mobile_path, lang="en", subdomain="prep"):
     buf = _io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
+
+
+_MEDS_GIREADY_QR_DATA_URI_CACHE = None
+
+
+def _meds_giready_qr_data_uri():
+    """Return the data: URI for a meds.giready.com QR (PNG, ~150x150). The
+    URL is constant across every band/location/lang so we generate this PNG
+    once per process and reuse the data URI for every render. Used inside
+    the Medications callout on the mobile + print handouts.
+    Returns "" if qrcode/PIL aren't importable; the templates then render
+    a broken-image placeholder, which validate.py catches in CI."""
+    global _MEDS_GIREADY_QR_DATA_URI_CACHE
+    if _MEDS_GIREADY_QR_DATA_URI_CACHE is not None:
+        return _MEDS_GIREADY_QR_DATA_URI_CACHE
+    try:
+        import qrcode
+        from PIL import Image
+        import io as _io
+    except ImportError:
+        return ""
+    url = _qr_target("meds_giready_url")
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=1)
+    qr.add_data(url); qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white").convert("RGB").resize((150, 150), Image.NEAREST)
+    buf = _io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    _MEDS_GIREADY_QR_DATA_URI_CACHE = _png_to_data_uri(buf.getvalue())
+    return _MEDS_GIREADY_QR_DATA_URI_CACHE
 
 
 # All values formerly hardcoded here (SCC_MAPS_URL, YOUTUBE_URL_*, PORTAL_URL,

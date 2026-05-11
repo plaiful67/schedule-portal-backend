@@ -157,6 +157,25 @@ def audit_translation_gaps():
     return findings
 
 
+def audit_meds_giready_reference():
+    """Every flex-sig-*.html template should reference meds.giready.com (the
+    phase-2 Medications callout points families there for any drug not shown
+    in the handout). Returns list of file paths missing the reference."""
+    missing = []
+    for path in (SKILL / "templates").glob("flex-sig-*.html"):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        # Landing pages don't carry the Medications callout (they redirect
+        # to the band-specific handout).
+        if "landing" in path.name:
+            continue
+        if "meds.giready.com" not in text:
+            missing.append(str(path.relative_to(SKILL)))
+    return missing
+
+
 # ----------------------------------------------------------------------
 # Check 4: Render every band × lang × location combo
 # ----------------------------------------------------------------------
@@ -254,6 +273,20 @@ def main():
         failures.append(f"translation gaps: {len(trans_findings)} hit(s)")
     else:
         print("      ✅ no English-residue markers found in ES templates")
+
+    # 3b. meds.giready.com reference audit (phase 2)
+    print("\n[3b] meds.giready.com reference in flex-sig-*.html")
+    missing = audit_meds_giready_reference()
+    if missing:
+        print(f"      ❌ {len(missing)} template(s) missing the meds.giready.com reference:")
+        for fpath in missing:
+            print(f"         {fpath}")
+        print("      Hint: every flex-sig handout template (mobile + print) should")
+        print("      contain the Medications callout's verify-line + QR pointing at")
+        print("      https://meds.giready.com.")
+        failures.append(f"meds.giready.com reference: {len(missing)} template(s)")
+    else:
+        print("      ✅ every flex-sig handout template references meds.giready.com")
 
     if args.quick:
         return _summary(failures)

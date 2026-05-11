@@ -221,6 +221,32 @@ EN_RESIDUE_MARKERS = [
 ]
 
 
+def audit_meds_giready_paired_with_medications_drugs():
+    """Every template that references {{HTML_MEDICATIONS_DRUGS}} must also
+    reference meds.giready.com (the verify-line + QR row appended in phase 2).
+    This catches the regression where a new template variant is created
+    without the meds.giready.com reference — patients should see the
+    "verify at meds.giready.com" pointer on every handout that lists
+    medications to stop. Returns list of (file_relpath,) tuples for failures."""
+    missing = []
+    for path in (SKILL / "templates").rglob("*.html"):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if "{{HTML_MEDICATIONS_DRUGS}}" not in text:
+            continue
+        # Standard- and infant-non-print stubs use a simple <li> list, not a
+        # callout — phase 2 deferred those (DOCX-stub HTML, not patient-facing
+        # via the site/PDF path). Mark with `meds-giready-exempt` in a comment
+        # to skip this check.
+        if "meds-giready-exempt" in text:
+            continue
+        if "meds.giready.com" not in text:
+            missing.append(str(path.relative_to(SKILL)))
+    return missing
+
+
 def audit_translation_gaps():
     """Scan *.es.html for English-residue markers. Returns list of
     (file, lineno, marker, line) tuples."""
@@ -317,6 +343,22 @@ def main():
         failures.append(f"translation gaps: {len(trans_findings)} hit(s)")
     else:
         print("      ✅ no English-residue markers found in ES templates")
+
+    # ------------------------------------------------------------------
+    # 3b. meds.giready.com pairing audit (phase 2)
+    # ------------------------------------------------------------------
+    print("\n[3b] meds.giready.com pairing with {{HTML_MEDICATIONS_DRUGS}}")
+    pairing_missing = audit_meds_giready_paired_with_medications_drugs()
+    if pairing_missing:
+        print(f"      ❌ {len(pairing_missing)} template(s) reference {{HTML_MEDICATIONS_DRUGS}}")
+        print("         but are missing the meds.giready.com verify line:")
+        for fpath in pairing_missing:
+            print(f"           {fpath}")
+        print("      Hint: append the meds-verify-row HTML inside the Medications callout,")
+        print("      or add an HTML comment containing `meds-giready-exempt` if intentional.")
+        failures.append(f"meds.giready.com pairing: {len(pairing_missing)} template(s)")
+    else:
+        print("      ✅ every template using {{HTML_MEDICATIONS_DRUGS}} references meds.giready.com")
 
     if args.quick:
         return _summary(failures)

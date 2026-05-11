@@ -18,11 +18,9 @@ from .adapters import bowel_prep, combined, egd
 from .adapters._paths import skill_source
 from .personalization import (
     build_followup_block,
-    build_meds_reference_callout,
     format_appt_date,
     format_time_12h,
 )
-from .qr import meds_reference_qr_data_uri
 from .schemas import RenderRequest
 
 app = FastAPI(title="schedule.giready.com", version="0.1.0")
@@ -74,11 +72,6 @@ def render(req: RenderRequest):
     appt_date_human = format_appt_date(req.appointment_date, req.language)
     appt_time = format_time_12h(req.appointment_time)
     arrival_time = format_time_12h(req.arrival_time)
-    # Per-med list (sorted by hold-days descending) + footer pointer to
-    # meds.giready.com so families can verify anything that wasn't selected.
-    meds_callout = build_meds_reference_callout(
-        req.stop_meds, req.language, meds_reference_qr_data_uri()
-    )
 
     # Combined datetime drives both the cover-row mobile URL (#d=&t= hash)
     # and the pz-only span substitutions (rescue-cutoff clock time, etc.).
@@ -96,7 +89,6 @@ def render(req: RenderRequest):
         appt_date_human=appt_date_human,
         appt_time_display=appt_time,
         arrival_time_display=arrival_time,
-        stop_meds_block_html=meds_callout,
         followup_block_html=followup_block_html,
         appt_dt=appt_dt,
     )

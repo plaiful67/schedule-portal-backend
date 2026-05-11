@@ -40,6 +40,10 @@ qr_targets:
   youtube_url_es: "https://youtube.com/playlist?list=PL0SsMsgRJwXXyWBiapEnUWdjKqtAeENCl&si=Arwj1l4KenD16T4f"
   portal_url:     "https://healthcare.ascension.org/patient-portal/indiana-ascension-st-vincent"
   gikids_url:     "https://gikids.org/tests-procedures/colonoscopy/"
+  # Patient-facing medication checker — scanned/visited from the Medications
+  # callout on every handout. Mirrors the scheduler-portal med YAML and lets
+  # families verify any drug not listed by name on the printed handout.
+  meds_giready_url: "https://meds.giready.com"
 
 # Maps URL embedded in the original DOCX templates' placeholder Maps QR PNG.
 # render.py uses this for byte-match identification when swapping in per-location Maps QRs.

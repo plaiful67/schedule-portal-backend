@@ -155,6 +155,21 @@ def audit_translation_gaps():
 # ----------------------------------------------------------------------
 # Check 4: Render every lang × theme × location combo
 # ----------------------------------------------------------------------
+def audit_meds_giready_reference():
+    """Every egd-*.html template should reference meds.giready.com (the
+    phase-2 Medications callout points families there for any drug not
+    shown in the handout). Returns list of file paths missing the reference."""
+    missing = []
+    for path in (SKILL / "templates").glob("egd-*.html"):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except Exception:
+            continue
+        if "meds.giready.com" not in text:
+            missing.append(str(path.relative_to(SKILL)))
+    return missing
+
+
 def render_combo(lang, theme, location, out_dir):
     cmd = [
         str(PYTHON), str(RENDER),
@@ -248,6 +263,19 @@ def main():
         failures.append(f"translation gaps: {len(trans_findings)} hit(s)")
     else:
         print("      ✅ no English-residue markers found in ES templates")
+
+    # 3b. meds.giready.com reference audit (phase 2)
+    print("\n[3b] meds.giready.com reference in egd-*.html")
+    missing = audit_meds_giready_reference()
+    if missing:
+        print(f"      ❌ {len(missing)} template(s) missing the meds.giready.com reference:")
+        for fpath in missing:
+            print(f"         {fpath}")
+        print("      Hint: every EGD template should contain the Medications callout's")
+        print("      verify-line + QR pointing at https://meds.giready.com.")
+        failures.append(f"meds.giready.com reference: {len(missing)} template(s)")
+    else:
+        print("      ✅ every egd-*.html template references meds.giready.com")
 
     if args.quick:
         return _summary(failures)
