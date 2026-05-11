@@ -219,6 +219,10 @@
   /* BIG PREP — extra breathing room above so the most-important section
      visually separates from the 1-Day-Before content. */
   h2.step.big-prep { margin-top: 14pt; }
+  /* Keep BIG PREP heading + intro + first time-box on the same page.
+     Without break-after:avoid here the renderer can split between the intro
+     and the time-box, leaving the heading orphaned at the bottom of a page
+     with a big empty gap below. */
   h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
   h2.step .icon, h2.section-heading .icon {
     display: inline-block;
@@ -287,10 +291,10 @@
     background: #e8f1fb;
     border-left: 3pt solid #1565c0;
     border-radius: 3pt;
-    padding: 6pt 10pt;
-    margin: 4pt 0;
+    padding: 5pt 10pt;
+    margin: 3pt 0;
     break-inside: avoid;
-    font-size: 11.5pt;
+    font-size: 10.5pt;
   }
   .time-box .when {
     display: inline-block;
@@ -301,10 +305,10 @@
     padding: 1.5pt 6pt;
     border-radius: 3pt;
     font-size: 10pt;
-    margin-bottom: 4pt;
+    margin-bottom: 0; margin-right: 6pt;
   }
   .time-box .what {
-    display: block;
+    display: inline;
   }
 
   /* Callouts & warnings -------------------------------------------- */
@@ -345,7 +349,7 @@
   .tip.rescue .contingency-body ul { margin: 0; padding-left: 12pt; }
   .tip.rescue li { font-size: 8.5pt; line-height: 1.3; margin: 0; }
   .tip.rescue strong { color: #1a1a1a; }
-  .tip.rescue .pz-only { display: none; }
+  /* .pz-only inside the rescue tip is replaced with personalized timestamps server-side (apply_pz_substitutions); keep visible */
   /* Keep callout body text at the callout's intended 14px, not the body 17px. */
   .callout p, .callout li { font-size: 12px; line-height: 1.4; }
   .callout-title {
@@ -504,8 +508,8 @@
 
   /* --- Personalized appointment callout --- */
   .appt-callout {
-    margin: 12pt 0 10pt 0;
-    padding: 12pt 14pt;
+    margin: 6pt 0;
+    padding: 5pt 14pt;
     border: 2pt solid #0e2233;
     border-radius: 6pt;
     background: #f7f8fa;
@@ -516,11 +520,11 @@
   .appt-block.appt-block-date { flex: 2 1 0; }
   .appt-label {
     font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
-    color: #555; margin-bottom: 2pt;
+    color: #555; margin-bottom: 1pt;
   }
   .appt-value {
     font-family: "Source Serif 4", Georgia, serif;
-    font-size: 14pt; font-weight: 700; color: #0e2233;
+    font-size: 13pt; font-weight: 700; color: #0e2233;
     white-space: nowrap;
   }
   /* --- Standalone narrow follow-up appointment callout --- */

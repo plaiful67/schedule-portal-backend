@@ -110,7 +110,11 @@ def render_pdf(
     location = _location_block(location_id)
 
     # Build the same replacements dict the skill's batch render uses.
-    replacements = skill.build_strings(band, lang, location=location)
+    # Location info comes exclusively from build_location_placeholders; the
+    # canonical skill's build_strings dropped its `location=` kwarg, and the
+    # older vendored version accepted it as optional, so calling without it
+    # works against both.
+    replacements = skill.build_strings(band, lang)
     replacements.update(skill.build_location_placeholders(location, lang))
     replacements.update(skill.build_practice_placeholders(lang))
 
@@ -146,6 +150,19 @@ def render_pdf(
         "{{ARRIVAL_TIME}}":         arrival_time_display,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
+    # Forward-compat: the canonical bowel-prep skill has removed the
+    # contingency / shopping-quantity helpers, but the scheduler's
+    # personalized templates still reference those tokens. When the adapter
+    # runs against the live ~/.claude/skills copy, fall back to empty strings
+    # so the unreplaced-token guard passes. The vendored snapshot still
+    # provides real values, and `replacements` is merged BEFORE these stubs,
+    # so the real values win when present (dict-merge override order in
+    # `all_replacements` below).
+    forward_compat_stubs = {
+        "{{HTML_CONTINGENCY_BLOCK}}": "",
+        "{{HTML_GATORADE_SHOPPING}}": "",
+        "{{HTML_MIRALAX_SHOPPING}}":  "",
+    }
 
     # Load the personalized template + the skill's partials. Post-phase-2 the
     # _medications_note partial carries the standardized yellow callout
@@ -154,8 +171,20 @@ def render_pdf(
     # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
     partials = skill._load_partials(lang)
-    all_replacements = {**partials, **replacements, **qr_replacements, **personalization_replacements}
-    for token, value in all_replacements.items():
+    # Pass 1: expand partials FIRST so any tokens they introduce
+    # (e.g. {{HTML_MIRALAX_SHOPPING}} inside the partial shopping table)
+    # are visible to the main substitution pass below.
+    for token, value in partials.items():
+        html = html.replace(token, str(value))
+    # Pass 2: real values from build_strings + per-request personalization.
+    substitutions = {**replacements, **qr_replacements, **personalization_replacements}
+    for token, value in substitutions.items():
+        html = html.replace(token, str(value))
+    # Pass 3: forward-compat empty stubs for tokens the canonical skill no
+    # longer provides (contingency / shopping-quantities). Only fills tokens
+    # that survived passes 1 + 2, so real values from the vendored snapshot
+    # still win when present.
+    for token, value in forward_compat_stubs.items():
         html = html.replace(token, str(value))
 
     # Rewrite all five QR <img id="qr-*"> srcs (mobile + maps + 3 resource cards).

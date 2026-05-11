@@ -131,8 +131,13 @@ def build_followup_block(d: date | None, hhmm: str | None, lang: str) -> str:
     `hhmm` are both set, prints the concrete date/time. Otherwise prints a
     "call the office" fallback (lighter typography via the .fallback class).
     """
-    label = "Seguimiento" if lang == "es" else "Follow-up"
+    # When a date is provided, qualify the label so patients know the follow-up
+    # is at the office (Harcourt Rd / Fishers), not the surgery center where the
+    # procedure happened. Generic wording — we don't capture the specific office
+    # location on the form, and patients are told which office to come to when
+    # we call them.
     if d and hhmm:
+        label = "Seguimiento (en el consultorio)" if lang == "es" else "Follow-up (back in the office)"
         date_str = format_appt_date_short(d, lang)
         time_str = format_time_12h(hhmm)
         value = f"{date_str} a las {time_str}" if lang == "es" else f"{date_str} at {time_str}"
@@ -142,6 +147,7 @@ def build_followup_block(d: date | None, hhmm: str | None, lang: str) -> str:
             f'<span class="followup-value">{value}</span>'
             '</section>'
         )
+    label = "Seguimiento" if lang == "es" else "Follow-up"
     if lang == "es":
         msg = "Llame a la oficina para programar el seguimiento."
     else:
