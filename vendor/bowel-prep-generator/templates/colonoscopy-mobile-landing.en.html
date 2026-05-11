@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>{{HTML_TITLE}}</title>
+<link rel="alternate" hreflang="en" href="./">
+<link rel="alternate" hreflang="es" href="{{LANG_TOGGLE_HREF}}">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.5;
+    background: #f7f8fa;
+    font-size: 17px;
+  }
+  .container { max-width: 680px; margin: 0 auto; padding: 0 14px 32px; }
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #ffffff; border-bottom: 1px solid #e3e6eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .topbar-inner {
+    max-width: 680px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 8px 14px;
+    font-family: "Inter", sans-serif; font-size: 13px;
+  }
+  .topbar-logo { height: 32px; width: auto; flex: 0 0 auto; }
+  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #0e2233; font-weight: 600; }
+  .topbar-practice a { color: #0e4a82; text-decoration: none; }
+  .topbar-practice .phone { font-weight: 500; color: #3a3a3a; }
+  .lang-toggle {
+    flex: 0 0 auto;
+    font-family: "Inter", sans-serif; font-size: 12px; font-weight: 600;
+    color: #0e4a82; text-decoration: none;
+    border: 1px solid #c9d3dd; border-radius: 4px; padding: 4px 8px;
+    background: #fff;
+  }
+  h1 {
+    font-family: "Inter", sans-serif;
+    font-size: 26px; color: #0e2233;
+    margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: "Inter", sans-serif;
+    font-size: 15px; color: #3a3a3a; font-weight: 500;
+    margin: 0 0 18px;
+  }
+  .picker-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 0 0 20px;
+  }
+  @media (min-width: 480px) {
+    .picker-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .band-card {
+    display: block;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid #c9d3dd;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: #1a1a1a;
+    transition: background 0.1s ease;
+  }
+  .band-card:active { background: #f0f4f8; }
+  .band-card .band-label {
+    font-family: "Inter", sans-serif;
+    font-size: 18px; font-weight: 700; color: #0e2233;
+    line-height: 1.2;
+  }
+  .band-card .band-lb {
+    font-family: "Inter", sans-serif;
+    font-size: 13px; color: #3a3a3a;
+    margin-top: 3px;
+  }
+  .band-card .band-arrow {
+    font-family: "Inter", sans-serif;
+    font-size: 13px; font-weight: 600; color: #0e4a82;
+    margin-top: 8px;
+  }
+  .footer {
+    text-align: center; color: #555; font-size: 12px;
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
+    line-height: 1.6;
+  }
+  .footer .revised { font-size: 11px; color: #888; margin-top: 6px; }
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e0e0e0; }
+    .topbar { background: #262626; border-bottom-color: #3a3a3a; }
+    .topbar-practice { color: #e0e0e0; }
+    .topbar-practice .phone { color: #bbb; }
+    .topbar-practice a { color: #5eb3f6; }
+    .lang-toggle { background: #2a2a2a; border-color: #444; color: #5eb3f6; }
+    h1 { color: #e0e0e0; }
+    .subtitle { color: #bbb; }
+    .band-card { background: #252525; border-color: #3a3a3a; color: #e0e0e0; }
+    .band-card:active { background: #2f3a48; }
+    .band-card .band-label { color: #e0e0e0; }
+    .band-card .band-lb { color: #bbb; }
+    .band-card .band-arrow { color: #5eb3f6; }
+    .footer { color: #888; border-top-color: #3a3a3a; }
+  }
+
+  .breadcrumb {
+    font-family: "Inter", sans-serif; font-size: 13px;
+    margin: 14px 0 6px; color: #3a3a3a;
+  }
+  .breadcrumb a { color: #0e4a82; text-decoration: none; padding: 6px 0; display: inline-block; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  @media (prefers-color-scheme: dark) {
+    .breadcrumb { color: #bbb; }
+    .breadcrumb a { color: #5eb3f6; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="https://healthcare.ascension.org/locations/indiana/inasc/pmch/departments-and-services/departments/pediatric-gastroenterology" target="_blank" rel="noopener" aria-label="Pediatric GI at Peyton Manning Children's Hospital — official site"><img class="topbar-logo" src="{{LOGO_SRC}}" alt="{{PRACTICE_LOGO_ALT}}"></a>
+    <div class="topbar-practice">
+      Pediatric Gastroenterology<br>
+      <span class="phone"><a href="tel:3173389450">(317) 338-9450</a></span>
+    </div>
+    <a class="lang-toggle" href="{{LANG_TOGGLE_HREF}}">Español</a>
+  </div>
+</div>
+
+<div class="container">
+<div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Back to giready.com home</a></div>
+
+<h1>Colonoscopy Bowel Prep</h1>
+<div class="subtitle">Tap your child's weight band</div>
+
+<div class="picker-grid">
+{{BAND_CARDS}}
+</div>
+
+<div class="footer">
+  For patients of <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, and <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Pediatric Gastroenterology at Peyton Manning Children's Hospital in Indianapolis. Not a substitute for medical advice.<br>
+  Office: <a href="tel:3173389450">(317) 338-9450</a>
+  <div class="revised">Last revised {{REVISION_DATE}}</div>
+</div>
+
+</div>
+</body>
+</html>

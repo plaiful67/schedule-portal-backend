@@ -1,0 +1,42 @@
+# practice.yaml — per-practice branding, contact, and external resources.
+#
+# Mirrors the bowel-prep-generator and egd-handout-generator practice.yaml shape.
+# Edit this file to point the handout system at a *different practice*; edit
+# data/procedure.yaml for clinical/operational config (NPO timing, locations).
+
+practice:
+  # 3-line stack displayed in the print PDF cover (between logo and mobile QR).
+  cover_stack_en:
+    - "Pediatric"
+    - "Gastroenterology"
+    - "(317) 338-9450"
+  cover_stack_es:
+    - "Gastroenterología"
+    - "Pediátrica"
+    - "(317) 338-9450"
+
+  # Running footer (left side) on every print page.
+  footer_en: "Pediatric Gastroenterology  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+  footer_es: "Gastroenterología Pediátrica  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+
+  # Practice/group logo. Path is RELATIVE to the templates/ directory.
+  logo_filename: "logo-pmch.png"
+  logo_alt: "Peyton Manning Children's Hospital — Ascension St. Vincent"
+
+# Static QR targets — same target for both locations.
+# NOTE: No flex-sig-specific patient education video exists yet; we point at the
+# colonoscopy prep video as the closest analogue for the bowel-prep portion.
+# Replace when a flex-sig video is recorded.
+qr_targets:
+  youtube_url_en: "https://www.youtube.com/watch?v=dT3HPrMFwDc"
+  youtube_url_es: "https://youtube.com/playlist?list=PL0SsMsgRJwXXyWBiapEnUWdjKqtAeENCl&si=Arwj1l4KenD16T4f"
+  portal_url:     "https://healthcare.ascension.org/patient-portal/indiana-ascension-st-vincent"
+  # No flex-sig-specific GIKids page exists; using the colonoscopy page as the
+  # closest deep-dive (Sebastian's call — same prep concepts, same anatomy).
+  gikids_url:     "https://gikids.org/tests-procedures/colonoscopy/"
+
+# Maps URL embedded in the original DOCX templates' placeholder Maps QR PNG.
+# Kept for parity with bowel-prep skill; not currently used by the PDF-only
+# rendering path here.
+template_defaults:
+  scc_maps_url: "https://maps.app.goo.gl/nD86YApcywibXFHfA"

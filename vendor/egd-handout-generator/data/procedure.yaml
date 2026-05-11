@@ -1,0 +1,67 @@
+# procedure.yaml — clinical/operational config for EGD handouts.
+#
+# `practice.yaml` holds branding/contact/QR-target URLs (logo, footer, YouTube,
+# patient portal). This file holds everything procedure-specific: NPO timing,
+# locations, mobile-site routing.
+#
+# Adding a new procedure (flex sig, capsule, etc.) later: add another entry
+# under `procedures:` with the same shape, then build a per-procedure print
+# template at templates/<id>-print.<lang>.html.
+
+locations:
+  scc:
+    name_en: "Surgery Center of Carmel"
+    name_es: "Surgery Center of Carmel"
+    address: "12188-A N Meridian St #150, Carmel, IN 46032"
+    phone: "(317) 569-8250"
+    phone_label_en: "Surgery Center phone"
+    phone_label_es: "Teléfono del Centro"
+    arrival_en: "Arrive 1 hour before your scheduled procedure"
+    arrival_es: "Llegue 1 hora antes de su procedimiento programado"
+    maps_url_en: "https://maps.app.goo.gl/nD86YApcywibXFHfA"
+    maps_url_es: "https://maps.app.goo.gl/nD86YApcywibXFHfA?hl=es"
+    mobile_subdomain: "egd"        # → https://egd.giready.com/  (ES: /es/)
+    # Per-location NPO clear-liquids cutoff (hours before arrival).
+    # Overrides procedure.npo.clear_hours. SCC anesthesia signed off on 2 hr;
+    # PMCH currently requires 3 hr per their preop guidelines.
+    clear_hours: 2
+  pmch:
+    name_en: "St. Vincent Hospital — Pediatric Preop, Door #1"
+    name_es: "Hospital St. Vincent — Preop Pediátrico, Puerta #1"
+    address: "2001 W 86th St, Indianapolis, IN 46260 (Surgery Parking Lot)"
+    phone: "(317) 338-5851"
+    phone_label_en: "Pediatric Preop phone"
+    phone_label_es: "Teléfono Preop Pediátrico"
+    arrival_en: "Arrive 90 minutes before your scheduled procedure"
+    arrival_es: "Llegue 90 minutos antes de su procedimiento programado"
+    maps_url_en: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8"
+    maps_url_es: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8?hl=es"
+    mobile_subdomain: "egd86"      # → https://egd86.giready.com/  (ES: /es/)
+    clear_hours: 3
+
+# A `procedure` is one handout. v1 ships only `egd`. Add `flex-sig`, `capsule`,
+# etc. with the same shape when ready.
+procedures:
+  egd:
+    label_en: "Upper Endoscopy (EGD)"
+    label_es: "Endoscopia Superior (EGD)"
+    html_title_en: "Upper Endoscopy (EGD) — What to Expect"
+    html_title_es: "Endoscopia Superior (EGD) — Qué Esperar"
+
+    # Used in a "your procedure takes about X minutes" narrative line.
+    duration_min: 20
+
+    # NPO timing — hours BEFORE scheduled arrival to stop each food/liquid type.
+    # These are the PMCH preoperative outpatient guidelines.
+    npo:
+      solid_hours:       8
+      formula_hours:     6
+      breastmilk_hours:  4
+      clear_hours:       2
+      thickener_hours:   6
+
+    # Future variant flag. When true, render adds a callout: "Off acid
+    # suppressors (Prevacid, Prilosec, Nexium, Reglan, Erythromycin) for 5 days
+    # prior; off Carafate or Tums one day prior." Default off — wired but unused
+    # in v1; set to `true` when generating the impedance-probe variant later.
+    impedance_probe_callout: false

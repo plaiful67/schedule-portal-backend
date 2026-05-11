@@ -1,0 +1,48 @@
+# practice.yaml — per-practice branding, contact, and external resources.
+#
+# This is the file you edit to point the handout system at a *different practice*.
+# `dosing.yaml` holds the clinical protocol (weight bands, dosing, locations);
+# `practice.yaml` holds everything that's specific to who you are.
+#
+# A new practice should only need to edit:
+#   1. `practice:` block — name, phone, logo, footer
+#   2. `qr_targets:` block — YouTube + patient-portal links
+#   3. `template_defaults.scc_maps_url` — see comment there
+# …plus their own `dosing.yaml` and a logo PNG dropped in `templates/`.
+
+practice:
+  # GI-office phone for "call our office" copy across handouts. `phone` is the
+  # display form; `phone_tel` is the digits-only string used in tel: hrefs.
+  phone: "(317) 338-9450"
+  phone_tel: "3173389450"
+
+  # 3-line stack displayed in the print PDF cover (between logo and mobile QR).
+  cover_stack_en:
+    - "Pediatric"
+    - "Gastroenterology"
+    - "(317) 338-9450"
+  cover_stack_es:
+    - "Gastroenterología"
+    - "Pediátrica"
+    - "(317) 338-9450"
+
+  # Running footer (left side) on every print page.
+  footer_en: "Pediatric Gastroenterology  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+  footer_es: "Gastroenterología Pediátrica  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+
+  # Practice/group logo. Path is RELATIVE to the templates/ directory.
+  logo_filename: "logo-pmch.png"
+  logo_alt: "Peyton Manning Children's Hospital — Ascension St. Vincent"
+
+# Static QR targets — same target for both locations, may differ by language.
+qr_targets:
+  youtube_url_en: "https://www.youtube.com/watch?v=dT3HPrMFwDc"
+  youtube_url_es: "https://youtube.com/playlist?list=PL0SsMsgRJwXXyWBiapEnUWdjKqtAeENCl&si=Arwj1l4KenD16T4f"
+  portal_url:     "https://healthcare.ascension.org/patient-portal/indiana-ascension-st-vincent"
+  gikids_url:     "https://gikids.org/tests-procedures/colonoscopy/"
+
+# Maps URL embedded in the original DOCX templates' placeholder Maps QR PNG.
+# render.py uses this for byte-match identification when swapping in per-location Maps QRs.
+# Don't change this unless you regenerate the DOCX templates' Maps QR images.
+template_defaults:
+  scc_maps_url: "https://maps.app.goo.gl/nD86YApcywibXFHfA"

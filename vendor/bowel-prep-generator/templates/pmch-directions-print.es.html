@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Cómo Llegar a St. Vincent — Preop Pediátrico, Puerta #1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.65in 0.5in 0.65in;
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+      font-family: "Inter", sans-serif; font-size: 8.5pt; color: #666;
+    }
+    @bottom-left {
+      content: "Gastroenterología Pediátrica  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"; /* canonical-ok: WeasyPrint @bottom-left needs literal */
+      font-family: "Inter", sans-serif; font-size: 8.5pt; color: #666;
+    }
+  }
+
+  html { font-size: 10.5pt; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.36;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #0e2233;
+  }
+  h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
+  h2.step {
+    background: #0e2233; color: #fff;
+    padding: 4pt 8pt; border-radius: 3pt;
+    margin: 9pt 0 4pt 0; font-size: 11.5pt;
+    break-after: avoid; font-family: "Inter", sans-serif;
+  }
+  h3.dir-heading {
+    font-family: "Inter", sans-serif;
+    font-size: 10.5pt; font-weight: 600; color: #0e2233;
+    margin: 8pt 0 2pt 0;
+    border-bottom: 1pt solid #c9d3dd; padding-bottom: 1pt;
+    break-after: avoid;
+  }
+  p { margin: 4pt 0; orphans: 3; widows: 3; }
+  strong { font-weight: 700; }
+  a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  .qr-block { color: inherit; text-decoration: none; }
+
+  /* Cover */
+  .cover {
+    border-bottom: 2pt solid #0e2233;
+    padding-bottom: 8pt;
+    margin-bottom: 10pt;
+  }
+  .cover-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14pt; margin-bottom: 4pt;
+  }
+  .practice-logo { height: 0.65in; width: auto; flex: 0 0 auto; }
+  .practice-stack {
+    flex: 1 1 auto; text-align: center;
+    font-family: "Inter", sans-serif; font-size: 11pt; font-weight: 600;
+    color: #0e2233; line-height: 1.2;
+  }
+  .practice-stack .phone { margin-top: 1pt; font-size: 10pt; font-weight: 500; color: #555; }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .cover-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+  .cover-title-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12pt; margin-top: 2pt;
+  }
+  .doc-title { font-size: 17pt; font-weight: 600; color: #0e2233; margin: 1pt 0; }
+  .band-label {
+    font-family: "Inter", sans-serif;
+    font-size: 12pt; font-weight: 600;
+    color: #b03a00; margin-top: 2pt;
+  }
+
+  /* Address card */
+  .location {
+    display: flex; gap: 12pt; align-items: flex-start;
+    border: 1pt solid #c9d3dd; background: #f4f7fa;
+    border-radius: 4pt; padding: 8pt 10pt; margin-bottom: 10pt;
+    break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; font-size: 10pt; }
+  .location-text .label {
+    font-family: "Inter", sans-serif; font-size: 8.5pt;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #555; margin-bottom: 1pt;
+  }
+  .location-text .name { font-weight: 700; font-size: 11pt; color: #0e2233; }
+  .location-text .addr { margin-top: 1pt; }
+  .location-text .arrival {
+    margin-top: 3pt; font-family: "Inter", sans-serif;
+    font-weight: 600; color: #b03a00;
+  }
+
+  /* Callouts */
+  .callout {
+    background: #fffaeb; border: 1pt solid #d4a017;
+    border-radius: 4pt; padding: 6pt 9pt; margin: 6pt 0 10pt 0;
+    break-inside: avoid;
+  }
+  .callout-title {
+    font-family: "Inter", sans-serif; font-weight: 700;
+    color: #7a4f00; margin-bottom: 3pt;
+  }
+
+  /* Maps */
+  .map {
+    display: block;
+    width: 100%; height: auto;
+    border: 1pt solid #c9d3dd; border-radius: 4pt;
+    margin: 6pt 0 4pt 0;
+    break-inside: avoid;
+  }
+  .map-caption {
+    font-family: "Inter", sans-serif;
+    font-size: 8.5pt; color: #555; font-style: italic;
+    margin: 2pt 0 8pt 0;
+    text-align: center;
+  }
+  .map-roadmap { max-height: 4.4in; object-fit: contain; }
+  .map-streetview { max-height: 4.0in; object-fit: contain; }
+
+  /* Directions */
+  .directions p { margin: 3pt 0 4pt 0; font-size: 10pt; line-height: 1.4; }
+  .directions { break-inside: avoid; }
+
+  .page-break { break-before: page; }
+
+  .fineprint {
+    margin-top: 12pt; font-size: 9pt; color: #555; font-style: italic;
+    border-top: 0.5pt solid #c9d3dd; padding-top: 6pt;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="cover-row">
+    <img class="practice-logo" src="logo-pmch.png" alt="Peyton Manning Children's Hospital — Ascension St. Vincent">
+    <div class="practice-stack">
+      <div>Gastroenterología</div>
+      <div>Pediátrica</div>
+      <div class="phone">(317) 338-9450</div>
+    </div>
+    <div class="cover-qr">
+      <a class="qr-block" href="https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8?hl=es" target="_blank" rel="noopener">
+        <span class="qr-caption">Escanee para Google Maps</span>
+        <img id="qr-maps" src="qr-placeholder.png" alt="Google Maps QR">
+      </a>
+    </div>
+  </div>
+  <div class="cover-title-row">
+    <h1 class="doc-title">St. Vincent — 86th St., Puerta #1</h1>
+    <div class="band-label">Cómo Llegar</div>
+  </div>
+</section>
+
+<!-- ADDRESS / LOCATION -->
+<section class="location">
+  <div class="location-text">
+    <div class="label">Entrada de Preop Pediátrico</div>
+    <div class="name">Hospital St. Vincent — Preop Pediátrico, Puerta #1 (Azul)</div>
+    <div class="addr"><a href="https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8?hl=es" target="_blank" rel="noopener">2001 W 86th St, Indianapolis, IN 46260</a></div>
+    <div class="addr">Teléfono Preop Pediátrico: <a href="tel:3173385851"><strong>(317) 338-5851</strong></a></div> <!-- canonical-ok: directions render bypasses placeholder layer -->
+    <div class="arrival">Llegue 90 minutos antes de su procedimiento programado</div>
+  </div>
+</section>
+
+<!-- KEY ACCESS NOTE -->
+<div class="callout">
+  <div class="callout-title">🅿️ Estacionamiento y Entrada</div>
+  <p>La Puerta #1 está en <strong>Esther Ferrand Dr.</strong>, en el lado este del campus del hospital. <strong>Hay valet parking gratuito disponible</strong> en la puerta (zona de descenso techada con un letrero azul "1").</p>
+  <p>Acceso más fácil: entre a Esther Ferrand Dr. desde <strong>Harcourt Rd.</strong> (lado este). Una ruta un poco más larga desde Naab Rd. (lado oeste) recorre el campus del hospital.</p>
+</div>
+
+<!-- ROADMAP -->
+<h2 class="step">🗺️ Mapa — Dónde Está la Puerta #1</h2>
+<img class="map map-roadmap" src="maps/pmch-door1-roadmap.png" alt="Mapa que muestra la Puerta #1 en Esther Ferrand Dr., el estacionamiento de cirugía y el acceso desde Harcourt Rd. (este) o Naab Rd. (oeste).">
+<p class="map-caption">La Puerta #1 está marcada en rojo. El estacionamiento grande de cirugía está al otro lado de Esther Ferrand Dr. — pase por debajo de la zona techada para valet, o estacione en el lote y camine hasta la puerta.</p>
+
+<!-- STREET VIEW -->
+<h2 class="step">📷 Cómo Se Ve la Puerta #1</h2>
+<img class="map map-streetview" src="maps/pmch-door1-streetview.png" alt="Vista de calle de la Puerta #1 — zona de descenso techada en Esther Ferrand Dr. con el letrero azul '1' sobre las puertas giratorias y un puesto de valet.">
+<p class="map-caption">Busque la zona de descenso techada con el letrero azul "<strong>1</strong>". El puesto de valet está justo en la puerta.</p>
+
+<!-- TEXT DIRECTIONS -->
+<h2 class="step">🚗 Indicaciones para Conducir</h2>
+<div class="directions">
+  <h3 class="dir-heading">Ruta más fácil — Desde Harcourt Rd. (lado este)</h3>
+  <p>Desde W 86th St., gire al <strong>SUR</strong> en Harcourt Rd. Después de aproximadamente 2 cuadras, gire a la <strong>DERECHA (OESTE)</strong> en Esther Ferrand Dr. La entrada techada de la Puerta #1 con el letrero azul "1" está inmediatamente a su <strong>IZQUIERDA</strong>. Pase por debajo del techo para que el valet tome el auto, o continúe y estacione en el estacionamiento de cirugía a su derecha.</p>
+
+  <h3 class="dir-heading">Ruta alterna — Desde Naab Rd. (lado oeste, un poco más larga)</h3>
+  <p>Desde W 86th St., gire al <strong>SUR</strong> en Naab Rd. Entre al campus del hospital, siga el circuito (pasando el redondel cerca de St. Vincent Audiology) y continúe hacia el este por el frente del hospital. Esther Ferrand Dr. corre por el lado este del edificio — la Puerta #1 está en el extremo sur de esa avenida, a su <strong>DERECHA</strong> mientras avanza hacia el sur. El valet está en la puerta.</p>
+
+  <h3 class="dir-heading">Si se pasa de la entrada</h3>
+  <p>Si termina en W 86th St. yendo hacia el oeste pasando Naab Rd., o en Harcourt Rd. yendo al sur pasando Esther Ferrand Dr., dé la vuelta. El campus del hospital está delimitado por W 86th St. (norte), Naab Rd. (oeste) y Harcourt Rd. (este).</p>
+</div>
+
+<p class="fineprint">Si se pierde o llega tarde, llame directamente a Preop Pediátrico: <a href="tel:3173385851"><strong>(317) 338-5851</strong></a><!-- canonical-ok -->. Para otras preguntas sobre el procedimiento de su niño, llame a nuestra oficina al <a href="tel:3173389450"><strong>(317) 338-9450</strong></a>.</p>
+
+</body>
+</html>

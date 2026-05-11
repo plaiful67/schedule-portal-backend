@@ -1,0 +1,6 @@
+# Direct dependencies. Pip will resolve transitives (lxml, cffi, pillow, etc.).
+PyYAML>=6.0
+qrcode>=7.4
+Pillow>=10.0
+weasyprint>=60.0
+pypdf>=4.0

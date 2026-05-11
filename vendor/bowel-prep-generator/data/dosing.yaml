@@ -1,0 +1,380 @@
+# Locations supported by the handouts. Pick one with `--location {scc|pmch}`
+# at render time. Defaults to scc.
+locations:
+  scc:
+    name_en: "Surgery Center of Carmel"
+    name_es: "Surgery Center of Carmel"
+    address: "12188-A N Meridian St #150, Carmel, IN 46032"
+    phone: "(317) 569-8250"
+    phone_label_en: "Surgery Center phone"
+    phone_label_es: "Teléfono del Centro"
+    arrival_en: "Arrive 1 hour before your scheduled procedure"
+    arrival_es: "Llegue 1 hora antes de su procedimiento programado"
+    # Used by personalize: minutes to subtract from procedure time to compute arrival time.
+    arrival_minutes_before: 60
+    # Short facility name used in the personalized "Arrive at … by 8:30 AM" reminder.
+    arrival_facility_short_en: "the Surgery Center"
+    arrival_facility_short_es: "el Centro de Cirugía"
+    maps_url_en: "https://maps.app.goo.gl/nD86YApcywibXFHfA"
+    maps_url_es: "https://maps.app.goo.gl/nD86YApcywibXFHfA?hl=es"
+    mobile_subdomain: "prep"
+    mobile_subdomain_combined: "egdcolon"
+    clears_npo_hours: 2
+  pmch:
+    name_en: "St. Vincent Hospital — Pediatric Preop, Door #1"
+    name_es: "Hospital St. Vincent — Preop Pediátrico, Puerta #1"
+    address: "2001 W 86th St, Indianapolis, IN 46260 (Surgery Parking Lot)"
+    phone: "(317) 338-5851"
+    phone_label_en: "Pediatric Preop phone"
+    phone_label_es: "Teléfono Preop Pediátrico"
+    arrival_en: "Arrive 90 minutes before your scheduled procedure"
+    arrival_es: "Llegue 90 minutos antes de su procedimiento programado"
+    arrival_minutes_before: 90
+    arrival_facility_short_en: "the hospital"
+    arrival_facility_short_es: "el hospital"
+    maps_url_en: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8"
+    maps_url_es: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8?hl=es"
+    mobile_subdomain: "prep86"
+    mobile_subdomain_combined: "egdcolon86"
+    clears_npo_hours: 3
+
+# Bowel prep dosing data — single source of truth for all handouts.
+# Edit values here, then run render.py to regenerate HTML + DOCX (English + Spanish).
+#
+# Two protocols are supported:
+#   - infant:    no oral prep (saline enema by staff); minimal fields
+#   - standard:  Dulcolax + MiraLAX + Gatorade dosing
+#
+# Precleanout strings are stored as fully-formed localized sentences because
+# their phrasing varies (e.g. "4 capfuls" vs "1–2 capfuls"). Dosing numbers
+# are structured so render.py can assemble consistent wording per language.
+
+bands:
+
+  # =====================================================================
+  # INFANT PROTOCOL
+  # =====================================================================
+  - id: "under-15"
+    protocol: infant
+    label_en: "Infants and Children Under 15 kg (<33 lb)"
+    label_es: "Bebés y Niños Menores de 15 kg (<33 lb)"
+    html_title_en: "Colonoscopy Prep — MiraLAX Option — Infants and Children Under 15 kg"
+    html_title_es: "Preparación para Colonoscopia — Opción MiraLAX — Bebés y Niños Menores de 15 kg"
+    # DOCX heading uses ASCII-flattened labels (matching existing DOCX encoding)
+    docx_heading_en: "Infants and Children Under 15 kg (&lt;33 lb)"
+    docx_heading_es: "Bebés y Niños Menores de 15 kg (&lt;33 lb)"
+    mobile_path: "u15kgPEG"
+    warning_weight_en: "15 kg"
+    warning_weight_es: "15 kg"
+    # Output filename stem (becomes bowel-prep-{filename_stem}-mobile.html, etc.)
+    filename_stem: "under-15kg"
+    folder_en: "Under 15 kg (Under 33 Lb)"
+    folder_es: "Menos de 15 kg (Menos de 33 Lb)"
+    include_glp1_warning: false
+    # Cheat-sheet subtable rows. Mirrors the weight-banded MiraLAX dose table
+    # on the patient handout (templates/colonoscopy-mobile-infant.en.html
+    # lines 267-293). UTF-8 fractions are kept verbatim through render.
+    cheat_sheet_subbands:
+      - label_en: "<5 kg"
+        miralax_capfuls_en: "¼"
+        miralax_grams: 4
+        mix_oz_en: "2–4 oz"
+      - label_en: "5–9 kg"
+        miralax_capfuls_en: "½"
+        miralax_grams: 8.5
+        mix_oz_en: "4–6 oz"
+      - label_en: "10–15 kg"
+        miralax_capfuls_en: "¾"
+        miralax_grams: 13
+        mix_oz_en: "6–8 oz"
+    cheat_sheet_schedule_en: "1 dose/day × 2 days (days −3 and −2)"
+    cheat_sheet_mix_vehicle_en: "Pedialyte or clear apple juice"
+
+  - id: "under-15-enema"
+    protocol: infant-enema
+    label_en: "Infants and Children Under 15 kg (<33 lb)"
+    label_es: "Bebés y Niños Menores de 15 kg (<33 lb)"
+    html_title_en: "Colonoscopy Prep — Clear Liquids + Saline Enema Option — Infants and Children Under 15 kg"
+    html_title_es: "Preparación para Colonoscopia — Opción Líquidos Claros + Enema — Bebés y Niños Menores de 15 kg"
+    docx_heading_en: "Infants and Children Under 15 kg (&lt;33 lb)"
+    docx_heading_es: "Bebés y Niños Menores de 15 kg (&lt;33 lb)"
+    mobile_path: "u15kgEnema"
+    warning_weight_en: "15 kg"
+    warning_weight_es: "15 kg"
+    filename_stem: "under-15kg-enema"
+    folder_en: "Under 15 kg (Under 33 Lb)"
+    folder_es: "Menos de 15 kg (Menos de 33 Lb)"
+    include_glp1_warning: false
+    # Cheat-sheet one-line summary. Source:
+    # templates/colonoscopy-mobile-infant-enema.en.html lines 308-310.
+    cheat_sheet_summary_en: "10 mL/kg — evening at home if directed, otherwise by staff at facility"
+
+  # =====================================================================
+  # STANDARD PROTOCOL
+  # =====================================================================
+  - id: "15-20"
+    protocol: standard
+    label_en: "15-20 kg (33-44 lb)"
+    label_es: "15-20 kg (33-44 lb)"
+    html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 15-20 kg"
+    html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 15-20 kg"
+    docx_heading_en: "Children 15-20 kg (33-44 lb)"
+    docx_heading_es: "Niños de 15-20 kg (33-44 lb)"
+    mobile_path: "u20kg"
+    filename_stem: "15-20kg"
+    folder_en: "15-20 kg (33-44 Lb)"
+    folder_es: "15-20 kg (33-44 Lb)"
+    include_glp1_warning: false
+    dulcolax_tablets: 1
+    dulcolax_bedtime_tablets: 0
+    dulcolax_dayof_tablets: 1
+    dulcolax_dayof_time: "12:00 PM"
+    miralax_time: "1:00 PM"
+    drink_cup_en: "3 oz (~90 mL)"
+    drink_cup_es: "3 oz (~90 mL)"
+    dulcolax_mg_total: 5
+    miralax_capfuls: 5
+    miralax_grams: 80
+    miralax_note_en: ""
+    miralax_note_es: ""
+    gatorade_oz: 20
+    precleanout_en: "1–2 capfuls (15–30 g) mixed into 8–16 oz of juice, water, or Gatorade"
+    precleanout_es: "1–2 tapas (15–30 g) mezcladas en 8–16 oz de jugo, agua o Gatorade"
+    # Pre-cleanout for the HTML callout. Per 2026-05-08 clinical guidance,
+    # the under-30 kg bands present the lower-dose × longer-duration option
+    # only (no second option). The DOCX legacy string above is unchanged.
+    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>once daily</strong> for <strong>5 days</strong>"
+    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>una vez al día</strong> durante <strong>5 días</strong>"
+    precleanout_a_offset_days: -5
+    precleanout_b_text_en: ""
+    precleanout_b_text_es: ""
+    precleanout_b_offset_days: null
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>½ capful of MiraLAX daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>½ tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+    # Backup plan if the BIG PREP isn't working — see build_contingency_block().
+    contingency_trigger_hours: 4
+    contingency_evening_caps: 2
+    contingency_evening_oz: 8
+    contingency_morning_caps: 1
+    contingency_morning_oz: 4
+    contingency_total_caps: 8
+    contingency_total_grams: 136
+    contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
+    contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
+    # §6 shopping volume (BIG PREP + worst-day extra). See build_strings().
+    shopping_gatorade_oz: 32
+
+  - id: "21-30"
+    protocol: standard
+    label_en: "21-30 kg (46-66 lb)"
+    label_es: "21-30 kg (46-66 lb)"
+    html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 21-30 kg"
+    html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 21-30 kg"
+    docx_heading_en: "Children 21-30 kg (46-66 lb)"
+    docx_heading_es: "Niños de 21-30 kg (46-66 lb)"
+    mobile_path: "u30kg"
+    filename_stem: "21-30kg"
+    folder_en: "21-30 kg (46-66 Lb)"
+    folder_es: "21-30 kg (46-66 Lb)"
+    include_glp1_warning: false
+    dulcolax_tablets: 2
+    dulcolax_bedtime_tablets: 1
+    dulcolax_dayof_tablets: 1
+    dulcolax_forgot_dayof_tablets: 2
+    dulcolax_dayof_time: "3:00 PM"
+    miralax_time: "3:00 PM"
+    drink_cup_en: "5 oz (~150 mL)"
+    drink_cup_es: "5 oz (~150 mL)"
+    dulcolax_mg_total: 10
+    miralax_capfuls: 7
+    miralax_grams: 120
+    miralax_note_en: ""
+    miralax_note_es: ""
+    gatorade_oz: 28
+    precleanout_en: "2–3 capfuls (32–45 g) mixed into 16–24 oz of juice, water, or Gatorade"
+    precleanout_es: "2–3 tapas (32–45 g) mezcladas en 16–24 oz de jugo, agua o Gatorade"
+    # Single option (lower dose × longer duration) per 2026-05-08 clinical guidance.
+    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>2 times daily</strong> for <strong>5 days</strong>"
+    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>2 veces al día</strong> durante <strong>5 días</strong>"
+    precleanout_a_offset_days: -5
+    precleanout_b_text_en: ""
+    precleanout_b_text_es: ""
+    precleanout_b_offset_days: null
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>½ capful of MiraLAX daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>½ tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+    contingency_trigger_hours: 4
+    contingency_evening_caps: 3
+    contingency_evening_oz: 12
+    contingency_morning_caps: 1
+    contingency_morning_oz: 5
+    contingency_total_caps: 11
+    contingency_total_grams: 187
+    contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
+    contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
+    shopping_gatorade_oz: 44
+
+  - id: "31-40"
+    protocol: standard
+    label_en: "31-40 kg (68-88 lb)"
+    label_es: "31-40 kg (68-88 lb)"
+    html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 31-40 kg"
+    html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 31-40 kg"
+    docx_heading_en: "Children 31-40 kg (68-88 lb)"
+    docx_heading_es: "Niños de 31-40 kg (68-88 lb)"
+    mobile_path: "u40kg"
+    filename_stem: "31-40kg"
+    folder_en: "31-40 kg (68-88 Lb)"
+    folder_es: "31-40 kg (68-88 Lb)"
+    include_glp1_warning: false
+    dulcolax_tablets: 2
+    dulcolax_bedtime_tablets: 1
+    dulcolax_dayof_tablets: 1
+    dulcolax_forgot_dayof_tablets: 2
+    dulcolax_dayof_time: "3:00 PM"
+    miralax_time: "3:00 PM"
+    drink_cup_en: "7 oz (~200 mL)"
+    drink_cup_es: "7 oz (~200 mL)"
+    dulcolax_mg_total: 10
+    miralax_capfuls: 10
+    miralax_grams: 170
+    miralax_note_en: ""
+    miralax_note_es: ""
+    gatorade_oz: 40
+    precleanout_en: "3–4 capfuls (47–60 g) mixed into 24–32 oz of juice, water, or Gatorade"
+    precleanout_es: "3–4 tapas (47–60 g) mezcladas en 24–32 oz de jugo, agua o Gatorade"
+    precleanout_a_label_en: ""
+    precleanout_a_label_es: ""
+    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>4 times daily</strong> for <strong>3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>4 veces al día</strong> durante <strong>3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_offset_days: null
+    precleanout_b_label_en: ""
+    precleanout_b_label_es: ""
+    precleanout_b_text_en: ""
+    precleanout_b_text_es: ""
+    precleanout_b_offset_days: null
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+    contingency_trigger_hours: 4
+    contingency_evening_caps: 3
+    contingency_evening_oz: 12
+    contingency_morning_caps: 2
+    contingency_morning_oz: 8
+    contingency_total_caps: 15
+    contingency_total_grams: 255
+    contingency_backup_en: "We may suggest a saline enema at the facility, or rescheduling the procedure."
+    contingency_backup_es: "Podemos sugerir un enema de solución salina en el centro, o reprogramar el procedimiento."
+    shopping_gatorade_oz: 60
+
+  - id: "41-50"
+    protocol: standard
+    label_en: "41-50 kg (90-110 lb)"
+    label_es: "41-50 kg (90-110 lb)"
+    html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 41-50 kg"
+    html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 41-50 kg"
+    docx_heading_en: "Children 41-50 kg (90-110 lb)"
+    docx_heading_es: "Niños de 41-50 kg (90-110 lb)"
+    mobile_path: "u50kg"
+    filename_stem: "41-50kg"
+    folder_en: "41-50 kg (90-110 Lb)"
+    folder_es: "41-50 kg (90-110 Lb)"
+    include_glp1_warning: true
+    dulcolax_tablets: 3
+    dulcolax_bedtime_tablets: 2
+    dulcolax_dayof_tablets: 1
+    dulcolax_forgot_dayof_tablets: 3
+    dulcolax_dayof_time: "3:00 PM"
+    miralax_time: "3:00 PM"
+    drink_cup_en: "8 oz (~250 mL)"
+    drink_cup_es: "8 oz (~250 mL)"
+    dulcolax_mg_total: 15
+    miralax_capfuls: 12
+    miralax_grams: 200
+    miralax_note_en: ""
+    miralax_note_es: ""
+    gatorade_oz: 48
+    precleanout_en: "4 capfuls (~60–68 g) mixed into 32 oz of juice, water, or Gatorade"
+    precleanout_es: "4 tapas (~60–68 g) mezcladas en 32 oz de jugo, agua o Gatorade"
+    # Single option: weekend big-day at 8 capfuls / 32 oz, mimicking the regular bowel prep.
+    # Followed by daily maintenance via precleanout_maintenance_*.
+    precleanout_a_label_en: ""
+    precleanout_a_label_es: ""
+    precleanout_a_text_en: "<strong>8 capfuls of MiraLAX in 32 oz of Gatorade</strong>, over <strong>about 4 hours</strong> on a weekend day &mdash; similar to the regular bowel prep below"
+    precleanout_a_text_es: "<strong>8 tapas de MiraLAX en 32 oz de Gatorade</strong>, durante <strong>aproximadamente 4 horas</strong> en un día de fin de semana &mdash; similar a la preparación intestinal regular abajo"
+    precleanout_a_offset_days: null
+    precleanout_b_label_en: ""
+    precleanout_b_label_es: ""
+    precleanout_b_text_en: ""
+    precleanout_b_text_es: ""
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+    precleanout_b_offset_days: null
+    # Surfaces the 8 caps embedded in precleanout_a_text_* as a structured field
+    # so the §6 shopping calculation can read it without parsing HTML.
+    precleanout_intensive_caps: 8
+    contingency_trigger_hours: 4
+    contingency_evening_caps: 4
+    contingency_evening_oz: 16
+    contingency_morning_caps: 2
+    contingency_morning_oz: 8
+    contingency_total_caps: 18
+    contingency_total_grams: 306
+    contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
+    contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
+    shopping_gatorade_oz: 80
+
+  - id: "over-50"
+    protocol: standard
+    label_en: "Over 50 kg (>110 lb)"
+    label_es: "Más de 50 kg (>110 lb)"
+    html_title_en: "Colonoscopy Bowel Preparation Instructions - Children Over 50 kg"
+    html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños Mayores de 50 kg"
+    docx_heading_en: "Children Over 50 kg (&gt;110 lb)"
+    docx_heading_es: "Niños Mayores de 50 kg (&gt;110 lb)"
+    mobile_path: "o50kg"
+    filename_stem: "over-50kg"
+    folder_en: "Over 50 kg (Over 110 Lb)"
+    folder_es: "Más de 50 kg (Más de 110 Lb)"
+    include_glp1_warning: true
+    dulcolax_tablets: 4
+    dulcolax_bedtime_tablets: 2
+    dulcolax_dayof_tablets: 2
+    # If the bedtime dose is forgotten, take all 4 tablets on the day of prep
+    # (bedtime + dayof). Default in render.py is now additive, so this matches
+    # the default — kept explicit for self-documenting clarity.
+    dulcolax_forgot_dayof_tablets: 4
+    dulcolax_dayof_time: "3:00 PM"
+    miralax_time: "3:00 PM"
+    drink_cup_en: "8 oz (~250 mL)"
+    drink_cup_es: "8 oz (~250 mL)"
+    dulcolax_mg_total: 20
+    miralax_capfuls: 14
+    miralax_grams: 238
+    miralax_note_en: ", 1 full bottle"
+    miralax_note_es: ", 1 botella completa"
+    gatorade_oz: 64
+    precleanout_en: "5–6 capfuls (75–100 g) mixed into 40–48 oz of juice, water, or Gatorade"
+    precleanout_es: "5–6 tapas (75–100 g) mezcladas en 40–48 oz de jugo, agua o Gatorade"
+    # Two options mirror the 41-50 kg structure: 3-day course OR weekend big-day + maintenance.
+    precleanout_a_label_en: ""
+    precleanout_a_label_es: ""
+    precleanout_a_text_en: "<strong>10 capfuls of MiraLAX in 40 oz of Gatorade</strong>, over <strong>about 4 hours</strong> on a weekend day &mdash; similar to the regular bowel prep below"
+    precleanout_a_text_es: "<strong>10 tapas de MiraLAX en 40 oz de Gatorade</strong>, durante <strong>aproximadamente 4 horas</strong> en un día de fin de semana &mdash; similar a la preparación intestinal regular abajo"
+    precleanout_a_offset_days: null
+    precleanout_b_label_en: ""
+    precleanout_b_label_es: ""
+    precleanout_b_text_en: ""
+    precleanout_b_text_es: ""
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+    precleanout_b_offset_days: null
+    precleanout_intensive_caps: 10
+    contingency_trigger_hours: 4
+    contingency_evening_caps: 4
+    contingency_evening_oz: 16
+    contingency_morning_caps: 2
+    contingency_morning_oz: 8
+    contingency_total_caps: 20
+    contingency_total_grams: 340
+    contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
+    contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
+    shopping_gatorade_oz: 96

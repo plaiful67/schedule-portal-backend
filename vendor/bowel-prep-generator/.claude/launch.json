@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "prep-static",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "8731", "--bind", "127.0.0.1", "--directory", "/Users/sebastianz/Desktop/peds-gi-system/prep-giready"],
+      "port": 8731
+    }
+  ]
+}

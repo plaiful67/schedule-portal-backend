@@ -1,0 +1,184 @@
+# procedure.yaml — clinical/operational config for flexible-sigmoidoscopy handouts.
+#
+# `practice.yaml` holds branding/contact/QR-target URLs (logo, footer, YouTube,
+# patient portal). This file holds everything procedure-specific: weight bands,
+# enema dosing, locations.
+#
+# Architecture mirrors egd-handout-generator (locations + procedures blocks)
+# but carries a `bands:` array under the procedure to handle weight-tiered
+# enema dosing — closer to bowel-prep-generator's shape.
+#
+# Source clinical content is OpenEvidence-validated and saved at
+# ~/.claude/projects/-Users-sebastian/memory/project_flex_sig_protocol.md
+# (drafted 2026-04-28, consolidated to 3 bands per Sebastian's review).
+
+locations:
+  scc:
+    name_en: "Surgery Center of Carmel"
+    name_es: "Surgery Center of Carmel"
+    address: "12188-A N Meridian St #150, Carmel, IN 46032"
+    phone: "(317) 569-8250"
+    phone_label_en: "Surgery Center phone"
+    phone_label_es: "Teléfono del Centro"
+    arrival_en: "Arrive 1 hour before your scheduled procedure"
+    arrival_es: "Llegue 1 hora antes de su procedimiento programado"
+    maps_url_en: "https://maps.app.goo.gl/nD86YApcywibXFHfA"
+    maps_url_es: "https://maps.app.goo.gl/nD86YApcywibXFHfA?hl=es"
+    mobile_subdomain: "flexsig"      # → https://flexsig.giready.com/   (ES: /es/)
+    # Per-location NPO clear-liquids cutoff (hours before arrival).
+    # Overrides procedure.npo.clear_hours.
+    clear_hours: 2
+  pmch:
+    name_en: "St. Vincent Hospital — Pediatric Preop, Door #1"
+    name_es: "Hospital St. Vincent — Preop Pediátrico, Puerta #1"
+    address: "2001 W 86th St, Indianapolis, IN 46260 (Surgery Parking Lot)"
+    phone: "(317) 338-5851"
+    phone_label_en: "Pediatric Preop phone"
+    phone_label_es: "Teléfono Preop Pediátrico"
+    arrival_en: "Arrive 90 minutes before your scheduled procedure"
+    arrival_es: "Llegue 90 minutos antes de su procedimiento programado"
+    maps_url_en: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8"
+    maps_url_es: "https://maps.app.goo.gl/Uq7do9hBrpttYxLQ8?hl=es"
+    mobile_subdomain: "flexsig86"    # → https://flexsig86.giready.com/ (ES: /es/)
+    clear_hours: 3
+
+# A `procedure` is one handout series. v1 ships only `flex-sig` with 3 weight
+# bands. Add other procedures with the same shape later.
+procedures:
+  flex-sig:
+    label_en: "Flexible Sigmoidoscopy"
+    label_es: "Sigmoidoscopia Flexible"
+    html_title_en: "Flexible Sigmoidoscopy — Bowel Prep"
+    html_title_es: "Sigmoidoscopia Flexible — Preparación Intestinal"
+
+    # NPO timing — same as colonoscopy / EGD.
+    npo:
+      solid_hours:       8
+      formula_hours:     6
+      breastmilk_hours:  4
+      clear_hours:       2
+
+    # Per-serving cap for clear liquids on the morning of the procedure.
+    # Matches the over-50-kg drink-cup volume in the bowel-prep skill so
+    # changes to anesthesia's hydration guidance can be made in one place.
+    drink_cup_en: "1 cup (8 oz / ~250 mL)"
+    drink_cup_es: "1 taza (8 oz / ~250 mL)"
+
+    bands:
+      - id: under-15kg
+        filename_stem: under-15kg
+        # When true, the simpler diet variant is used in the print template
+        # and the special-staff-administered enema callout is shown.
+        simple_diet: true
+        infant_callout: true
+        label_en: "Under 15 kg (Under 33 lb)"
+        label_es: "Menos de 15 kg (Menos de 33 lb)"
+        html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (Under 15 kg)"
+        html_title_es: "Sigmoidoscopia Flexible — Preparación (Menos de 15 kg)"
+        folder_en: "Under 15 kg"
+        folder_es: "Menos de 15 kg"
+
+        # Shopping-list paragraph (or, for this band, the staff-administered
+        # note that *replaces* the shopping list).
+        shopping_text_en: >-
+          Because your child is small, the enema will be given by a nurse or
+          doctor using a syringe with normal saline (salt water) — not a
+          store-bought enema bottle. Your care team will tell you whether the
+          enema will be given at home or at the hospital before the procedure.
+        shopping_text_es: >-
+          Como su niño es pequeño, la enema será administrada por una enfermera
+          o doctor usando una jeringa con solución salina normal (agua con
+          sal) — no una enema comprada en la tienda. Su equipo de atención le
+          dirá si la enema se dará en casa o en el hospital antes del
+          procedimiento.
+
+        # Extra warning shown above the shopping callout for under-15kg only.
+        infant_warning_en: >-
+          Do NOT buy or give any store-bought enema (including Fleet enemas)
+          unless specifically instructed by your doctor.
+        infant_warning_es: >-
+          NO compre ni administre ninguna enema comprada en la tienda
+          (incluyendo enemas Fleet) a menos que su doctor se lo indique
+          específicamente.
+
+        # Day-of enema instruction.
+        enema_text_en: >-
+          Give a normal-saline enema by syringe — about <strong>5 mL per kg</strong>
+          of your child's weight — about 1 to 2 hours before leaving for the
+          hospital. Have your child try to hold the enema for 5 to 10 minutes
+          if able. If there is no stool output after 30 minutes, you may give
+          one additional enema.
+        enema_text_es: >-
+          Administre una enema de solución salina normal con jeringa — aproximadamente
+          <strong>5 mL por kg</strong> del peso de su niño — alrededor de 1 a
+          2 horas antes de salir para el hospital. Pida a su niño que intente
+          retener la enema por 5 a 10 minutos si puede. Si no hay evacuación
+          después de 30 minutos, puede administrar una enema adicional.
+
+      - id: 20-40kg
+        filename_stem: 20-40kg
+        simple_diet: false
+        infant_callout: false
+        label_en: "20–40 kg (44–88 lb)"
+        label_es: "20–40 kg (44–88 lb)"
+        html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (20–40 kg)"
+        html_title_es: "Sigmoidoscopia Flexible — Preparación (20–40 kg)"
+        folder_en: "20-40 kg"
+        folder_es: "20-40 kg"
+
+        shopping_text_en: >-
+          1 regular adult saline enema (~240 mL), such as Fleet Saline Enema
+          (regular size). <strong>Do NOT buy Fleet phospho-soda or any
+          phosphate enema.</strong>
+        shopping_text_es: >-
+          1 enema salina para adulto de tamaño regular (~240 mL), como Fleet
+          Saline Enema (tamaño regular). <strong>NO compre Fleet phospho-soda
+          ni ninguna enema de fosfato.</strong>
+
+        enema_text_en: >-
+          Give 1 regular adult saline enema (~240 mL) about 1 to 2 hours
+          before leaving for the hospital. Have your child try to hold the
+          enema for 5 to 10 minutes before going to the bathroom. If there is
+          no stool output after 30 minutes, you may give one additional enema.
+        enema_text_es: >-
+          Administre 1 enema salina para adulto de tamaño regular (~240 mL)
+          alrededor de 1 a 2 horas antes de salir para el hospital. Pida a su
+          niño que intente retener la enema por 5 a 10 minutos antes de ir al
+          baño. Si no hay evacuación después de 30 minutos, puede administrar
+          una enema adicional.
+
+      - id: over-40kg
+        filename_stem: over-40kg
+        simple_diet: false
+        infant_callout: false
+        label_en: "Over 40 kg (Over 88 lb)"
+        label_es: "Más de 40 kg (Más de 88 lb)"
+        html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (Over 40 kg)"
+        html_title_es: "Sigmoidoscopia Flexible — Preparación (Más de 40 kg)"
+        folder_en: "Over 40 kg"
+        folder_es: "Más de 40 kg"
+
+        shopping_text_en: >-
+          1 large adult saline enema (~480 mL), such as Fleet Saline Enema
+          Extra (large size), <em>OR</em> 2 regular adult saline enemas
+          (~240 mL each). <strong>Do NOT buy Fleet phospho-soda or any
+          phosphate enema.</strong>
+        shopping_text_es: >-
+          1 enema salina para adulto de tamaño grande (~480 mL), como Fleet
+          Saline Enema Extra (tamaño grande), <em>O</em> 2 enemas salinas para
+          adulto de tamaño regular (~240 mL cada una). <strong>NO compre
+          Fleet phospho-soda ni ninguna enema de fosfato.</strong>
+
+        enema_text_en: >-
+          Give 1 large adult saline enema (~480 mL) — or 2 regular 240 mL
+          enemas back-to-back — about 1 to 2 hours before leaving for the
+          hospital. Have your child try to hold the enema for 5 to 10 minutes
+          before going to the bathroom. If there is no stool output after 30
+          minutes, you may give one additional enema.
+        enema_text_es: >-
+          Administre 1 enema salina para adulto de tamaño grande (~480 mL) — o
+          2 enemas regulares de 240 mL una tras otra — alrededor de 1 a 2
+          horas antes de salir para el hospital. Pida a su niño que intente
+          retener la enema por 5 a 10 minutos antes de ir al baño. Si no hay
+          evacuación después de 30 minutos, puede administrar una enema
+          adicional.

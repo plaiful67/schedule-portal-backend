@@ -1,0 +1,245 @@
+# Pre-Procedure Medication Hold List — Pediatric to Young Adult (0–25 years)
+#
+# Universal pre-anesthesia/sedation holds. Apply to all four procedures
+# (bowel prep, EGD, combined EGD+colonoscopy, flex sig).
+#
+# English only by design. The EMR renders med names in English; the
+# autocomplete only needs to match English aliases. Spanish-language
+# handouts also display the English med names because families recognize
+# the brand on the bottle (Children's Motrin, Lovenox) more easily than
+# a translation.
+#
+# hold_days: numeric value used for sorting. 0 = day of procedure.
+#   For ranges (e.g. "5-7 days"), use the upper bound.
+# hold_text:  human-readable instruction printed on the handout.
+# search_aliases: every brand + generic name; the frontend autocomplete
+#   matches against this flattened list (case-insensitive substring).
+
+version: 1
+
+categories:
+  - { id: anticoagulants, label: "Anticoagulants / Antiplatelets" }
+  - { id: diabetes_glp1,  label: "Diabetes & GLP-1 Receptor Agonists" }
+  - { id: weight_loss,    label: "Weight Loss" }
+  - { id: nsaids,         label: "Pain & Anti-Inflammatory (NSAIDs)" }
+  - { id: stimulants,     label: "Neurological / Psychiatric — Stimulants & Related" }
+
+meds:
+  # ---------- Anticoagulants / Antiplatelets ----------
+  - id: aspirin
+    category: anticoagulants
+    primary_name: "Aspirin"
+    search_aliases: ["aspirin", "acetylsalicylic acid", "ASA", "Ecotrin", "Bayer Aspirin"]
+    hold_text: "Hold 5–7 days before procedure"
+    hold_days: 7
+
+  - id: apixaban
+    category: anticoagulants
+    primary_name: "Apixaban"
+    search_aliases: ["apixaban", "Eliquis"]
+    hold_text: "Hold 2 days before procedure"
+    hold_days: 2
+
+  - id: rivaroxaban
+    category: anticoagulants
+    primary_name: "Rivaroxaban"
+    search_aliases: ["rivaroxaban", "Xarelto"]
+    hold_text: "Hold 3 days before procedure"
+    hold_days: 3
+
+  - id: enoxaparin
+    category: anticoagulants
+    primary_name: "Enoxaparin"
+    search_aliases: ["enoxaparin", "Lovenox"]
+    hold_text: "Hold 24 hours before procedure"
+    hold_days: 1
+
+  # ---------- Diabetes & GLP-1 Receptor Agonists ----------
+  - id: dulaglutide
+    category: diabetes_glp1
+    primary_name: "Dulaglutide"
+    search_aliases: ["dulaglutide", "Trulicity"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: semaglutide
+    category: diabetes_glp1
+    primary_name: "Semaglutide"
+    search_aliases: ["semaglutide", "Ozempic", "Wegovy", "Rybelsus"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: tirzepatide
+    category: diabetes_glp1
+    primary_name: "Tirzepatide"
+    search_aliases: ["tirzepatide", "Mounjaro", "Zepbound"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: liraglutide
+    category: diabetes_glp1
+    primary_name: "Liraglutide"
+    search_aliases: ["liraglutide", "Victoza", "Saxenda"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: exenatide
+    category: diabetes_glp1
+    primary_name: "Exenatide"
+    search_aliases: ["exenatide", "Byetta", "Bydureon", "Bydureon BCise"]
+    hold_text: "Hold day of procedure"
+    hold_days: 0
+
+  - id: metformin
+    category: diabetes_glp1
+    primary_name: "Metformin"
+    search_aliases: ["metformin", "Glucophage", "Glucophage XR", "Fortamet", "Glumetza", "Riomet"]
+    hold_text: "Hold day of procedure"
+    hold_days: 0
+
+  - id: insulin
+    category: diabetes_glp1
+    primary_name: "Insulin"
+    search_aliases:
+      - "insulin"
+      - "Humalog"
+      - "lispro"
+      - "NovoLog"
+      - "aspart"
+      - "Apidra"
+      - "glulisine"
+      - "Lantus"
+      - "Basaglar"
+      - "glargine"
+      - "Levemir"
+      - "detemir"
+      - "Tresiba"
+      - "degludec"
+      - "Humulin"
+      - "Novolin"
+      - "Admelog"
+      - "Fiasp"
+      - "Lyumjev"
+      - "insulin pump"
+    hold_text: "Hold day of procedure (follow anesthesia-specific insulin instructions)"
+    hold_days: 0
+    note: "Follow anesthesia-specific insulin instructions."
+
+  # ---------- Weight Loss ----------
+  - id: phentermine
+    category: weight_loss
+    primary_name: "Phentermine"
+    search_aliases: ["phentermine", "Adipex-P", "Lomaira"]
+    hold_text: "Hold 14 days before procedure"
+    hold_days: 14
+
+  - id: phentermine_topiramate
+    category: weight_loss
+    primary_name: "Phentermine/Topiramate"
+    search_aliases: ["phentermine/topiramate", "phentermine-topiramate", "Qsymia"]
+    hold_text: "Hold 14 days before procedure"
+    hold_days: 14
+
+  # ---------- NSAIDs ----------
+  - id: ibuprofen
+    category: nsaids
+    primary_name: "Ibuprofen"
+    search_aliases: ["ibuprofen", "Motrin", "Advil", "Children's Motrin", "Infant's Advil"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: naproxen
+    category: nsaids
+    primary_name: "Naproxen"
+    search_aliases: ["naproxen", "Aleve", "Naprosyn", "Anaprox", "Naprelan"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: celecoxib
+    category: nsaids
+    primary_name: "Celecoxib"
+    search_aliases: ["celecoxib", "Celebrex"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: meloxicam
+    category: nsaids
+    primary_name: "Meloxicam"
+    search_aliases: ["meloxicam", "Mobic", "Vivlodex", "Anjeso"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: ketorolac
+    category: nsaids
+    primary_name: "Ketorolac"
+    search_aliases: ["ketorolac", "Toradol"]
+    hold_text: "Hold 10 days before procedure"
+    hold_days: 10
+
+  # ---------- Neurological / Psychiatric — Stimulants & Related ----------
+  - id: amphetamine_dextroamphetamine
+    category: stimulants
+    primary_name: "Amphetamine/Dextroamphetamine"
+    search_aliases: ["amphetamine/dextroamphetamine", "amphetamine", "dextroamphetamine", "Adderall", "Adderall XR", "Mydayis"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: dextroamphetamine
+    category: stimulants
+    primary_name: "Dextroamphetamine"
+    search_aliases: ["dextroamphetamine", "Dexedrine", "Dexedrine Spansule", "Zenzedi", "ProCentra"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: lisdexamfetamine
+    category: stimulants
+    primary_name: "Lisdexamfetamine"
+    search_aliases: ["lisdexamfetamine", "Vyvanse"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: methylphenidate
+    category: stimulants
+    primary_name: "Methylphenidate"
+    search_aliases:
+      - "methylphenidate"
+      - "Ritalin"
+      - "Ritalin LA"
+      - "Concerta"
+      - "Focalin"
+      - "dexmethylphenidate"
+      - "Focalin XR"
+      - "Metadate CD"
+      - "Metadate ER"
+      - "Methylin"
+      - "Daytrana patch"
+      - "Quillivant XR"
+      - "QuilliChew ER"
+      - "Aptensio XR"
+      - "Cotempla XR-ODT"
+      - "Jornay PM"
+      - "Adhansia XR"
+      - "Azstarys"
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: modafinil
+    category: stimulants
+    primary_name: "Modafinil"
+    search_aliases: ["modafinil", "Provigil"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: armodafinil
+    category: stimulants
+    primary_name: "Armodafinil"
+    search_aliases: ["armodafinil", "Nuvigil"]
+    hold_text: "Hold 7 days before procedure"
+    hold_days: 7
+
+  - id: lithium
+    category: stimulants
+    primary_name: "Lithium"
+    search_aliases: ["lithium", "Lithobid", "Eskalith"]
+    hold_text: "Hold 72 hours before procedure"
+    hold_days: 3

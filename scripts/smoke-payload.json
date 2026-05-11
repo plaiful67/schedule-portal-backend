@@ -1,0 +1,10 @@
+{
+  "procedure_type": "bowel_prep",
+  "location_id": "scc",
+  "language": "en",
+  "appointment_date": "2026-06-15",
+  "appointment_time": "08:30",
+  "arrival_time": "07:30",
+  "weight_band": "31-40",
+  "stop_meds": ["ibuprofen", "semaglutide", "lithium"]
+}

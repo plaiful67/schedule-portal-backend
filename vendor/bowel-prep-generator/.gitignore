@@ -1,0 +1,24 @@
+# Python virtual environments — created locally via `make install`
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# macOS noise
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Old template backups (large, point-in-time snapshots)
+templates-backup-*/
+*.docx.pre-redesign-backup
+
+# Build / temp output
+dist/
+build/
+.eggs/
+*.tmp
