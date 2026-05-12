@@ -110,11 +110,10 @@ def render_pdf(
     location = _location_block(location_id)
 
     # Build the same replacements dict the skill's batch render uses.
-    # Location info comes exclusively from build_location_placeholders; the
-    # canonical skill's build_strings dropped its `location=` kwarg, and the
-    # older vendored version accepted it as optional, so calling without it
-    # works against both.
-    replacements = skill.build_strings(band, lang)
+    # `location` is forwarded so build_contingency_block resolves the per-site
+    # NPO window (2 h SCC vs 3 h PMCH) instead of falling through to the 2-hour
+    # default. LOCATION_* placeholders still come from build_location_placeholders.
+    replacements = skill.build_strings(band, lang, location)
     replacements.update(skill.build_location_placeholders(location, lang))
     replacements.update(skill.build_practice_placeholders(lang))
 

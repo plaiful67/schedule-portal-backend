@@ -28,11 +28,9 @@ Design:
 
 import argparse
 import base64
-import datetime
 import os
 import re
 import shutil
-import subprocess
 import sys
 import zipfile
 from pathlib import Path
@@ -47,33 +45,6 @@ SKILL_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES = SKILL_DIR / "templates"
 DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 PRACTICE_PATH = SKILL_DIR / "practice.yaml"
-
-
-# §2 revision-date stamp — sourced from the most recent git commit touching
-# templates/, data/dosing.yaml, or practice.yaml. Falls back to today if git
-# is unavailable (e.g., the skill is being run from a tarball checkout).
-SPANISH_MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
-                  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
-
-
-def _revision_date():
-    try:
-        out = subprocess.check_output(
-            ["git", "log", "-1", "--format=%cI", "--",
-             "templates", "data/dosing.yaml", "practice.yaml"],
-            cwd=SKILL_DIR, text=True, stderr=subprocess.DEVNULL).strip()
-        if out:
-            return datetime.date.fromisoformat(out[:10])
-    except Exception:
-        pass
-    return datetime.date.today()
-
-
-def _revision_date_str(lang):
-    d = _revision_date()
-    if lang == "es":
-        return f"{d.day} de {SPANISH_MONTHS[d.month - 1]} de {d.year}"
-    return d.strftime("%B %-d, %Y")
 
 
 # ---------------------------------------------------------------------------
@@ -136,6 +107,7 @@ def build_precleanout_block(band, lang):
         intro_one = ("<strong>If yes, start a pre-cleanout</strong> before the regular "
                      "prep timeline below:")
         date_tmpl = " &mdash; <em>start on {date}</em>"
+        outro = "Call or message the office with any questions."
     else:
         title  = "&#9888;&#65039; ¿Antecedente o sospecha de estreñimiento?"
         intro_two = ("<strong>Si la respuesta es sí, comience una pre-limpieza</strong> antes "
@@ -144,6 +116,7 @@ def build_precleanout_block(band, lang):
         intro_one = ("<strong>Si la respuesta es sí, comience una pre-limpieza</strong> antes "
                      "del cronograma regular de preparación:")
         date_tmpl = " &mdash; <em>comenzar el {date}</em>"
+        outro = "Llame o envíe un mensaje a la oficina con cualquier pregunta."
 
     def _opt_li(label, text, offset):
         date_span = ""
@@ -161,8 +134,8 @@ def build_precleanout_block(band, lang):
         if not b_lbl:
             b_lbl = "Option B &mdash; higher dose, shorter duration" if lang == "en" else "Opción B &mdash; dosis mayor, duración más corta"
         body = (
-            f'  <p style="margin: 0 0 3px;">{intro_two}</p>\n'
-            f'  <ul class="precleanout-options" style="margin: 0; padding-left: 20px;">\n'
+            f'  <p style="margin: 0 0 2pt;">{intro_two}</p>\n'
+            f'  <ul class="precleanout-options" style="margin: 0; padding-left: 18px;">\n'
             f'{_opt_li(a_lbl, a_text, a_off)}\n'
             f'{_opt_li(b_lbl, b_text, b_off)}\n'
             f'  </ul>'
@@ -174,27 +147,29 @@ def build_precleanout_block(band, lang):
             f'</div>'
         )
 
-    # Single-option: separate lead, dose, and maintenance into 3 tight paragraphs
-    # so the MiraLAX dose stands on its own line at-a-glance. Dose-token <strong>
-    # tags come from the YAML (precleanout_a_text_{lang}); the maintenance string
-    # already wraps the daily dose in <strong>.
+    # Single-option: keep the lead question, the dose line, and the
+    # maintenance line on their own paragraphs so a parent can scan-read the
+    # callout (lead → dose → maintenance → outro). Previously these were all
+    # collapsed into one running paragraph.
     a_date_span = ""
     if a_off is not None:
         a_date_span = (f'<span data-pz-day="{a_off}" '
                        f'data-pz-template="{date_tmpl}"></span>')
     if lang == "en":
         lead = ("&#9888;&#65039; <strong>If any history or suspicion of "
-                "constipation, please do a pre-cleanout:</strong>")
+                "constipation, please do a pre-cleanout</strong> before the "
+                "regular prep timeline below:")
     else:
         lead = ("&#9888;&#65039; <strong>Si hay antecedente o sospecha de "
-                "estreñimiento, haga una pre-limpieza:</strong>")
-    maintenance_p = (f'  <p style="margin: 0;">{maintenance}</p>\n'
-                     if maintenance else "")
-    body = (
-        f'  <p style="margin: 0 0 3px;">{lead}</p>\n'
-        f'  <p style="margin: 0 0 3px;">{a_text}{a_date_span}</p>\n'
-        f'{maintenance_p}'
-    )
+                "estreñimiento, haga una pre-limpieza</strong> antes del "
+                "cronograma regular de preparación:")
+    parts = [
+        f'  <p style="margin: 0 0 1pt;">{lead}</p>',
+        f'  <p style="margin: 0 0 1pt;">{a_text}{a_date_span}</p>',
+    ]
+    if maintenance:
+        parts.append(f'  <p style="margin: 0;">{maintenance}</p>')
+    body = "\n".join(parts)
     return (
         f'<div class="callout">\n'
         f'{body}\n'
@@ -203,17 +178,20 @@ def build_precleanout_block(band, lang):
 
 
 def build_contingency_block(band, lang, location):
-    """Backup-plan block shown when the BIG PREP isn't producing clear/yellow stools.
+    """Rescue plan shown when the BIG PREP isn't producing clear/pale-yellow stools.
 
     Per-band dosing fields drive the rescue capfuls/oz; the location's
     `clears_npo_hours` drives the morning cutoff (2 h SCC, 3 h PMCH).
 
     A `pz-only` span is appended to the morning step so that, when the family
-    has personalized the procedure date+time on the mobile page, the rescue
-    cutoff is shown as a concrete clock time. The static text ("at least N
-    hours before the procedure time") is what the print PDF shows.
+    has personalized the procedure date+time on the mobile page (or the
+    scheduler back-end runs `apply_pz_substitutions`), the rescue cutoff is
+    shown as a concrete clock time. Bands without `contingency_*` fields
+    (infant protocols) return an empty string so the placeholder collapses.
     """
     if band.get("protocol") != "standard":
+        return ""
+    if "contingency_evening_caps" not in band:
         return ""
     npo_hours = location.get("clears_npo_hours", 2) if location else 2
     npo_minutes = npo_hours * 60
@@ -222,13 +200,6 @@ def build_contingency_block(band, lang, location):
     ev_oz = band["contingency_evening_oz"]
     mn_caps = band["contingency_morning_caps"]
     mn_oz = band["contingency_morning_oz"]
-    total_caps = band["contingency_total_caps"]
-    total_g = band["contingency_total_grams"]
-    backup = band[f"contingency_backup_{lang}"]
-    practice = _practice()["practice"]
-    office_phone = practice.get("phone", "")
-    office_tel = practice.get("phone_tel", re.sub(r"\D", "", office_phone))
-    phone_link = f'<a href="tel:{office_tel}">{office_phone}</a>' if office_phone else ""
 
     if lang == "en":
         cap_word_ev = "capfuls" if ev_caps != 1 else "capful"
@@ -246,7 +217,6 @@ def build_contingency_block(band, lang, location):
             f'    <li><strong>Morning:</strong> give <strong>{mn_caps} more {cap_word_mn} in {mn_oz} oz '
             f'of Gatorade</strong>, at least <strong>{npo_hours} hours before procedure</strong>{morning_pz}.</li>\n'
             '  </ul>\n'
-            f'  <p style="margin: 4pt 0 0 0;">If questions or concerns, call our office at {phone_link}.</p>\n'
             '</div>'
         )
     # Spanish
@@ -265,7 +235,6 @@ def build_contingency_block(band, lang, location):
         f'    <li><strong>La mañana:</strong> dé <strong>{mn_caps} {cap_word_mn} más en {mn_oz} oz '
         f'de Gatorade</strong>, al menos <strong>{npo_hours} horas antes del procedimiento</strong>{morning_pz}.</li>\n'
         '  </ul>\n'
-        f'  <p style="margin: 4pt 0 0 0;">Si tiene preguntas o inquietudes, llame a nuestro consultorio al {phone_link}.</p>\n'
         '</div>'
     )
 
@@ -291,8 +260,9 @@ def build_location_placeholders(location, lang):
 def build_strings(band, lang, location=None):
     """Return a dict of placeholder → rendered string for a standard-protocol band.
 
-    `location` is needed for the contingency block's NPO-window interpolation; if
-    omitted (e.g., legacy callers), it falls back to the SCC default of 2 hours.
+    `location` drives the rescue/contingency block's NPO-window interpolation
+    (2 h SCC vs 3 h PMCH). Optional — bands without contingency_* fields
+    render an empty contingency block regardless.
     """
     tabs = band["dulcolax_tablets"]
     mg = band["dulcolax_mg_total"]
@@ -307,18 +277,6 @@ def build_strings(band, lang, location=None):
     ml = oz_to_ml(oz)
     precleanout = band[f"precleanout_{lang}"]
 
-    # §6 shopping totals — buy enough MiraLAX/Gatorade to cover BIG PREP plus
-    # the largest single-day extra (rescue plan or weekend intensive pre-cleanout,
-    # whichever dominates per band). See plan §6 for the locked numbers.
-    rescue_caps = (band.get("contingency_evening_caps", 0)
-                   + band.get("contingency_morning_caps", 0))
-    intensive_caps = band.get("precleanout_intensive_caps", 0)
-    shop_caps = capfuls + max(rescue_caps, intensive_caps)
-    extra_caps = shop_caps - capfuls
-    shop_grams = int(round((grams + extra_caps * grams / capfuls) / 10) * 10)
-    shop_oz = band.get("shopping_gatorade_oz", oz)
-    shop_ml = oz_to_ml(shop_oz)
-
     def tablet_word_en(n): return "tablet" if n == 1 else "tablets"
     def tablet_word_es(n): return "tableta" if n == 1 else "tabletas"
 
@@ -327,13 +285,18 @@ def build_strings(band, lang, location=None):
     miralax_time = band.get("miralax_time", "3:00 PM")
     drink_cup = band.get(f"drink_cup_{lang}", "1 cup (8 oz)" if lang == "en" else "1 taza (8 oz)")
 
+    # Round oz to nearest whole number (28.35 g/oz). Keeps shopping-row simple
+    # — patients freak out at decimal places. The plain form drops the "at
+    # least … of powder" hedging; the rescue sub-line under the dose row
+    # explains *why* the amount is what it is, so we don't need to in the dose.
+    miralax_oz = round(grams / 28.35)
+
     if lang == "en":
         tablet_word = tablet_word_en(tabs)
         html_dulcolax_short = f"{tabs} {tablet_word} ({mg} mg)"
         html_miralax_short = f"{capfuls} capfuls (~{grams} g{note})"
+        html_miralax_short_plain = f"{capfuls} capfuls ({miralax_oz} oz or {grams} g{note})"
         html_gatorade_vol = f"{oz} oz (~{ml} mL)"
-        html_miralax_shopping = f"{shop_caps} capfuls (~{shop_grams} g)"
-        html_gatorade_shopping = f"{shop_oz} oz (~{shop_ml} mL)"
 
         docx_dulcolax_long = f"{tabs} Dulcolax 5 mg {tablet_word} ({mg} mg total)"
         docx_dulcolax_bedtime_long = (
@@ -359,9 +322,8 @@ def build_strings(band, lang, location=None):
         tab_word = tablet_word_es(tabs)
         html_dulcolax_short = f"{tabs} {tab_word} ({mg} mg)"
         html_miralax_short = f"{capfuls} tapas (~{grams} g{note})"
+        html_miralax_short_plain = f"{capfuls} tapas ({miralax_oz} oz o {grams} g{note})"
         html_gatorade_vol = f"{oz} oz (~{ml} mL)"
-        html_miralax_shopping = f"{shop_caps} tapas (~{shop_grams} g)"
-        html_gatorade_shopping = f"{shop_oz} oz (~{shop_ml} mL)"
 
         docx_dulcolax_long = f"{tabs} {tab_word} de Dulcolax 5 mg ({mg} mg total)"
         docx_dulcolax_bedtime_long = (
@@ -526,9 +488,8 @@ def build_strings(band, lang, location=None):
         "{{HTML_TWO_DAYS_BEFORE_BLOCK}}": html_two_days_before,
         "{{HTML_PREP_MEDICINE_BLOCK}}": html_prep_medicine_block,
         "{{HTML_MIRALAX_SHORT}}": html_miralax_short,
+        "{{HTML_MIRALAX_SHORT_PLAIN}}": html_miralax_short_plain,
         "{{HTML_GATORADE_VOL}}": html_gatorade_vol,
-        "{{HTML_MIRALAX_SHOPPING}}": html_miralax_shopping,
-        "{{HTML_GATORADE_SHOPPING}}": html_gatorade_shopping,
         "{{HTML_PRECLEANOUT}}": html_precleanout,
         "{{HTML_PRECLEANOUT_BLOCK}}": build_precleanout_block(band, lang),
         "{{HTML_CONTINGENCY_BLOCK}}": build_contingency_block(band, lang, location),
@@ -718,24 +679,13 @@ def build_practice_placeholders(lang):
     stack = p.get(f"cover_stack_{lang}") or p.get("cover_stack_en") or ["", "", ""]
     # Normalize to exactly 3 lines
     stack = (stack + ["", "", ""])[:3]
-    phone = p.get("phone", "")
-    phone_tel = p.get("phone_tel", re.sub(r"\D", "", phone))
-    rev_date = _revision_date_str(lang)
-    # PDF footer carries the revision date appended to the running practice
-    # footer so families can tell which version of the handout they have.
-    base_footer = p.get(f"footer_{lang}") or p.get("footer_en") or ""
-    rev_label = "Updated" if lang == "en" else "Actualizado"
-    practice_footer = f"{base_footer}  ·  {rev_label} {rev_date}" if base_footer else rev_date
     return {
         "{{PRACTICE_STACK_LINE_1}}": stack[0],
         "{{PRACTICE_STACK_LINE_2}}": stack[1],
         "{{PRACTICE_STACK_LINE_3}}": stack[2],
-        "{{PRACTICE_FOOTER}}":       practice_footer,
+        "{{PRACTICE_FOOTER}}":       p.get(f"footer_{lang}") or p.get("footer_en") or "",
         "{{PRACTICE_LOGO_FILE}}":    p.get("logo_filename", ""),
         "{{PRACTICE_LOGO_ALT}}":     p.get("logo_alt", ""),
-        "{{PRACTICE_PHONE}}":        phone,
-        "{{PRACTICE_PHONE_TEL}}":    phone_tel,
-        "{{REVISION_DATE}}":         rev_date,
     }
 
 
@@ -974,251 +924,6 @@ def render_pdf_print(template_path, replacements, out_path,
     HTML(string=html, base_url=str(Path(template_path).parent)).write_pdf(str(out_path))
 
 
-# ---------------------------------------------------------------------------
-# Staff cheat-sheet (1-page landscape PDF + on-screen HTML page).
-#
-# The cheat sheet is a different shape from the patient handouts: a single
-# at-a-glance reference of every dosing/timing/policy number across all
-# weight bands and both locations. It's deployed to doses.giready.com
-# as an unlisted (X-Robots-Tag: noindex) staff-only page, and is also a
-# printable PDF for desk reference.
-#
-# Source of truth: data/dosing.yaml + practice.yaml. The cheat-sheet builder
-# never duplicates dosing numbers — it reads the same fields the patient
-# handouts read, so a number change here propagates to both.
-# ---------------------------------------------------------------------------
-
-def _strip_for_cell(html_text):
-    """Normalize entities for tight table cells. Keeps <strong>/<em> inline."""
-    return (html_text or "").replace("&mdash;", "—").replace("&nbsp;", " ")
-
-
-def build_cheatsheet_replacements(bands_all, locations):
-    """Build {{CHEATSHEET_*}} placeholder strings for the staff cheat-sheet template.
-
-    Only the 5 standard-protocol bands populate the dosing/contingency/pre-cleanout
-    tables; infant variants get a one-line footnote on the dosing section.
-    """
-    bands = [b for b in bands_all if b.get("protocol") == "standard"]
-
-    dosing_rows = []
-    for b in bands:
-        label = b["label_en"]
-        bedtime = b.get("dulcolax_bedtime_tablets", 0)
-        dayof = b.get("dulcolax_dayof_tablets", 0)
-        # Strip the metric "(~NN mL)" portion of drink_cup for the tight cell.
-        cup = re.sub(r"\s*\(~[^)]*\)\s*", "", b.get("drink_cup_en", ""))
-        dosing_rows.append(
-            f'          <tr>'
-            f'<td class="band">{label}</td>'
-            f'<td class="num">{bedtime} + {dayof}</td>'
-            f'<td class="num">{b.get("dulcolax_mg_total", 0)} mg</td>'
-            f'<td class="num">{b.get("miralax_capfuls", 0)}</td>'
-            f'<td class="num">{b.get("miralax_grams", 0)} g</td>'
-            f'<td class="num">{b.get("gatorade_oz", 0)} oz</td>'
-            f'<td class="muted">{cup}</td>'
-            f'<td class="num">{b.get("miralax_time", "")}</td>'
-            f'</tr>'
-        )
-
-    # Contingency backup: per-band short stub (full sentence is in patient PDFs).
-    def _backup_stub(backup_en):
-        s = backup_en or ""
-        if "10 mL/kg" in s:
-            return "NS enema (10 mL/kg) or reschedule"
-        if "saline enema" in s:
-            return "NS enema or reschedule"
-        return "Enema or reschedule"
-
-    contingency_rows = []
-    for b in bands:
-        contingency_rows.append(
-            f'          <tr>'
-            f'<td class="band">{b["label_en"]}</td>'
-            f'<td class="num">{b.get("contingency_evening_caps", 0)} cap / '
-            f'{b.get("contingency_evening_oz", 0)} oz</td>'
-            f'<td class="num">{b.get("contingency_morning_caps", 0)} cap / '
-            f'{b.get("contingency_morning_oz", 0)} oz</td>'
-            f'<td class="num hi">{b.get("contingency_total_caps", 0)} caps '
-            f'({b.get("contingency_total_grams", 0)} g)</td>'
-            f'<td class="muted">{_backup_stub(b.get("contingency_backup_en"))}</td>'
-            f'</tr>'
-        )
-
-    # Per-band short stubs for pre-cleanout (full sentences are on the patient PDFs).
-    # Keyed off the band id since the YAML strings are long localized HTML.
-    precleanout_stubs = {
-        "15-20":   "1 cap / 4 oz clear × <strong>1×/day × 5 d</strong>",
-        "21-30":   "1 cap / 4 oz clear × <strong>2×/day × 5 d</strong>",
-        "31-40":   "1 cap / 4 oz clear × <strong>4×/day × 3 d</strong> (weekend)",
-        "41-50":   "<strong>8 caps in 32 oz Gatorade</strong> over ~4 h (weekend)",
-        "over-50": "<strong>10 caps in 40 oz Gatorade</strong> over ~4 h (weekend)",
-    }
-
-    precleanout_rows = []
-    for b in bands:
-        offset = b.get("precleanout_a_offset_days")
-        offset_str = "weekend" if offset is None else f"{offset} d"
-        maintenance = _strip_for_cell(b.get("precleanout_maintenance_en", ""))
-        maintenance = (maintenance
-                       .replace("Then continue prescribed daily laxatives, or at least ", "")
-                       .replace(", until the procedure.", "")
-                       .replace(" until the procedure.", ""))
-        text_a = precleanout_stubs.get(b["id"], _strip_for_cell(b.get("precleanout_a_text_en", "")))
-        precleanout_rows.append(
-            f'          <tr>'
-            f'<td class="band">{b["label_en"]}</td>'
-            f'<td>{text_a}</td>'
-            f'<td class="num">{offset_str}</td>'
-            f'<td>{maintenance}</td>'
-            f'</tr>'
-        )
-
-    # Locations side-by-side
-    scc = locations.get("scc", {})
-    pmch = locations.get("pmch", {})
-    def _loc_row(label, scc_val, pmch_val, cls=""):
-        return (f'    <tr><th>{label}</th>'
-                f'<td{(" class=" + cls) if cls else ""}>{scc_val}</td>'
-                f'<td{(" class=" + cls) if cls else ""}>{pmch_val}</td></tr>')
-    locations_block = (
-        '<table class="cs-locations">\n'
-        '  <thead><tr><th></th>'
-        f'<th>Surgery Center of Carmel (SCC)</th>'
-        f'<th>St. Vincent — PMCH Peds Preop</th></tr></thead>\n'
-        '  <tbody>\n'
-        + _loc_row("Address", scc.get("address", ""), pmch.get("address", "")) + "\n"
-        + _loc_row("Facility phone", scc.get("phone", ""), pmch.get("phone", ""), '"num"') + "\n"
-        + _loc_row("NPO clears", f'{scc.get("clears_npo_hours", 2)} h before procedure',
-                                f'{pmch.get("clears_npo_hours", 3)} h before procedure', '"num"') + "\n"
-        + _loc_row("Arrival", f'{scc.get("arrival_minutes_before", 60)} min before',
-                              f'{pmch.get("arrival_minutes_before", 90)} min before', '"num"') + "\n"
-        + _loc_row("Mobile sites",
-                   f'{scc.get("mobile_subdomain", "prep")}.giready.com<br>'
-                   f'{scc.get("mobile_subdomain_combined", "egdcolon")}.giready.com',
-                   f'{pmch.get("mobile_subdomain", "prep86")}.giready.com<br>'
-                   f'{pmch.get("mobile_subdomain_combined", "egdcolon86")}.giready.com',
-                   '"muted"') + "\n"
-        + '  </tbody>\n'
-        + '</table>'
-    )
-
-    # Post-procedure red flags — kept in sync manually with
-    # templates/colonoscopy-mobile.en.html lines ~561-569 (the "After the
-    # procedure & when to call" section). If the patient handout's red flags
-    # change, mirror them here.
-    red_flags_block = (
-        '<ul class="cs-list">\n'
-        '  <li><strong>Fever &gt;101°F (38.3°C)</strong></li>\n'
-        '  <li>Stool that is <strong>black</strong> or has more than a small streak of <strong>blood</strong></li>\n'
-        '  <li><strong>Severe or worsening abdominal pain</strong>, or hard / swollen belly</li>\n'
-        '  <li><strong>Persistent vomiting</strong>, or refusal to drink</li>\n'
-        '  <li class="emergency">Difficulty breathing or chest pain — emergency, call <strong>911</strong></li>\n'
-        '</ul>\n'
-        '<p class="footnote">Small blood with the first stool can be normal (especially if biopsies taken). Adult must stay 24 h after anesthesia. Most kids back to normal next day.</p>'
-    )
-
-    # Medications to hold. The GLP-1 trigger is `include_glp1_warning: true` on
-    # the 41-50 and over-50 bands — see _medications_drugs() for the source.
-    glp1_bands = [b["label_en"] for b in bands if b.get("include_glp1_warning")]
-    glp1_scope = ", ".join(glp1_bands) if glp1_bands else "(none configured)"
-    meds_block = (
-        '<ul class="cs-list">\n'
-        '  <li><strong>Iron supplements</strong> — all bands</li>\n'
-        '  <li><strong>Anti-diarrhea medicine</strong> — all bands</li>\n'
-        f'  <li><strong>GLP-1 agonists</strong> (Ozempic, Wegovy, Mounjaro) — <span class="hi">{glp1_scope} only</span></li>\n'
-        '</ul>\n'
-        '<p class="footnote"><strong>Unusual or unlisted meds:</strong> ask the family to prepare a list and call the office.</p>'
-    )
-
-    # Infant subtable rows — the ≤15 kg pathway. Two YAML entries feed this:
-    # `under-15` (MiraLAX oral, weight-banded) and `under-15-enema` (saline
-    # enema). The main dosing table is standard-protocol-only; infants get
-    # their own compact 4-row block right below it.
-    infant_band = next((b for b in bands_all if b.get("id") == "under-15"), None)
-    enema_band = next((b for b in bands_all if b.get("id") == "under-15-enema"), None)
-    infant_rows = []
-    if infant_band:
-        for sb in infant_band.get("cheat_sheet_subbands", []):
-            infant_rows.append(
-                f'          <tr>'
-                f'<td class="band">{sb.get("label_en", "")}</td>'
-                f'<td class="num">{sb.get("miralax_capfuls_en", "")}</td>'
-                f'<td class="num">{sb.get("miralax_grams", 0)} g</td>'
-                f'<td class="muted">{sb.get("mix_oz_en", "")}</td>'
-                f'</tr>'
-            )
-    if enema_band and enema_band.get("cheat_sheet_summary_en"):
-        infant_rows.append(
-            f'          <tr>'
-            f'<td class="band">Saline enema</td>'
-            f'<td class="muted" colspan="3">{enema_band["cheat_sheet_summary_en"]}</td>'
-            f'</tr>'
-        )
-
-    return {
-        "{{CHEATSHEET_DOSING_ROWS}}": "\n".join(dosing_rows),
-        "{{CHEATSHEET_INFANT_ROWS}}": "\n".join(infant_rows),
-        "{{CHEATSHEET_INFANT_SCHEDULE}}": (infant_band or {}).get("cheat_sheet_schedule_en", ""),
-        "{{CHEATSHEET_INFANT_MIX_VEHICLE}}": (infant_band or {}).get("cheat_sheet_mix_vehicle_en", ""),
-        "{{CHEATSHEET_CONTINGENCY_ROWS}}": "\n".join(contingency_rows),
-        "{{CHEATSHEET_PRECLEANOUT_ROWS}}": "\n".join(precleanout_rows),
-        "{{CHEATSHEET_LOCATIONS_BLOCK}}": locations_block,
-        "{{CHEATSHEET_RED_FLAGS_BLOCK}}": red_flags_block,
-        "{{CHEATSHEET_MEDS_BLOCK}}": meds_block,
-    }
-
-
-def render_cheatsheet(out_dir):
-    """Render the staff cheat sheet — both HTML (for doses.giready.com) and
-    a 1-page landscape PDF (for printing). Outputs to:
-      - out_dir/index.html           (same content, served as the website root)
-      - out_dir/bowel-prep-cheatsheet.pdf
-    """
-    template_path = TEMPLATES / "cheatsheet-print.en.html"
-    if not template_path.exists():
-        raise RuntimeError(f"cheat-sheet template not found at {template_path}")
-    data = load_dosing()
-    bands = data["bands"]
-    locations = data.get("locations", {})
-
-    replacements = build_cheatsheet_replacements(bands, locations)
-    # Add practice placeholders (PRACTICE_PHONE, REVISION_DATE).
-    replacements.update(build_practice_placeholders("en"))
-
-    with open(template_path, encoding="utf-8") as f:
-        html = f.read()
-    for token, value in replacements.items():
-        html = html.replace(token, value)
-
-    unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
-    if unreplaced:
-        raise RuntimeError(f"Unreplaced placeholders in cheat-sheet: {sorted(set(unreplaced))}")
-
-    out_dir.mkdir(parents=True, exist_ok=True)
-    # HTML: written as index.html so a Cloudflare Pages deploy serves the page
-    # at doses.giready.com/ directly. Also write a copy under the named
-    # filename so a local --out folder still has a stable artifact.
-    html_index = out_dir / "index.html"
-    html_index.write_text(html, encoding="utf-8")
-    print(f"  wrote {html_index}")
-
-    # PDF via WeasyPrint (uses @page rules in the template for landscape sizing).
-    _ensure_weasyprint_libpath()
-    try:
-        from weasyprint import HTML  # type: ignore
-    except Exception as e:
-        raise RuntimeError(
-            "WeasyPrint failed to import. On macOS this usually means Pango/Cairo are "
-            "missing — install with `brew install pango`. Original error: " + repr(e)
-        )
-    pdf_out = out_dir / "bowel-prep-cheatsheet.pdf"
-    HTML(string=html, base_url=str(template_path.parent)).write_pdf(str(pdf_out))
-    print(f"  wrote {pdf_out}")
-
-    return [html_index, pdf_out]
-
-
 def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id="scc", theme="color", variant="standard"):
     """Render one (band, language, format) combination.
 
@@ -1305,11 +1010,12 @@ def main():
     ap.add_argument("--location", default="scc", help="Location id (scc or pmch). Default: scc")
     ap.add_argument("--theme", default="color", choices=["color", "print-light"],
                     help="Color theme for pdf-print: 'color' (default) or 'print-light' (toner-friendly).")
-    ap.add_argument("--variant", default="standard", choices=["standard", "combined", "cheat-sheet"],
-                    help="Document family for pdf-print: 'standard' (colonoscopy-only, default), "
-                         "'combined' (EGD + colonoscopy back-to-back), or 'cheat-sheet' (1-page "
-                         "landscape staff reference; writes both HTML and PDF, ignores --band, "
-                         "--lang, --location, --format).")
+    ap.add_argument("--variant", default="standard", choices=["standard", "combined"],
+                    help="Document family for pdf-print: 'standard' (colonoscopy-only, default) "
+                         "or 'combined' (EGD + colonoscopy back-to-back). 'combined' renders all "
+                         "protocols (standard + both infant variants) using per-protocol "
+                         "combined-*-print templates and the location's mobile_subdomain_combined "
+                         "for QRs.")
     ap.add_argument("--flat", action="store_true",
                     help="Write all files directly into --out instead of nesting "
                          "under Language/Weight-band subfolders")
@@ -1317,17 +1023,6 @@ def main():
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-
-    # Cheat-sheet variant short-circuits the per-band pipeline — it's a single
-    # location-agnostic document. Warn (but don't error) if band-specific flags
-    # were also passed; they're silently ignored.
-    if args.variant == "cheat-sheet":
-        if args.band != "all" or args.lang != "both" or args.location != "scc" or args.format != "both":
-            print("NOTE: --variant cheat-sheet ignores --band, --lang, --location, --format "
-                  "(it's a single staff-reference document).", file=sys.stderr)
-        written = render_cheatsheet(out_dir)
-        print(f"\n{len(written)} file(s) written to {out_dir} (variant=cheat-sheet)")
-        return
 
     dosing_data = load_dosing()
     bands = dosing_data["bands"]

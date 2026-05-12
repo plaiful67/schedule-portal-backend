@@ -54,6 +54,17 @@
     font-size: 14px; color: #b03a00; font-weight: 600;
     margin: 0 0 14px;
   }
+  /* Weight band: own line under the title, kg + lb glued together with
+     white-space: nowrap so narrow phones never split them across lines. */
+  .weight-subtitle {
+    font-family: "Inter", sans-serif;
+    color: #b03a00;
+    margin: 2px 0 10px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .weight-subtitle .kg { font-size: 20px; font-weight: 700; letter-spacing: -0.005em; }
+  .weight-subtitle .lb { font-size: 16px; font-weight: 600; margin-left: 4px; opacity: 0.9; }
 
   .other-bands {
     display: inline-block;
@@ -277,8 +288,8 @@
 <div class="container">
 <div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Back to giready.com home</a></div>
 
-<h1>{{PROCEDURE_LABEL}} Prep &mdash; {{BAND_LABEL}}</h1>
-<div class="subtitle">{{BAND_LB}}</div>
+<h1>{{PROCEDURE_LABEL}} Prep</h1>
+<div class="weight-subtitle"><span class="kg">{{BAND_LABEL}}</span><span class="lb">{{BAND_LB}}</span></div>
 
 <a class="other-bands" href="{{LANDING_HREF}}">&larr; Other weight bands</a>
 {{PDF_BUTTON_BLOCK}}
@@ -301,18 +312,16 @@
 
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
-  <p style="margin: 0 0 8px;"><strong>Stop ibuprofen, Motrin, Advil, Aleve and other anti-inflammatory medicines 2 days before</strong>.</p>
-  <p style="margin: 0 0 8px;"><strong>Stop iron supplements, anti-diarrhea medicines (Imodium, Kaopectate), and fiber supplements (Metamucil) 7 days before</strong>.</p>
-  <p style="margin: 0 0 8px;"><strong>Stop GLP-1 medications (Ozempic, Wegovy, Mounjaro, Trulicity) 7 days before</strong> &mdash; these slow stomach emptying and increase anesthesia risk.</p>
-  <!--IF:SIMPLE_DIET-->
-  <p style="margin: 0;">Give routine morning medicines with a small sip of water or breast milk unless told otherwise.</p>
-  <!--ENDIF:SIMPLE_DIET-->
-  <!--IF:FULL_DIET-->
-  <p style="margin: 0;">Give routine morning medicines with a small sip of water unless told otherwise.</p>
-  <!--ENDIF:FULL_DIET-->
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">For the full list of medications to stop, scan or visit <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; or call the office if you&rsquo;re unsure.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0 0 1pt;">Prepare a list of medications and be ready to discuss them with the nurse or scheduler when they call.</p>
+      <p style="margin: 0 0 1pt;"><strong>Stop anti-diarrhea medicines (Imodium, Kaopectate) and fiber supplements (Metamucil) 7 days before</strong>.</p>
+      <!--IF:INCLUDE_GLP1--><p style="margin: 0 0 1pt;"><strong>Stop GLP-1 medications (Ozempic, Wegovy, Mounjaro, Trulicity) 7 days before</strong> &mdash; these slow stomach emptying and increase anesthesia risk.</p><!--ENDIF:INCLUDE_GLP1-->
+      <!--IF:SIMPLE_DIET--><p style="margin: 0 0 1pt;">Give routine morning medicines with a small sip of water or breast milk unless told otherwise.</p><!--ENDIF:SIMPLE_DIET-->
+      <!--IF:FULL_DIET--><p style="margin: 0 0 1pt;">Give routine morning medicines with a small sip of water unless told otherwise.</p><!--ENDIF:FULL_DIET-->
+      <p style="margin: 0;">You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -484,7 +493,7 @@
 </div>
 
 <div class="footer">
-  For patients of Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, and Dr. Zavoian &mdash; Pediatric Gastroenterology at Peyton Manning Children's Hospital in Indianapolis. Not a substitute for medical advice.<br>
+  For patients of <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, and <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> &mdash; Pediatric Gastroenterology at Peyton Manning Children's Hospital in Indianapolis. Not a substitute for medical advice.<br>
   Office: <a href="tel:3173389450">(317) 338-9450</a>
 </div>
 

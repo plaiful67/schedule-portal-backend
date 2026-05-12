@@ -26,11 +26,45 @@ import render  # noqa: E402
 TEMPLATES = SKILL_DIR / "templates"
 LOGO_PATH = TEMPLATES / "logo-pmch.png"
 
+# Where `make render` writes the print PDFs we copy into each site repo.
+# Mirrors the bowel-prep skill's PDF_REVIEW_DIR convention.
+PDF_REVIEW_DIR = Path.home() / "Desktop" / "peds-gi-system" / "egd-pdf-review"
+
 # Per-location target repo
 SITE_OUT = {
     "scc":  Path.home() / "Desktop" / "peds-gi-system" / "egd-giready",
     "pmch": Path.home() / "Desktop" / "peds-gi-system" / "egd86-giready",
 }
+
+PDF_BUTTON_LABEL = {
+    "en": "Download printable PDF",
+    "es": "Descargar PDF imprimible",
+}
+
+
+def find_handout_pdf(location_id: str, lang: str) -> Path | None:
+    """Locate the rendered EGD print PDF for this location/lang.
+
+    Returns the source Path, or None if `make render` hasn't run yet (no hard
+    fail — the build keeps going and just omits the download button).
+    """
+    loc_upper = location_id.upper()
+    lang_dir = "English" if lang == "en" else "Spanish"
+    lang_suffix = "" if lang == "en" else "-es"
+    pdf_name = f"egd-{loc_upper}{lang_suffix}-print.pdf"
+    candidate = PDF_REVIEW_DIR / loc_upper / lang_dir / pdf_name
+    return candidate if candidate.exists() else None
+
+
+def build_pdf_button_block(href: str, lang: str) -> str:
+    """Emit the `<a class="pdf-download">` markup, or empty string if no PDF."""
+    if not href:
+        return ""
+    return (
+        f'<a class="pdf-download" href="{href}" target="_blank" rel="noopener">'
+        f'<span aria-hidden="true">\U0001F4C4</span> '
+        f'{PDF_BUTTON_LABEL[lang]}</a>'
+    )
 
 # Each repo's site title for the README and the `lang_toggle` href is identical
 HEADERS_CONTENT = """/*
@@ -58,7 +92,7 @@ Cloudflare Pages, connected to this GitHub repo. Build settings: framework = Non
 """
 
 
-def render_mobile(template_name, lang, procedure, location):
+def render_mobile(template_name, lang, procedure, location, pdf_button_block=""):
     """Substitute placeholders into a mobile template."""
     src = (TEMPLATES / template_name).read_text(encoding="utf-8")
     youtube_url = render._qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
@@ -75,6 +109,7 @@ def render_mobile(template_name, lang, procedure, location):
         "{{PORTAL_URL}}":          portal_url,
         "{{GIKIDS_URL}}":          gikids_url,
         "{{LOCATION_PHONE_TEL}}":  location_phone_tel,
+        "{{PDF_BUTTON_BLOCK}}":    pdf_button_block,
     }
     out = src
     for token, value in replacements.items():
@@ -97,13 +132,32 @@ def main():
         repo_dir.mkdir(parents=True, exist_ok=True)
         (repo_dir / "es").mkdir(exist_ok=True)
 
+        # Copy the rendered print PDF into the site repo if present, so the
+        # mobile page can link to it via <a href="handout.pdf">. If `make
+        # render` hasn't run yet, the button block stays empty.
+        en_pdf_src = find_handout_pdf(location_id, "en")
+        en_pdf_href = ""
+        if en_pdf_src is not None:
+            shutil.copy(en_pdf_src, repo_dir / "handout.pdf")
+            en_pdf_href = "handout.pdf"
+            written.append(repo_dir / "handout.pdf")
+
+        es_pdf_src = find_handout_pdf(location_id, "es")
+        es_pdf_href = ""
+        if es_pdf_src is not None:
+            shutil.copy(es_pdf_src, repo_dir / "es" / "handout.pdf")
+            es_pdf_href = "handout.pdf"
+            written.append(repo_dir / "es" / "handout.pdf")
+
         # English page → repo_dir/index.html
-        en = render_mobile("egd-mobile.en.html", "en", procedure, location)
+        en = render_mobile("egd-mobile.en.html", "en", procedure, location,
+                           pdf_button_block=build_pdf_button_block(en_pdf_href, "en"))
         (repo_dir / "index.html").write_text(en, encoding="utf-8")
         written.append(repo_dir / "index.html")
 
         # Spanish page → repo_dir/es/index.html
-        es = render_mobile("egd-mobile.es.html", "es", procedure, location)
+        es = render_mobile("egd-mobile.es.html", "es", procedure, location,
+                           pdf_button_block=build_pdf_button_block(es_pdf_href, "es"))
         (repo_dir / "es" / "index.html").write_text(es, encoding="utf-8")
         written.append(repo_dir / "es" / "index.html")
 

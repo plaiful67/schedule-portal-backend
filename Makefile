@@ -14,6 +14,7 @@ install:
 
 vendor-sync:
 	$(PY) scripts/vendor_sync.py
+	$(PY) scripts/build_personalized_templates.py
 
 dev:
 	$(UVICORN) app.main:app --reload --host 127.0.0.1 --port 8000

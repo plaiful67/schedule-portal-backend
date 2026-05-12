@@ -150,13 +150,10 @@ def _load_yaml(path):
         return yaml.safe_load(f)
 
 
-def build_practice_placeholders(practice_cfg, lang="en"):
+def build_practice_placeholders(practice_cfg):
     p = practice_cfg["practice"]
-    # Lazy import: render module owns the git-derived revision date.
-    from render import _revision_date_str  # noqa: WPS433
     return {
         "{{PRACTICE_LOGO_ALT}}": p.get("logo_alt", ""),
-        "{{REVISION_DATE}}":     _revision_date_str(lang),
     }
 
 
@@ -285,7 +282,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
 
     # Source-of-truth dose strings — same call render.render_band uses.
     if protocol == "standard":
-        dose_replacements = build_strings(band, lang, location=location)
+        dose_replacements = build_strings(band, lang)
     else:  # infant or infant-enema
         dose_replacements = build_infant_strings(band, lang)
 
@@ -306,7 +303,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         pdf_button_block = ""
 
     replacements = {
-        **build_practice_placeholders(practice_cfg, lang),
+        **build_practice_placeholders(practice_cfg),
         **build_location_placeholders(location, lang),
         **dose_replacements,
         # render.build_strings populates {{HTML_TITLE}} and {{BAND_LABEL}}
@@ -340,7 +337,7 @@ def render_landing_page(template_path, lang, practice_cfg, bands_by_id, band_ids
                         logo_src, lang_toggle_href, html_title):
     src = template_path.read_text(encoding="utf-8")
     replacements = {
-        **build_practice_placeholders(practice_cfg, lang),
+        **build_practice_placeholders(practice_cfg),
         "{{HTML_TITLE}}":       html_title,
         "{{LOGO_SRC}}":         logo_src,
         "{{LANG_TOGGLE_HREF}}": lang_toggle_href,

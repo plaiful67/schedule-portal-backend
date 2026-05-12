@@ -14,8 +14,6 @@
      --------------------------------------------------------------- */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; }
-
   @page {
     size: letter;
     margin: 0.55in 0.65in 0.5in 0.65in;
@@ -219,6 +217,10 @@
   /* BIG PREP — extra breathing room above so the most-important section
      visually separates from the 1-Day-Before content. */
   h2.step.big-prep { margin-top: 14pt; }
+  /* Keep BIG PREP heading + intro + first time-box on the same page.
+     Without break-after:avoid here the renderer can split between the intro
+     and the time-box, leaving the heading orphaned at the bottom of a page
+     with a big empty gap below. */
   h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
   h2.step .icon, h2.section-heading .icon {
     display: inline-block;
@@ -287,10 +289,10 @@
     background: #e8f1fb;
     border-left: 3pt solid #1565c0;
     border-radius: 3pt;
-    padding: 6pt 10pt;
-    margin: 4pt 0;
+    padding: 5pt 10pt;
+    margin: 3pt 0;
     break-inside: avoid;
-    font-size: 11.5pt;
+    font-size: 10.5pt;
   }
   .time-box .when {
     display: inline-block;
@@ -301,10 +303,10 @@
     padding: 1.5pt 6pt;
     border-radius: 3pt;
     font-size: 10pt;
-    margin-bottom: 4pt;
+    margin-bottom: 0; margin-right: 6pt;
   }
   .time-box .what {
-    display: block;
+    display: inline;
   }
 
   /* Callouts & warnings -------------------------------------------- */
@@ -327,9 +329,8 @@
   }
   .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b; margin-bottom: 2pt; font-size: 9pt; }
   .tip p, .tip li { font-size: 9pt; line-height: 1.4; margin: 0; }
-  /* §4 rescue / backup-plan tip — warm amber tint to distinguish from the
-     blue drinking-tips block. Shows the explicit "If the prep isn't working
-     — backup plan:" lead in print. */
+  /* Rescue / backup-plan tip — warm amber tint to distinguish from the
+     blue drinking-tips block. */
   .tip.rescue {
     background: #fff8ee; border-color: #e6c397; border-left-color: #d4900b;
   }
@@ -346,8 +347,6 @@
   .tip.rescue ul { margin: 2pt 0 0; padding-left: 14pt; }
   .tip.rescue li { font-size: 8.5pt; line-height: 1.3; margin: 0; }
   .tip.rescue strong { color: #1a1a1a; }
-  /* Hide the personalize-only morning cutoff time — print never has the URL hash. */
-  /* .pz-only inside the rescue tip is replaced with personalized timestamps server-side (apply_pz_substitutions); keep visible */
   /* Keep callout body text at the callout's intended 14px, not the body 17px. */
   .callout p, .callout li { font-size: 12px; line-height: 1.4; }
   .callout-title {
@@ -541,7 +540,7 @@
 <!-- ============================================================= -->
 <!-- 3 DAYS BEFORE                                                 -->
 <!-- ============================================================= -->
-<h2 class="step" data-pz-day="-3" data-pz-suffix=" &mdash; Low-Residue Diet"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>
+<h2 class="step"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>
 
 <table class="avoid-allowed">
   <thead>
@@ -574,7 +573,7 @@
 <!-- ============================================================= -->
 <!-- 1 DAY BEFORE                                                  -->
 <!-- ============================================================= -->
-<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Lunch"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>
+<h2 class="step"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>
 
 <p><strong>After 2:00 PM &mdash; clear liquids only.</strong></p>
 <table class="avoid-allowed">

@@ -342,6 +342,16 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     btn.parentNode.insertBefore(f, btn.nextSibling);
     var dateEl = document.getElementById('pz-date');
     dateEl.focus();
+    dateEl.addEventListener('change', function() {
+      // iOS 17+ shows an inline calendar popover that .blur() alone often
+      // fails to dismiss — users had to tap multiple times. Shifting focus
+      // to the Apply button reliably closes the picker.
+      this.blur();
+      setTimeout(function() {
+        var apply = document.getElementById('pz-apply');
+        if (apply && apply.focus) apply.focus();
+      }, 0);
+    });
     document.getElementById('pz-apply').onclick = function() {
       var dv = dateEl.value;
       var tv = document.getElementById('pz-time').value || '0900';

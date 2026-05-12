@@ -14,8 +14,6 @@
      --------------------------------------------------------------- */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; }
-
   @page {
     size: letter;
     margin: 0.55in 0.65in 0.5in 0.65in;
@@ -219,6 +217,10 @@
   /* BIG PREP — extra breathing room above so the most-important section
      visually separates from the 1-Day-Before content. */
   h2.step.big-prep { margin-top: 14pt; }
+  /* Keep BIG PREP heading + intro + first time-box on the same page.
+     Without break-after:avoid here the renderer can split between the intro
+     and the time-box, leaving the heading orphaned at the bottom of a page
+     with a big empty gap below. */
   h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
   h2.step .icon, h2.section-heading .icon {
     display: inline-block;
@@ -287,10 +289,10 @@
     background: #e8f1fb;
     border-left: 3pt solid #1565c0;
     border-radius: 3pt;
-    padding: 6pt 10pt;
-    margin: 4pt 0;
+    padding: 5pt 10pt;
+    margin: 3pt 0;
     break-inside: avoid;
-    font-size: 11.5pt;
+    font-size: 10.5pt;
   }
   .time-box .when {
     display: inline-block;
@@ -301,10 +303,10 @@
     padding: 1.5pt 6pt;
     border-radius: 3pt;
     font-size: 10pt;
-    margin-bottom: 4pt;
+    margin-bottom: 0; margin-right: 6pt;
   }
   .time-box .what {
-    display: block;
+    display: inline;
   }
 
   /* Callouts & warnings -------------------------------------------- */
@@ -327,9 +329,8 @@
   }
   .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b; margin-bottom: 2pt; font-size: 9pt; }
   .tip p, .tip li { font-size: 9pt; line-height: 1.4; margin: 0; }
-  /* §4 rescue / backup-plan tip — warm amber tint to distinguish from the
-     blue drinking-tips block. Shows the explicit "If the prep isn't working
-     — backup plan:" lead in print. */
+  /* Rescue / backup-plan tip — warm amber tint to distinguish from the
+     blue drinking-tips block. */
   .tip.rescue {
     background: #fff8ee; border-color: #e6c397; border-left-color: #d4900b;
   }
@@ -343,9 +344,9 @@
     margin-right: 2pt;
   }
   .tip.rescue .contingency-body ul { margin: 0; padding-left: 12pt; }
+  .tip.rescue ul { margin: 2pt 0 0; padding-left: 14pt; }
   .tip.rescue li { font-size: 8.5pt; line-height: 1.3; margin: 0; }
   .tip.rescue strong { color: #1a1a1a; }
-  /* .pz-only inside the rescue tip is replaced with personalized timestamps server-side (apply_pz_substitutions); keep visible */
   /* Keep callout body text at the callout's intended 14px, not the body 17px. */
   .callout p, .callout li { font-size: 12px; line-height: 1.4; }
   .callout-title {
@@ -558,7 +559,7 @@
 <p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>
 
 <h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>
-<p>The colon must be clean for the doctor to see clearly during the colonoscopy. The medicines below empty it over <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>. The EGD itself does not need bowel prep &mdash; only the fasting times.</p>
+<p>The colon must be clean for the doctor to see clearly during the colonoscopy. The medicines below empty it over the day before. The EGD itself does not need bowel prep &mdash; only the fasting times.</p>
 
 <!-- ============================================================= -->
 <!-- PLAN AHEAD                                                    -->
@@ -576,12 +577,12 @@
       <td style="text-align: right;"><strong>{{DOCX_DULCOLAX_LONG}}</strong></td>
     </tr>
     <tr>
-      <td><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables</span><br><em style="color: #555; font-size: 0.92em;">Enough for the BIG PREP plus the rescue plan if needed.</em></td>
-      <td style="text-align: right;">At least <strong>{{HTML_MIRALAX_SHOPPING}}</strong> of powder</td>
+      <td><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables</span></td>
+      <td style="text-align: right;"><strong>{{HTML_MIRALAX_SHORT_PLAIN}}</strong><br><span style="font-size: 0.78em; color: #666;">enough for big prep with rescue</span></td>
     </tr>
     <tr>
       <td>Gatorade or Powerade <em>(any color except red or purple)</em> &mdash; for mixing with the MiraLAX powder</td>
-      <td style="text-align: right;">At least <strong>{{HTML_GATORADE_SHOPPING}}</strong></td>
+      <td style="text-align: right;">At least <strong>{{HTML_GATORADE_VOL}}</strong></td>
     </tr>
     <tr>
       <td>Skin protection &mdash; protective ointment (Desitin or Vaseline) for anal-area comfort</td>
@@ -592,10 +593,15 @@
 
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
-  <p style="margin: 0;">Prepare a list of the medicines your child is taking and ask which ones may need to be stopped. <strong>Stop {{HTML_MEDICATIONS_DRUGS}} 7 days before.</strong></p>
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">For the full list of medications to stop, scan or visit <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; or call the office if you&rsquo;re unsure.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare a list of medications and be ready to discuss them with the nurse or scheduler when they call.<br>
+        <strong>Stop {{HTML_MEDICATIONS_DRUGS}} 7 days before.</strong><br>
+        You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -604,7 +610,7 @@
 <!-- ============================================================= -->
 <!-- 3 DAYS BEFORE                                                 -->
 <!-- ============================================================= -->
-<h2 class="step" data-pz-day="-3" data-pz-suffix=" &mdash; Low-Residue Diet"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>
+<h2 class="step"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>
 
 <table class="avoid-allowed">
   <thead>
@@ -637,7 +643,7 @@
 <!-- ============================================================= -->
 <!-- 1 DAY BEFORE                                                  -->
 <!-- ============================================================= -->
-<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Lunch"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>
+<h2 class="step"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>
 
 <p><strong>After 2:00 PM &mdash; clear liquids only.</strong></p>
 <table class="avoid-allowed">
@@ -686,10 +692,10 @@
 <!-- ============================================================= -->
 <!-- DAY OF PROCEDURE                                              -->
 <!-- ============================================================= -->
-<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Day of Procedure"><span class="icon">&#128197;</span> Day of Procedure</h2>
+<h2 class="step"><span class="icon">&#128197;</span> Day of Procedure</h2>
 
 <ul>
-  <li><strong>Clear liquids only after 2 PM <span class="pz-only" data-pz-day="-1" data-pz-template="on {date}">the day before</span>.</strong> No solid food.</li>
+  <li><strong>Clear liquids only after 2 PM the day before.</strong> No solid food.</li>
   <li><strong>Keep your child well-hydrated</strong> &mdash; offer small sips of clear liquids every 30&ndash;60 minutes through the prep day. Each drink: no more than <strong>{{HTML_DRINK_CUP}}</strong>. Frequent small drinks beat occasional large ones &mdash; better hydration, easier on the stomach.</li>
   <li><strong>Stop all clear liquids {{NPO_CLEARS_HOURS}} hours before the procedure.</strong></li>
   <li>Bring comfort items for your child (toy, blanket, tablet, etc.).</li>
@@ -724,7 +730,7 @@
 <section>
   <h2 class="step"><span class="icon">&#127834;</span> Low-Residue Diet &mdash; Sample Meals</h2>
 
-  <p>Meal ideas for the low-residue (&ldquo;white&rdquo;) diet. Continue this diet for <span class="pz-only" data-pz-day="-3" data-pz-template="the 3 days before the procedure (starting {date})">the 3 days before the procedure</span>, through lunch <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>. After 2:00 PM <span class="pz-only" data-pz-day="-1" data-pz-template="on {date}">the day before</span>, switch to clear liquids only &mdash; no dairy.</p>
+  <p>Meal ideas for the low-residue (&ldquo;white&rdquo;) diet. Continue this diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only &mdash; no dairy.</p>
 
   <div class="meals">
     <div class="meal">
@@ -756,6 +762,8 @@
       </ul>
     </div>
   </div>
+
+  <p class="fineprint">Questions? Message us through the patient portal (preferred) or call (317) 338-9450 for urgent issues.</p>
 </section>
 
 </body>

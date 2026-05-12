@@ -151,6 +151,10 @@ procedures:
         filename_stem: over-40kg
         simple_diet: false
         infant_callout: false
+        # GLP-1 receptor agonist stop-line shown only on the >=40 kg handout
+        # (younger children are not on these meds; pediatric anesthesia
+        # GLP-1 NPO guidance applies to adolescent/adult body weight).
+        include_glp1_warning: true
         label_en: "Over 40 kg (Over 88 lb)"
         label_es: "Más de 40 kg (Más de 88 lb)"
         html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (Over 40 kg)"

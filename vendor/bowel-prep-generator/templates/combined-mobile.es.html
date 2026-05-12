@@ -47,11 +47,25 @@
     font-size: 24px; color: #0e2233;
     margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
   }
+  /* Bracketed lb badge inline beside the kg label in the H1 — bigger
+     than the subtitle, easy to spot at a glance. */
+  /* Banda de peso: línea propia bajo el título, kg + lb pegados con
+     white-space: nowrap para que nunca se separen en pantallas estrechas. */
+  .weight-subtitle {
+    font-family: "Inter", sans-serif;
+    color: #b03a00;
+    margin: 2px 0 10px;
+    white-space: nowrap;
+    overflow-wrap: normal;
+  }
+  .weight-subtitle .kg { font-size: 20px; font-weight: 700; letter-spacing: -0.005em; }
+  .weight-subtitle .lb { font-size: 16px; font-weight: 600; margin-left: 4px; opacity: 0.9; }
   .subtitle {
     font-family: "Inter", sans-serif;
     font-size: 15px; color: #b03a00; font-weight: 600;
     margin: 0 0 14px;
   }
+  .subtitle:empty { display: none; }
   .other-bands {
     display: inline-block;
     font-family: "Inter", sans-serif; font-size: 14px; font-weight: 500;
@@ -97,6 +111,11 @@
     padding: 6px 0 6px 12px;
     margin: 26px 0 10px;
   }
+  /* BIG PREP — give the most-important section extra vertical air so
+     it visually separates from the day-before content above and the
+     dose timeline below. */
+  h2.step.big-prep { margin-top: 36px; margin-bottom: 14px; }
+  h2.step.big-prep + p.note { margin: 8px 0 14px; }
   h2.step .icon, h2.section-heading .icon { margin-right: 8px; font-size: 1.1em; }
   h3.sub {
     font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
@@ -112,9 +131,9 @@
   }
   .time-box .when {
     font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b;
-    font-size: 15px; margin-bottom: 3px; letter-spacing: 0.01em;
+    font-size: 15px; margin-bottom: 0; margin-right: 8px; letter-spacing: 0.01em;
   }
-  .time-box .what { font-size: 16px; line-height: 1.42; }
+  .time-box .what { font-size: 16px; line-height: 1.42; display: inline; }
   table {
     width: 100%; border-collapse: collapse;
     margin: 6px 0 10px; font-size: 15px;
@@ -130,6 +149,11 @@
     border-bottom: 1px solid #d8dee5;
     vertical-align: top;
   }
+  /* Supplies table — slightly larger text so the active-ingredient names
+     and dose amounts are easy to scan on a phone. */
+  table.supplies { font-size: 17px; }
+  table.supplies td, table.supplies th { padding: 8px 10px; }
+  table.supplies td { line-height: 1.5; }
   table.avoid-allowed {
     border: 1px solid #c9d3dd; border-radius: 6px; overflow: hidden;
   }
@@ -201,7 +225,6 @@
     margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
     line-height: 1.6;
   }
-  .footer .revised { font-size: 11px; color: #888; margin-top: 6px; }
   @media (prefers-color-scheme: dark) {
     body { background: #1a1a1a; color: #e0e0e0; }
     .topbar { background: #262626; border-bottom-color: #3a3a3a; }
@@ -262,35 +285,6 @@
     .breadcrumb { color: #bbb; }
     .breadcrumb a { color: #5eb3f6; }
   }
-
-  /* §4 contingency / rescue plan — collapsed by default on mobile, forced
-     open in print so save-as-PDF doesn't lose the content. */
-  details.contingency {
-    margin: 12px 0 14px; border: 1px solid #e6c397;
-    border-radius: 8px; background: #fff8ee; padding: 8px 12px;
-  }
-  details.contingency summary {
-    font-family: "Inter", sans-serif; font-size: 14px; font-weight: 700;
-    color: #7a4a00; cursor: pointer; list-style: none;
-    padding: 4px 0; user-select: none;
-  }
-  details.contingency summary::-webkit-details-marker { display: none; }
-  details.contingency summary::before { content: "▶ "; font-size: 11px; color: #b07700; }
-  details.contingency[open] summary::before { content: "▼ "; }
-  details.contingency .contingency-body { font-size: 14px; color: #3a3a3a; line-height: 1.5; margin-top: 6px; }
-  details.contingency .contingency-body strong { color: #1a1a1a; }
-  @media print {
-    details.contingency[open] summary::before, details.contingency summary::before { content: ""; }
-    details.contingency > *:not(summary) { display: block !important; }
-  }
-  @media (prefers-color-scheme: dark) {
-    details.contingency { background: #2a221a; border-color: #5a4220; }
-    details.contingency summary { color: #f0c98b; }
-    details.contingency summary::before { color: #d0a060; }
-    details.contingency .contingency-body { color: #d0d0d0; }
-    details.contingency .contingency-body strong { color: #f0f0f0; }
-    details.contingency a { color: #5eb3f6; }
-  }
 </style>
 </head>
 <body>
@@ -309,7 +303,8 @@
 <div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Volver a giready.com</a></div>
 
 <h1>Preparación para EGD y Colonoscopia</h1>
-<div class="subtitle">{{BAND_LABEL}} ({{BAND_LB}})</div>
+<div class="weight-subtitle"><span class="kg">{{BAND_LABEL}}</span><span class="lb">{{BAND_LB}}</span></div>
+<div class="subtitle">{{BAND_NOTE}}</div>
 
 <a class="other-bands" href="{{LANDING_HREF}}">← Otras bandas de peso</a>
 {{PDF_BUTTON_BLOCK}}
@@ -335,7 +330,7 @@
 
 <h2 class="step" data-pz-day="-2" data-pz-prefix="Planifique con Anticipación — compre suministros antes del "><span class="icon">✅</span> Planifique con Anticipación (compre al menos 2 días antes)</h2>
 <p>Compre estos artículos al menos 2 días antes del procedimiento. Verifique el <strong>ingrediente activo</strong> en la etiqueta — los nombres de marca pueden llevar al producto equivocado.</p>
-<table>
+<table class="supplies">
   <thead>
     <tr><th style="width: 68%;">Ingrediente activo / Artículo</th><th style="text-align: right;">Qué comprar</th></tr>
   </thead>
@@ -345,12 +340,12 @@
       <td style="text-align: right;"><strong>{{DOCX_DULCOLAX_LONG}}</strong></td>
     </tr>
     <tr>
-      <td><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">⚠️ <strong>NO</strong> MiraLAX masticables</span><br><em style="color: #555; font-size: 0.92em;">Suficiente para la BIG PREP más el plan de respaldo si es necesario.</em></td>
-      <td style="text-align: right;">Al menos <strong>{{HTML_MIRALAX_SHOPPING}}</strong> de polvo</td>
+      <td><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">⚠️ <strong>NO</strong> MiraLAX masticables</span></td>
+      <td style="text-align: right;"><strong>{{HTML_MIRALAX_SHORT_PLAIN}}</strong><br><span style="font-size: 0.78em; color: #666;">suficiente para preparación grande con rescate</span></td>
     </tr>
     <tr>
-      <td>Gatorade o Powerade <em>(cualquier color excepto rojo o morado)</em> — para mezclar con el polvo de MiraLAX</td>
-      <td style="text-align: right;">Al menos <strong>{{HTML_GATORADE_SHOPPING}}</strong></td>
+      <td><strong>Gatorade</strong> o Powerade <em>(cualquier color excepto rojo o morado)</em> — para mezclar con el polvo de MiraLAX</td>
+      <td style="text-align: right;">Al menos <strong>{{HTML_GATORADE_VOL}}</strong></td>
     </tr>
     <tr>
       <td>Protección de la piel — pomada protectora (Desitin o Vaseline) para la comodidad del área anal</td>
@@ -360,10 +355,15 @@
 </table>
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <p style="margin: 0;">Prepare una lista de los medicamentos que su niño está tomando y pregunte cuáles pueden necesitar suspenderse. <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} <span data-pz-day="-7" data-pz-template="antes del {date}">7 días antes</span>.</strong></p>
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">Para la lista completa de medicamentos que debe suspender, escanee o visite <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; o llame a la oficina si tiene dudas.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} <span data-pz-day="-7" data-pz-template="antes del {date}">7 días antes</span>.</strong><br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -420,16 +420,11 @@
   </tbody>
 </table>
 
-<h2 class="step"><span class="icon">🥤</span> LA GRAN PREPARACIÓN — tarde / noche</h2>
+<h2 class="step big-prep"><span class="icon">🥤</span> LA GRAN PREPARACIÓN — tarde / noche</h2>
 <p class="note"><em>Mejor empezar justo despu&eacute;s de la escuela &mdash; no se demore o su ni&ntilde;o podr&iacute;a no terminar antes de dormir.</em></p>
 
 
 {{HTML_PREP_MEDICINE_BLOCK}}
-
-<details class="contingency">
-  <summary>Si la preparación no está funcionando — plan de respaldo</summary>
-  {{HTML_CONTINGENCY_BLOCK}}
-</details>
 
 <div class="tip">
   <div class="tip-title">💡 Consejos para tomar el MiraLAX</div>
@@ -525,7 +520,6 @@
 <div class="footer">
   Para los pacientes del <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, y <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Gastroenterología Pediátrica en Peyton Manning Children's Hospital en Indianápolis. No reemplaza el consejo médico.<br>
   Oficina: <a href="tel:3173389450">(317) 338-9450</a>
-  <div class="revised">Última revisión {{REVISION_DATE}}</div>
 </div>
 
 </div>

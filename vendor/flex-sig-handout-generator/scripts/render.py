@@ -239,6 +239,7 @@ def render_pdf(procedure_id, procedure, band, location, location_id, lang, theme
         "SIMPLE_DIET": bool(band.get("simple_diet")),
         "FULL_DIET":   not bool(band.get("simple_diet")),
         "INFANT_CALLOUT": bool(band.get("infant_callout")),
+        "INCLUDE_GLP1": bool(band.get("include_glp1_warning")),
     }
     html = apply_conditional_blocks(html, flags)
 

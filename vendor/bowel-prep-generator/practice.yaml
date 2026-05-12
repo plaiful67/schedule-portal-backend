@@ -11,8 +11,9 @@
 # …plus their own `dosing.yaml` and a logo PNG dropped in `templates/`.
 
 practice:
-  # GI-office phone for "call our office" copy across handouts. `phone` is the
-  # display form; `phone_tel` is the digits-only string used in tel: hrefs.
+  # Office phone — used in the rescue-plan "call our office at …" sentence
+  # (build_contingency_block in render.py) and any other body-text reference.
+  # phone_tel is the digits-only form for tel: links.
   phone: "(317) 338-9450"
   phone_tel: "3173389450"
 
@@ -29,6 +30,22 @@ practice:
   # Running footer (left side) on every print page.
   footer_en: "Pediatric Gastroenterology  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
   footer_es: "Gastroenterología Pediátrica  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+
+  # Clickable doctor footer rendered on every mobile handout page
+  # (combined-mobile, colonoscopy-mobile, egd-mobile, flex-sig-mobile).
+  # Each entry: short name as it appears in the footer text + ascension
+  # provider profile URL the patient lands on when they tap.
+  doctors:
+    - name_short: "Dr. Deivanayagam"
+      profile_url: "https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam"
+    - name_short: "Dr. Dunn"
+      profile_url: "https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn"
+    - name_short: "Dr. Schaefer"
+      profile_url: "https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer"
+    - name_short: "Dr. Tibesar"
+      profile_url: "https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar"
+    - name_short: "Dr. Zavoian"
+      profile_url: "https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian"
 
   # Practice/group logo. Path is RELATIVE to the templates/ directory.
   logo_filename: "logo-pmch.png"

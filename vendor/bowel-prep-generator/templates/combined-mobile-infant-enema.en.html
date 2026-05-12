@@ -47,11 +47,20 @@
     font-size: 24px; color: #0e2233;
     margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
   }
+  /* Bracketed lb badge inline beside the kg label in the H1 — bigger
+     than the subtitle, easy to spot at a glance. */
+  h1 .lb-badge {
+    display: inline-block;
+    font-size: 22px; font-weight: 700; color: #b03a00;
+    margin-left: 6px;
+    letter-spacing: -0.005em;
+  }
   .subtitle {
     font-family: "Inter", sans-serif;
     font-size: 14px; color: #b03a00; font-weight: 600;
     margin: 0 0 14px;
   }
+  .subtitle:empty { display: none; }
   .other-bands {
     display: inline-block;
     font-family: "Inter", sans-serif; font-size: 13px; font-weight: 500;
@@ -181,7 +190,6 @@
     margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
     line-height: 1.6;
   }
-  .footer .revised { font-size: 11px; color: #888; margin-top: 6px; }
   @media (prefers-color-scheme: dark) {
     body { background: #1a1a1a; color: #e0e0e0; }
     .topbar { background: #262626; border-bottom-color: #3a3a3a; }
@@ -249,8 +257,8 @@
 <div class="container">
 <div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Back to giready.com home</a></div>
 
-<h1>EGD + Colonoscopy Prep</h1>
-<div class="subtitle">{{BAND_LABEL}} ({{BAND_LB}})</div>
+<h1>EGD + Colonoscopy Prep — {{BAND_LABEL}} <span class="lb-badge">{{BAND_LB}}</span></h1>
+<div class="subtitle">{{BAND_NOTE}}</div>
 
 <a class="other-bands" href="{{LANDING_HREF}}">← Other weight bands</a>
 {{PDF_BUTTON_BLOCK}}
@@ -291,10 +299,15 @@
 
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
-  <p style="margin: 0;">Prepare a list of the medicines your child is taking and ask which ones may need to be stopped. <strong>Stop {{HTML_MEDICATIONS_DRUGS}} 7 days before.</strong></p>
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">For the full list of medications to stop, scan or visit <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; or call the office if you&rsquo;re unsure.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare a list of medications and be ready to discuss them with the nurse or scheduler when they call.<br>
+        <strong>Stop {{HTML_MEDICATIONS_DRUGS}} 7 days before.</strong><br>
+        You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -384,7 +397,6 @@
 <div class="footer">
   For patients of <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, and <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Pediatric Gastroenterology at Peyton Manning Children's Hospital in Indianapolis. Not a substitute for medical advice.<br>
   Office: <a href="tel:3173389450">(317) 338-9450</a>
-  <div class="revised">Last revised {{REVISION_DATE}}</div>
 </div>
 
 </div>

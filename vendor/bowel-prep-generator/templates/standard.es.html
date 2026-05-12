@@ -35,7 +35,7 @@
         body { font-family: Arial, sans-serif; line-height: 1.6; background-color: #f5f5f5; color: #333; }
         .sticky-header { position: sticky; top: 0; background-color: #fff; border-bottom: 2px solid #e0e0e0; padding: 12px 16px; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .header-content { max-width: 600px; margin: 0 auto; text-align: center; }
-        .header-weight { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 8px; }
+        .header-weight { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 8px; white-space: nowrap; }
         .header-phone { font-size: 14px; }
         .header-phone a { color: #2e75b6; text-decoration: none; font-weight: bold; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -122,7 +122,7 @@
         <div class="office-phone"><a href="tel:(317)338-9450">(317) 338-9450</a></div>
 
         <h1 style="font-size: 20px; text-align: center; margin: 16px 0; font-weight: bold;">Preparación para Colonoscopia</h1>
-        <p style="text-align: center; font-size: 16px; margin-bottom: 8px;"><strong>{{BAND_LABEL}}</strong></p>
+        <p style="text-align: center; font-size: 16px; margin-bottom: 8px; white-space: nowrap;"><strong>{{BAND_LABEL}}</strong></p>
 
         <div class="location">
             <div class="location-title">Ubicación del Procedimiento</div>
@@ -139,7 +139,7 @@
                 <p>Compre estos artículos al menos 2 días antes del procedimiento:</p>
                 <ul>
                     <li><strong>Bisacodilo 5 mg en tabletas</strong> (Dulcolax Tablets — Overnight Laxative) — {{HTML_DULCOLAX_SHORT}}<br><span style="color: #7a1f00;">⚠️ <strong>NO</strong> Dulcolax líquido o blandos masticables</span></li>
-                    <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) — al menos <strong>{{HTML_MIRALAX_SHOPPING}}</strong> de polvo + <strong>{{HTML_GATORADE_SHOPPING}}</strong> de Gatorade claro (sin rojo ni morado) <em style="color: #555;">(suficiente para la BIG PREP más el plan de respaldo si es necesario)</em><br><span style="color: #7a1f00;">⚠️ <strong>NO</strong> MiraLAX masticables</span></li>
+                    <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) — {{HTML_MIRALAX_SHORT}} mezclado en {{HTML_GATORADE_VOL}} de Gatorade claro (sin rojo ni morado)<br><span style="color: #7a1f00;">⚠️ <strong>NO</strong> MiraLAX masticables</span></li>
                     <li>Ungüento protector (Desitin o Vaseline) para comodidad del área anal</li>
                 </ul>
                 <!-- meds-giready-exempt: DOCX-stub HTML template; phase-2 deferred DOCX edits. -->

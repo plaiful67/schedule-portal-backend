@@ -10,8 +10,6 @@
      --------------------------------------------------------------- */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
-  *, *::before, *::after { box-sizing: border-box; }
-
   @page {
     size: letter;
     margin: 0.55in 0.65in 0.5in 0.65in;
@@ -209,6 +207,10 @@
   /* BIG PREP — extra breathing room above so the most-important section
      visually separates from the 1-Day-Before content. */
   h2.step.big-prep { margin-top: 14pt; }
+  /* Keep BIG PREP heading + intro + first time-box on the same page.
+     Without break-after:avoid here the renderer can split between the intro
+     and the time-box, leaving the heading orphaned at the bottom of a page
+     with a big empty gap below. */
   h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
   h2.step .icon, h2.section-heading .icon {
     display: inline-block;
@@ -276,10 +278,10 @@
     background: #e8f1fb;
     border-left: 3pt solid #1565c0;
     border-radius: 3pt;
-    padding: 6pt 10pt;
-    margin: 4pt 0;
+    padding: 5pt 10pt;
+    margin: 3pt 0;
     break-inside: avoid;
-    font-size: 11.5pt;
+    font-size: 10.5pt;
   }
   .time-box .when {
     display: inline-block;
@@ -290,10 +292,10 @@
     padding: 1.5pt 6pt;
     border-radius: 3pt;
     font-size: 10pt;
-    margin-bottom: 4pt;
+    margin-bottom: 0; margin-right: 6pt;
   }
   .time-box .what {
-    display: block;
+    display: inline;
   }
 
   /* Callouts & warnings */
@@ -316,9 +318,8 @@
   }
   .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b; margin-bottom: 2pt; font-size: 9pt; }
   .tip p, .tip li { font-size: 9pt; line-height: 1.4; margin: 0; }
-  /* §4 rescue / backup-plan tip — warm amber tint to distinguish from the
-     blue drinking-tips block. Shows the explicit "Si la preparación no está
-     funcionando — plan de respaldo:" lead in print. */
+  /* Rescue / backup-plan tip — warm amber tint to distinguish from the
+     blue drinking-tips block. */
   .tip.rescue {
     background: #fff8ee; border-color: #e6c397; border-left-color: #d4900b;
   }
@@ -332,9 +333,9 @@
     margin-right: 2pt;
   }
   .tip.rescue .contingency-body ul { margin: 0; padding-left: 12pt; }
+  .tip.rescue ul { margin: 2pt 0 0; padding-left: 14pt; }
   .tip.rescue li { font-size: 8.5pt; line-height: 1.3; margin: 0; }
   .tip.rescue strong { color: #1a1a1a; }
-  /* .pz-only inside the rescue tip is replaced with personalized timestamps server-side (apply_pz_substitutions); keep visible */
   /* Keep callout body text at the callout's intended 14px, not the body 17px. */
   .callout p, .callout li { font-size: 12px; line-height: 1.4; }
   .callout-title {
@@ -524,12 +525,12 @@
       <td style="text-align: right;"><strong>{{DOCX_DULCOLAX_LONG}}</strong></td>
     </tr>
     <tr>
-      <td><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">&#9888;&#65039; <strong>NO</strong> MiraLAX masticables</span><br><em style="color: #555; font-size: 0.92em;">Suficiente para la BIG PREP más el plan de respaldo si es necesario.</em></td>
-      <td style="text-align: right;">Al menos <strong>{{HTML_MIRALAX_SHOPPING}}</strong> de polvo</td>
+      <td><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, etc.)<br><span style="color: #7a1f00;">&#9888;&#65039; <strong>NO</strong> MiraLAX masticables</span></td>
+      <td style="text-align: right;"><strong>{{HTML_MIRALAX_SHORT_PLAIN}}</strong><br><span style="font-size: 0.78em; color: #666;">suficiente para preparación grande con rescate</span></td>
     </tr>
     <tr>
       <td>Gatorade o Powerade <em>(cualquier color excepto rojo o morado)</em> &mdash; para mezclar con el polvo de MiraLAX</td>
-      <td style="text-align: right;">Al menos <strong>{{HTML_GATORADE_SHOPPING}}</strong></td>
+      <td style="text-align: right;">Al menos <strong>{{HTML_GATORADE_VOL}}</strong></td>
     </tr>
     <tr>
       <td>Protección de la piel &mdash; pomada protectora (Desitin o Vaseline) para la comodidad del área anal</td>
@@ -540,10 +541,15 @@
 
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <p style="margin: 0;">Prepare una lista de los medicamentos que su niño está tomando y pregunte cuáles pueden necesitar suspenderse. <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong></p>
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">Para la lista completa de medicamentos que debe suspender, escanee o visite <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; o llame a la oficina si tiene dudas.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -705,6 +711,8 @@
       </ul>
     </div>
   </div>
+
+  <p class="fineprint">¿Preguntas? Envíenos un mensaje a través del portal del paciente (preferido) o llame al (317) 338-9450 para asuntos urgentes.</p>
 </section>
 
 </body>

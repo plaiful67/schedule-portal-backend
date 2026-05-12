@@ -71,24 +71,6 @@ bands:
     folder_en: "Under 15 kg (Under 33 Lb)"
     folder_es: "Menos de 15 kg (Menos de 33 Lb)"
     include_glp1_warning: false
-    # Cheat-sheet subtable rows. Mirrors the weight-banded MiraLAX dose table
-    # on the patient handout (templates/colonoscopy-mobile-infant.en.html
-    # lines 267-293). UTF-8 fractions are kept verbatim through render.
-    cheat_sheet_subbands:
-      - label_en: "<5 kg"
-        miralax_capfuls_en: "¼"
-        miralax_grams: 4
-        mix_oz_en: "2–4 oz"
-      - label_en: "5–9 kg"
-        miralax_capfuls_en: "½"
-        miralax_grams: 8.5
-        mix_oz_en: "4–6 oz"
-      - label_en: "10–15 kg"
-        miralax_capfuls_en: "¾"
-        miralax_grams: 13
-        mix_oz_en: "6–8 oz"
-    cheat_sheet_schedule_en: "1 dose/day × 2 days (days −3 and −2)"
-    cheat_sheet_mix_vehicle_en: "Pedialyte or clear apple juice"
 
   - id: "under-15-enema"
     protocol: infant-enema
@@ -105,9 +87,6 @@ bands:
     folder_en: "Under 15 kg (Under 33 Lb)"
     folder_es: "Menos de 15 kg (Menos de 33 Lb)"
     include_glp1_warning: false
-    # Cheat-sheet one-line summary. Source:
-    # templates/colonoscopy-mobile-infant-enema.en.html lines 308-310.
-    cheat_sheet_summary_en: "10 mL/kg — evening at home if directed, otherwise by staff at facility"
 
   # =====================================================================
   # STANDARD PROTOCOL
@@ -143,15 +122,16 @@ bands:
     # Pre-cleanout for the HTML callout. Per 2026-05-08 clinical guidance,
     # the under-30 kg bands present the lower-dose × longer-duration option
     # only (no second option). The DOCX legacy string above is unchanged.
-    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>once daily</strong> for <strong>5 days</strong>"
-    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>una vez al día</strong> durante <strong>5 días</strong>"
+    precleanout_a_text_en: "1 capful in 4 oz of clear liquid, once daily for <strong>5 days</strong>"
+    precleanout_a_text_es: "1 tapa en 4 oz de líquido claro, una vez al día durante <strong>5 días</strong>"
     precleanout_a_offset_days: -5
     precleanout_b_text_en: ""
     precleanout_b_text_es: ""
     precleanout_b_offset_days: null
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>½ capful of MiraLAX daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>½ tapa de MiraLAX diaria</strong>, hasta el procedimiento."
-    # Backup plan if the BIG PREP isn't working — see build_contingency_block().
+
+    # Rescue plan when the BIG PREP isn't working — see build_contingency_block().
     contingency_trigger_hours: 4
     contingency_evening_caps: 2
     contingency_evening_oz: 8
@@ -161,9 +141,6 @@ bands:
     contingency_total_grams: 136
     contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
-    # §6 shopping volume (BIG PREP + worst-day extra). See build_strings().
-    shopping_gatorade_oz: 32
-
   - id: "21-30"
     protocol: standard
     label_en: "21-30 kg (46-66 lb)"
@@ -194,14 +171,16 @@ bands:
     precleanout_en: "2–3 capfuls (32–45 g) mixed into 16–24 oz of juice, water, or Gatorade"
     precleanout_es: "2–3 tapas (32–45 g) mezcladas en 16–24 oz de jugo, agua o Gatorade"
     # Single option (lower dose × longer duration) per 2026-05-08 clinical guidance.
-    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>2 times daily</strong> for <strong>5 days</strong>"
-    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>2 veces al día</strong> durante <strong>5 días</strong>"
+    precleanout_a_text_en: "1 capful in 4 oz of clear liquid, 2 times daily for <strong>5 days</strong>"
+    precleanout_a_text_es: "1 tapa en 4 oz de líquido claro, 2 veces al día durante <strong>5 días</strong>"
     precleanout_a_offset_days: -5
     precleanout_b_text_en: ""
     precleanout_b_text_es: ""
     precleanout_b_offset_days: null
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>½ capful of MiraLAX daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>½ tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+
+    # Rescue plan when the BIG PREP isn't working — see build_contingency_block().
     contingency_trigger_hours: 4
     contingency_evening_caps: 3
     contingency_evening_oz: 12
@@ -211,8 +190,6 @@ bands:
     contingency_total_grams: 187
     contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
-    shopping_gatorade_oz: 44
-
   - id: "31-40"
     protocol: standard
     label_en: "31-40 kg (68-88 lb)"
@@ -244,8 +221,8 @@ bands:
     precleanout_es: "3–4 tapas (47–60 g) mezcladas en 24–32 oz de jugo, agua o Gatorade"
     precleanout_a_label_en: ""
     precleanout_a_label_es: ""
-    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>4 times daily</strong> for <strong>3 days</strong> &mdash; best done over the weekend before the procedure"
-    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>4 veces al día</strong> durante <strong>3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_text_en: "1 capful in 4 oz of clear liquid, 4 times daily for <strong>3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "1 tapa en 4 oz de líquido claro, 4 veces al día durante <strong>3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
     precleanout_a_offset_days: null
     precleanout_b_label_en: ""
     precleanout_b_label_es: ""
@@ -254,6 +231,8 @@ bands:
     precleanout_b_offset_days: null
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
+
+    # Rescue plan when the BIG PREP isn't working — see build_contingency_block().
     contingency_trigger_hours: 4
     contingency_evening_caps: 3
     contingency_evening_oz: 12
@@ -263,8 +242,6 @@ bands:
     contingency_total_grams: 255
     contingency_backup_en: "We may suggest a saline enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina en el centro, o reprogramar el procedimiento."
-    shopping_gatorade_oz: 60
-
   - id: "41-50"
     protocol: standard
     label_en: "41-50 kg (90-110 lb)"
@@ -308,9 +285,8 @@ bands:
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
     precleanout_b_offset_days: null
-    # Surfaces the 8 caps embedded in precleanout_a_text_* as a structured field
-    # so the §6 shopping calculation can read it without parsing HTML.
-    precleanout_intensive_caps: 8
+
+    # Rescue plan when the BIG PREP isn't working — see build_contingency_block().
     contingency_trigger_hours: 4
     contingency_evening_caps: 4
     contingency_evening_oz: 16
@@ -320,8 +296,6 @@ bands:
     contingency_total_grams: 306
     contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
-    shopping_gatorade_oz: 80
-
   - id: "over-50"
     protocol: standard
     label_en: "Over 50 kg (>110 lb)"
@@ -367,7 +341,7 @@ bands:
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>1 capful of MiraLAX daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>1 tapa de MiraLAX diaria</strong>, hasta el procedimiento."
     precleanout_b_offset_days: null
-    precleanout_intensive_caps: 10
+    # Rescue plan when the BIG PREP isn't working — see build_contingency_block().
     contingency_trigger_hours: 4
     contingency_evening_caps: 4
     contingency_evening_oz: 16
@@ -377,4 +351,3 @@ bands:
     contingency_total_grams: 340
     contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
-    shopping_gatorade_oz: 96

@@ -172,6 +172,22 @@
     .breadcrumb { color: #bbb; }
     .breadcrumb a { color: #5eb3f6; }
   }
+  /* Botón de descarga del PDF — copiado de las páginas mobile de bowel-prep
+     y flex-sig, para que la página de EGD enlace al PDF imprimible cuando
+     se haya generado. */
+  .pdf-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
+    text-decoration: none; color: #0e2233;
+    background: #fff7d6; border: 1px solid #d4a017;
+    border-radius: 8px; padding: 8px 14px;
+    line-height: 1.2; margin: 0 0 14px;
+  }
+  .pdf-download:active { background: #faecaa; }
+  @media (prefers-color-scheme: dark) {
+    .pdf-download { background: #2a2611; border-color: #6b5320; color: #f3d375; }
+    .pdf-download:active { background: #3a341a; }
+  }
 </style>
 </head>
 <body>
@@ -190,6 +206,7 @@
 <div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Volver a giready.com</a></div>
 
 <h1>{{PROCEDURE_LABEL}}</h1>
+{{PDF_BUTTON_BLOCK}}
 <div class="subtitle">Qué Esperar</div>
 
 <div class="location">
@@ -225,11 +242,13 @@
 
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <p style="margin: 0 0 8px;">La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua. Si su hijo(a) toma anticoagulantes, insulina o se le ha indicado suspender un medicamento específico, siga esas instrucciones.</p>
-  <p style="margin: 0;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
-  <div class="meds-verify-row" style="display:flex;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e6d6a8;">
-    <div style="flex:1;font-size:13px;line-height:1.4;">Para la lista completa de medicamentos que debe suspender, escanee o visite <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a> &mdash; o llame a la oficina si tiene dudas.</div>
-    <img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:64px;height:64px;flex:0 0 auto;">
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0 0 1pt;">Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen. La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua.</p>
+      <p style="margin: 0 0 1pt;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
+      <p style="margin: 0;">Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
@@ -278,7 +297,7 @@
 </div>
 
 <div class="footer">
-  Para los pacientes del Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, y Dr. Zavoian — Gastroenterología Pediátrica en Peyton Manning Children's Hospital en Indianápolis. No reemplaza el consejo médico.<br>
+  Para los pacientes del <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, y <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Gastroenterología Pediátrica en Peyton Manning Children's Hospital en Indianápolis. No reemplaza el consejo médico.<br>
   Oficina: <a href="tel:3173389450">(317) 338-9450</a>
 </div>
 
