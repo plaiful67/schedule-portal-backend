@@ -190,10 +190,26 @@ PDF_BUTTON_LABEL = {
     "es": "Descargar PDF imprimible",
 }
 
+# Short tokens used in the patient-facing download filename — chosen so the
+# saved PDF is self-describing on a phone's downloads list. PMCH gets
+# "StVincent" rather than "PMCH" because parents recognize the hospital name
+# more easily than the abbreviation.
+PDF_LOCATION_SHORT = {"scc": "SCC", "pmch": "StVincent"}
+
+
+def pdf_download_name(band, location_id):
+    """Build the descriptive filename a patient sees on download.
+
+    Example: band=20-40kg loc=scc → Flex_Sig_Prep_20-40kg_SCC.pdf
+    """
+    band_slug = band.get("filename_stem", band["id"])
+    loc_short = PDF_LOCATION_SHORT.get(location_id, location_id.upper())
+    return f"Flex_Sig_Prep_{band_slug}_{loc_short}.pdf"
+
 
 def render_band_page(lang, procedure, band, location, practice_cfg, qr,
                      logo_src, lang_toggle_href, landing_href, html_title,
-                     handout_pdf_href=""):
+                     handout_pdf_href="", handout_pdf_download_name=""):
     """Render a single per-band mobile page.
 
     Pulls all dose / location / practice strings from render.py's helpers
@@ -219,8 +235,9 @@ def render_band_page(lang, procedure, band, location, practice_cfg, qr,
     gikids_url = qr["gikids_url"]
 
     if handout_pdf_href:
+        download_attr = f' download="{handout_pdf_download_name}"' if handout_pdf_download_name else ""
         pdf_button_block = (
-            f'<a class="pdf-download" href="{handout_pdf_href}" '
+            f'<a class="pdf-download" href="{handout_pdf_href}"{download_attr} '
             f'target="_blank" rel="noopener">'
             f'<span aria-hidden="true">\U0001F4C4</span> '
             f'{PDF_BUTTON_LABEL[lang]}</a>'
@@ -358,6 +375,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             landing_href="../",
             html_title=band_title_en_fmt.format(label=label_en),
             handout_pdf_href=en_pdf_href,
+            handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = en_dir / "index.html"
         p.write_text(en_html, encoding="utf-8")
@@ -379,6 +397,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             landing_href="../",
             html_title=band_title_es_fmt.format(label=label_es),
             handout_pdf_href=es_pdf_href,
+            handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = es_dir / "index.html"
         p.write_text(es_html, encoding="utf-8")

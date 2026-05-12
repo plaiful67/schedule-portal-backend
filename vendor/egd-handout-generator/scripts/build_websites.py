@@ -56,12 +56,29 @@ def find_handout_pdf(location_id: str, lang: str) -> Path | None:
     return candidate if candidate.exists() else None
 
 
-def build_pdf_button_block(href: str, lang: str) -> str:
+# Short tokens used in the patient-facing download filename — chosen so the
+# saved PDF is self-describing on a phone's downloads list. PMCH gets
+# "StVincent" rather than "PMCH" because parents recognize the hospital name
+# more easily than the abbreviation.
+PDF_LOCATION_SHORT = {"scc": "SCC", "pmch": "StVincent"}
+
+
+def pdf_download_name(location_id: str) -> str:
+    """Build the descriptive filename a patient sees on download.
+
+    Example: location_id=pmch → EGD_Prep_StVincent.pdf
+    """
+    loc_short = PDF_LOCATION_SHORT.get(location_id, location_id.upper())
+    return f"EGD_Prep_{loc_short}.pdf"
+
+
+def build_pdf_button_block(href: str, lang: str, download_name: str = "") -> str:
     """Emit the `<a class="pdf-download">` markup, or empty string if no PDF."""
     if not href:
         return ""
+    download_attr = f' download="{download_name}"' if download_name else ""
     return (
-        f'<a class="pdf-download" href="{href}" target="_blank" rel="noopener">'
+        f'<a class="pdf-download" href="{href}"{download_attr} target="_blank" rel="noopener">'
         f'<span aria-hidden="true">\U0001F4C4</span> '
         f'{PDF_BUTTON_LABEL[lang]}</a>'
     )
@@ -149,15 +166,17 @@ def main():
             es_pdf_href = "handout.pdf"
             written.append(repo_dir / "es" / "handout.pdf")
 
+        dl_name = pdf_download_name(location_id)
+
         # English page → repo_dir/index.html
         en = render_mobile("egd-mobile.en.html", "en", procedure, location,
-                           pdf_button_block=build_pdf_button_block(en_pdf_href, "en"))
+                           pdf_button_block=build_pdf_button_block(en_pdf_href, "en", dl_name))
         (repo_dir / "index.html").write_text(en, encoding="utf-8")
         written.append(repo_dir / "index.html")
 
         # Spanish page → repo_dir/es/index.html
         es = render_mobile("egd-mobile.es.html", "es", procedure, location,
-                           pdf_button_block=build_pdf_button_block(es_pdf_href, "es"))
+                           pdf_button_block=build_pdf_button_block(es_pdf_href, "es", dl_name))
         (repo_dir / "es" / "index.html").write_text(es, encoding="utf-8")
         written.append(repo_dir / "es" / "index.html")
 
