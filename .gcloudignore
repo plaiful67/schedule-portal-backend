@@ -1,0 +1,19 @@
+# Files excluded from `gcloud builds submit` uploads (Cloud Run image build).
+#
+# By default gcloud falls back to .gitignore patterns when this file is absent,
+# which would strip the combined-print-personalized.{en,es}.html templates
+# from the Cloud Build tarball — they're gitignored as build artifacts (the
+# canonical source is the vendored bowel-prep skill + build_personalized_templates.py),
+# but the deployed container DOES need them on disk to serve /render for the
+# combined procedure type. This .gcloudignore keeps them in the upload.
+
+.venv/
+__pycache__/
+*.pyc
+.env
+.DS_Store
+*.pdf
+/tmp/
+.pytest_cache/
+.ruff_cache/
+.git/
