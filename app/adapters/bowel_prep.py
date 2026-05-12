@@ -13,7 +13,7 @@ from typing import Any, Literal
 
 import yaml
 
-from .. import personalization
+from .. import personalization, physicians
 from ._paths import skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -24,6 +24,12 @@ TEMPLATE_BY_VARIANT = {
     "standard": TEMPLATES_DIR / "print-personalized.en.html",
     "combined": TEMPLATES_DIR / "combined-print-personalized.en.html",
 }
+# Pre-existing gap (not from physician personalization): this dict ignores `lang`,
+# so Spanish requests fall through to the EN template. The ES partner template
+# `combined-print-personalized.es.html` exists and is current (including the
+# {{PERFORMING_PHYSICIAN}} callout in Spanish) but is never selected today.
+# When fixing, key on (variant, lang) and add a bowel-prep ES template too —
+# `print-personalized.es.html` does not yet exist.
 
 
 def _load_skill_module():
@@ -91,6 +97,7 @@ def render_pdf(
     band_id: str,
     location_id: str,
     lang: str,
+    physician_id: str,
     appt_date_human: str,
     appt_time_display: str,
     arrival_time_display: str,
@@ -116,6 +123,13 @@ def render_pdf(
     replacements = skill.build_strings(band, lang, location)
     replacements.update(skill.build_location_placeholders(location, lang))
     replacements.update(skill.build_practice_placeholders(lang))
+
+    # Performing-physician personalization: override the group-footer line
+    # with a single-doctor line, and supply the {{PERFORMING_PHYSICIAN}} token
+    # used by the top callout in the print template.
+    physician = physicians.lookup(physician_id)
+    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # MOBILE_URL is the cover-row QR's clickable href AND the QR image's encoded
     # target. We point both at the existing per-procedure mobile site with

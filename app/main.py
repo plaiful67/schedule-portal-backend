@@ -86,6 +86,7 @@ def render(req: RenderRequest):
     common = dict(
         location_id=req.location_id,
         lang=req.language,
+        physician_id=req.physician_id,
         appt_date_human=appt_date_human,
         appt_time_display=appt_time,
         arrival_time_display=arrival_time,

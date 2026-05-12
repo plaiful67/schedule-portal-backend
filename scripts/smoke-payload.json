@@ -2,6 +2,7 @@
   "procedure_type": "bowel_prep",
   "location_id": "scc",
   "language": "en",
+  "physician_id": "tibesar",
   "appointment_date": "2026-06-15",
   "appointment_time": "08:30",
   "arrival_time": "07:30",

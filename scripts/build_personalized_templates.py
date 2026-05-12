@@ -63,6 +63,14 @@ _CSS_APPT_CALLOUT = """
   .appt-line strong { color: #0e2233; }
   .appt-label { color: #555; font-size: 9pt; }
   .appt-sep { color: #aaa; margin: 0 5pt; }
+  /* --- Performing-physician callout (personalized handout only) ----- */
+  .performing-physician {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #555;
+    margin-top: 3pt;
+  }
   /* --- Standalone narrow follow-up appointment callout -------------- */
   .followup-callout {
     margin: 6pt 0; padding: 5pt 11pt;
@@ -86,6 +94,18 @@ _CSS_APPT_CALLOUT = """
   /* pz-only spans get personalized timestamps server-side via
      apply_pz_substitutions — keep them visible in print. */
 """
+
+# Performing-physician callout HTML, injected directly under the band-label div.
+# The token {{PERFORMING_PHYSICIAN}} is supplied by the adapters from
+# physicians.lookup(physician_id)["name_short"].
+_PERFORMING_PHYSICIAN_HTML_EN = (
+    '    <div class="performing-physician">'
+    'Performing physician: {{PERFORMING_PHYSICIAN}}</div>'
+)
+_PERFORMING_PHYSICIAN_HTML_ES = (
+    '    <div class="performing-physician">'
+    'Médico que realiza el procedimiento: {{PERFORMING_PHYSICIAN}}</div>'
+)
 
 
 def _inject_personalization_css(text: str) -> str:
@@ -139,8 +159,18 @@ def patch_combined_print_en(canonical: str) -> str:
     """Apply the personalization layer to the canonical combined-print.en.html."""
     out = canonical
 
-    # 1. CSS for appt-callout + followup-callout (appended pre-</style>).
+    # 1. CSS for appt-callout + performing-physician + followup-callout
+    #    (appended pre-</style>).
     out = _inject_personalization_css(out)
+
+    # 1b. Performing-physician callout under the band-label div.
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n'
+        + _PERFORMING_PHYSICIAN_HTML_EN,
+        where="combined en: performing-physician callout under band-label",
+    )
 
     # 2. Insert appt-callout section between cover </section> and the LOCATION
     #    section. Anchor on the LOCATION marker comment.
@@ -214,6 +244,15 @@ def patch_combined_print_es(canonical: str) -> str:
     out = canonical
 
     out = _inject_personalization_css(out)
+
+    # Performing-physician callout under the band-label div.
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n'
+        + _PERFORMING_PHYSICIAN_HTML_ES,
+        where="combined es: performing-physician callout under band-label",
+    )
 
     out = _replace_unique(
         out,

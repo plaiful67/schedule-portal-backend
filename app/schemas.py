@@ -19,10 +19,16 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 BowelPrepBand = Literal["under-15", "15-20", "21-30", "31-40", "41-50", "over-50"]
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
+# Performing-physician slug. Mirrors the `id:` field on each entry in
+# ~/.claude/skills/bowel-prep-generator/practice.yaml `practice.doctors[]`.
+# Backend resolves slug → display name via app/physicians.py.
+PhysicianId = Literal["deivanayagam", "dunn", "schaefer", "tibesar", "zavoian"]
+
 
 class _Base(BaseModel):
     location_id: Literal["scc", "pmch"]
     language: Literal["en", "es"]
+    physician_id: PhysicianId
     appointment_date: date
     appointment_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")
     arrival_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")

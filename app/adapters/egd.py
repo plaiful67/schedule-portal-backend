@@ -13,7 +13,7 @@ from typing import Any
 
 import yaml
 
-from .. import personalization
+from .. import personalization, physicians
 from ._paths import skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -82,6 +82,7 @@ def render_pdf(
     *,
     location_id: str,
     lang: str,
+    physician_id: str,
     appt_date_human: str,
     appt_time_display: str,
     arrival_time_display: str,
@@ -100,6 +101,13 @@ def render_pdf(
         **skill.build_location_placeholders(location, lang),
         **skill.build_egd_placeholders(procedure, lang, location=location),
     }
+
+    # Performing-physician personalization: same model as bowel_prep adapter.
+    # Doctors list is sourced from the bowel-prep skill's practice.yaml (the
+    # EGD skill's practice.yaml doesn't carry a doctors block today).
+    physician = physicians.lookup(physician_id)
+    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
     # destination page personalizes itself via its built-in _personalize JS.

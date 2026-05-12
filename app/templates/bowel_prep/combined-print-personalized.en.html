@@ -520,6 +520,14 @@
   .appt-line strong { color: #0e2233; }
   .appt-label { color: #555; font-size: 9pt; }
   .appt-sep { color: #aaa; margin: 0 5pt; }
+  /* --- Performing-physician callout (personalized handout only) ----- */
+  .performing-physician {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #555;
+    margin-top: 3pt;
+  }
   /* --- Standalone narrow follow-up appointment callout -------------- */
   .followup-callout {
     margin: 6pt 0; padding: 5pt 11pt;
@@ -567,6 +575,7 @@
   <div class="cover-title-row">
     <h1 class="doc-title">EGD and Colonoscopy Prep</h1>
     <div class="band-label">{{BAND_LABEL}}</div>
+    <div class="performing-physician">Performing physician: {{PERFORMING_PHYSICIAN}}</div>
   </div>
 </section>
 
