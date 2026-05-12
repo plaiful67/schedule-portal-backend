@@ -95,22 +95,29 @@ def render(req: RenderRequest):
 
     if req.procedure_type == "bowel_prep":
         pdf_bytes = bowel_prep.render_pdf(band_id=req.weight_band, **common)
-        slug = "bowel-prep"
+        filename_prefix = "Colonoscopy_Prep"
     elif req.procedure_type == "combined":
         pdf_bytes = combined.render_pdf(band_id=req.weight_band, **common)
-        slug = "egd-colonoscopy"
+        filename_prefix = "EGD_Colonoscopy_Prep"
     elif req.procedure_type == "egd":
         pdf_bytes = egd.render_pdf(**common)
-        slug = "egd"
+        filename_prefix = "EGD_Prep"
     else:
         raise HTTPException(
             status_code=501,
             detail=f"procedure_type={req.procedure_type!r} not yet implemented (Phase 2)",
         )
 
-    filename = f"{slug}-{req.appointment_date.isoformat()}.pdf"
+    # Patient-facing download filename. Build from the procedure prefix + band
+    # (when applicable) + a short location token. PMCH renders as "StVincent"
+    # because parents recognize the hospital name more easily than the
+    # abbreviation. Use `attachment` so the browser save-as dialog pre-fills
+    # the descriptive name rather than the random tab title.
+    loc_short = "SCC" if req.location_id == "scc" else "StVincent"
+    band_part = f"_{req.weight_band}" if req.weight_band else ""
+    filename = f"{filename_prefix}{band_part}_{loc_short}.pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'inline; filename="{filename}"'},
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )

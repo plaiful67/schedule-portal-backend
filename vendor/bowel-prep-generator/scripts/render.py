@@ -201,11 +201,17 @@ def build_contingency_block(band, lang, location):
     mn_caps = band["contingency_morning_caps"]
     mn_oz = band["contingency_morning_oz"]
 
+    # Two spans personalize the morning bullet:
+    # - morning_date_pz inserts "(Wed, May 20)" right after "Morning"
+    # - morning_pz appends " — by 5:00 AM" at the end of the bullet
+    # Both collapse to nothing when no procedure date is supplied.
+    morning_date_pz = ('<span class="pz-only" data-pz-day="0" '
+                       'data-pz-template=" ({date})"></span>')
+    morning_pz = (f'<span class="pz-only" data-pz-time-mins="-{npo_minutes}" '
+                  f'data-pz-template=" &mdash; by {{time}}"></span>')
     if lang == "en":
         cap_word_ev = "capfuls" if ev_caps != 1 else "capful"
         cap_word_mn = "capfuls" if mn_caps != 1 else "capful"
-        morning_pz = (f'<span class="pz-only" data-pz-time-mins="-{npo_minutes}" '
-                      f'data-pz-template=" &mdash; by {{time}}"></span>')
         return (
             '<div class="contingency-body">\n'
             f'  <p class="contingency-lead"><strong class="rescue-heading">Rescue plan</strong> &mdash; '
@@ -214,7 +220,7 @@ def build_contingency_block(band, lang, location):
             '  <ul>\n'
             f'    <li><strong>Evening:</strong> give <strong>{ev_caps} more {cap_word_ev} of MiraLAX '
             f'in {ev_oz} oz of Gatorade</strong>.</li>\n'
-            f'    <li><strong>Morning:</strong> give <strong>{mn_caps} more {cap_word_mn} in {mn_oz} oz '
+            f'    <li><strong>Morning</strong>{morning_date_pz}: give <strong>{mn_caps} more {cap_word_mn} in {mn_oz} oz '
             f'of Gatorade</strong>, at least <strong>{npo_hours} hours before procedure</strong>{morning_pz}.</li>\n'
             '  </ul>\n'
             '</div>'
@@ -222,8 +228,8 @@ def build_contingency_block(band, lang, location):
     # Spanish
     cap_word_ev = "tapas" if ev_caps != 1 else "tapa"
     cap_word_mn = "tapas" if mn_caps != 1 else "tapa"
-    morning_pz = (f'<span class="pz-only" data-pz-time-mins="-{npo_minutes}" '
-                  f'data-pz-template=" &mdash; antes de las {{time}}"></span>')
+    morning_pz_es = (f'<span class="pz-only" data-pz-time-mins="-{npo_minutes}" '
+                     f'data-pz-template=" &mdash; antes de las {{time}}"></span>')
     return (
         '<div class="contingency-body">\n'
         f'  <p class="contingency-lead"><strong class="rescue-heading">Plan de rescate</strong> &mdash; '
@@ -232,8 +238,8 @@ def build_contingency_block(band, lang, location):
         '  <ul>\n'
         f'    <li><strong>Por la noche:</strong> dé <strong>{ev_caps} {cap_word_ev} más de MiraLAX '
         f'en {ev_oz} oz de Gatorade</strong>.</li>\n'
-        f'    <li><strong>La mañana:</strong> dé <strong>{mn_caps} {cap_word_mn} más en {mn_oz} oz '
-        f'de Gatorade</strong>, al menos <strong>{npo_hours} horas antes del procedimiento</strong>{morning_pz}.</li>\n'
+        f'    <li><strong>La mañana</strong>{morning_date_pz}: dé <strong>{mn_caps} {cap_word_mn} más en {mn_oz} oz '
+        f'de Gatorade</strong>, al menos <strong>{npo_hours} horas antes del procedimiento</strong>{morning_pz_es}.</li>\n'
         '  </ul>\n'
         '</div>'
     )

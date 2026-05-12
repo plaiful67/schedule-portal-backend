@@ -22,7 +22,7 @@ REVIEW_OUT    := $(HOME)/Desktop/peds-gi-system/bowel-prep-pdf-review
 
 .PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
         render-combined render-directions sites-colonoscopy sites-combined sites \
-        render-all clean-pdf-review
+        render render-all clean-pdf-review
 
 help:
 	@echo "Targets:"
@@ -76,6 +76,11 @@ sites-combined:
 sites: sites-colonoscopy sites-combined
 
 render-all: render-scc render-pmch render-pdf render-pdf-light render-combined render-directions
+
+# Alias so the meta repo's `render-bowel-prep` (which calls `$(MAKE) -C
+# $(BP_SKILL) render`) finds a target. Keeps the per-skill makefiles
+# uniform — every skill exposes `render` as its deploy-ready render entry.
+render: render-all
 
 # Cleanup target: ONLY removes the PDF review folder. Never touches the SCC/PMCH
 # handout folders, which may contain hand-exported PDFs you don't want to lose.
