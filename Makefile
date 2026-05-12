@@ -5,16 +5,33 @@ PY   := $(VENV)/bin/python
 PIP  := $(VENV)/bin/pip
 UVICORN := $(VENV)/bin/uvicorn
 
-.PHONY: install vendor-sync dev test drift-check deploy build-image clean
+.PHONY: install vendor-sync sync-directions dev test drift-check deploy build-image clean
 
 install:
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
 
-vendor-sync:
+vendor-sync: sync-directions
 	$(PY) scripts/vendor_sync.py
 	$(PY) scripts/build_personalized_templates.py
+
+# Re-render the four directions PDFs from the live bowel-prep skill and
+# stash them under app/static/directions/ so the Cloud Run image carries
+# them. The skill's render_directions.py writes its outputs to
+# ~/Desktop/peds-gi-system/ — we copy from there.
+SKILL_DIR := $(HOME)/.claude/skills/bowel-prep-generator
+DESKTOP   := $(HOME)/Desktop/peds-gi-system
+DIR_OUT   := app/static/directions
+
+sync-directions:
+	mkdir -p $(DIR_OUT)
+	cd $(SKILL_DIR) && .venv/bin/python scripts/render_directions.py --location all --lang both
+	cp $(DESKTOP)/scc-directions.pdf      $(DIR_OUT)/
+	cp $(DESKTOP)/scc-directions-es.pdf   $(DIR_OUT)/
+	cp $(DESKTOP)/pmch-directions.pdf     $(DIR_OUT)/
+	cp $(DESKTOP)/pmch-directions-es.pdf  $(DIR_OUT)/
+	@ls -lh $(DIR_OUT)/*.pdf
 
 dev:
 	$(UVICORN) app.main:app --reload --host 127.0.0.1 --port 8000

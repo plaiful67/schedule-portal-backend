@@ -13,7 +13,7 @@ from datetime import datetime, time
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import medications
+from . import medications, pdf_assembly
 from .adapters import bowel_prep, combined, egd
 from .adapters._paths import skill_source
 from .personalization import (
@@ -108,6 +108,12 @@ def render(req: RenderRequest):
             status_code=501,
             detail=f"procedure_type={req.procedure_type!r} not yet implemented (Phase 2)",
         )
+
+    # Bake the driving-directions PDF onto the end so the scheduler hands
+    # the family a single document. Default-on; schedulers can opt out per
+    # /render via the include_directions flag for return patients.
+    if req.include_directions:
+        pdf_bytes = pdf_assembly.append_directions(pdf_bytes, req.location_id, req.language)
 
     # Patient-facing download filename. Build from the procedure prefix + band
     # (when applicable) + a short location token. PMCH renders as "StVincent"

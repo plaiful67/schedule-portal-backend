@@ -29,6 +29,10 @@ class _Base(BaseModel):
     location_id: Literal["scc", "pmch"]
     language: Literal["en", "es"]
     physician_id: PhysicianId
+    # Whether to bake the {location, lang} driving-directions PDF onto the
+    # end of the prep handout. Defaults to True so older frontend builds
+    # (or any direct API caller) still get directions without opting in.
+    include_directions: bool = True
     appointment_date: date
     appointment_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")
     arrival_time: str = Field(..., pattern=r"^\d{2}:\d{2}$")

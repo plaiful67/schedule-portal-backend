@@ -4,6 +4,10 @@ __pycache__/
 .env
 .DS_Store
 *.pdf
+# Exception: bundled directions PDFs are committed so the Cloud Run image
+# carries them. Refresh via `make sync-directions` after the skill's
+# render_directions output changes.
+!app/static/directions/*.pdf
 /tmp/
 .pytest_cache/
 .ruff_cache/
