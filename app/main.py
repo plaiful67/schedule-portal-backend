@@ -113,8 +113,12 @@ def render(req: RenderRequest):
     # because parents recognize the hospital name more easily than the
     # abbreviation. Use `attachment` so the browser save-as dialog pre-fills
     # the descriptive name rather than the random tab title.
+    # `weight_band` only exists on the prep-style request schemas
+    # (BowelPrep / Combined). EGDRequest has no such field, so use getattr
+    # with a None default rather than direct attribute access.
     loc_short = "SCC" if req.location_id == "scc" else "StVincent"
-    band_part = f"_{req.weight_band}" if req.weight_band else ""
+    weight_band = getattr(req, "weight_band", None)
+    band_part = f"_{weight_band}" if weight_band else ""
     filename = f"{filename_prefix}{band_part}_{loc_short}.pdf"
     return Response(
         content=pdf_bytes,
