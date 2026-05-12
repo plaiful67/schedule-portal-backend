@@ -17,6 +17,12 @@ __pycache__/
 templates-backup-*/
 *.docx.pre-redesign-backup
 
+# Map-image originals — preserved locally by scripts/shrink_map_images.py
+# so the shrink is reversible, but the full-res PNGs are 1–7 MB each
+# (~14 MB total) and the directions templates only reference the .jpg
+# versions. Don't ship them through git.
+templates/maps/*-original.png
+
 # Build / temp output
 dist/
 build/

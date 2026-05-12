@@ -67,6 +67,13 @@ render-combined:
 render-directions:
 	$(PYTHON) scripts/render_directions.py --location all
 
+# One-time-ish: shrink the four map PNGs in templates/maps/ to JPEG so the
+# rendered directions PDFs are scheduler-portal-friendly. Idempotent —
+# always reads from *-original.png snapshots, so rerunning after a quality
+# tweak is safe.
+shrink-maps:
+	$(PYTHON) scripts/shrink_map_images.py
+
 sites-colonoscopy:
 	$(PYTHON) scripts/build_colonoscopy_websites.py
 

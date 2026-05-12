@@ -35,16 +35,24 @@ practice:
   # (combined-mobile, colonoscopy-mobile, egd-mobile, flex-sig-mobile).
   # Each entry: short name as it appears in the footer text + ascension
   # provider profile URL the patient lands on when they tap.
+  # `id` is the stable slug used by the scheduler portal's physician_id field
+  # (mirrored in app/schemas.py PhysicianId Literal). Don't rename without
+  # coordinating that schema change.
   doctors:
-    - name_short: "Dr. Deivanayagam"
+    - id: "deivanayagam"
+      name_short: "Dr. Deivanayagam"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam"
-    - name_short: "Dr. Dunn"
+    - id: "dunn"
+      name_short: "Dr. Dunn"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn"
-    - name_short: "Dr. Schaefer"
+    - id: "schaefer"
+      name_short: "Dr. Schaefer"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer"
-    - name_short: "Dr. Tibesar"
+    - id: "tibesar"
+      name_short: "Dr. Tibesar"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar"
-    - name_short: "Dr. Zavoian"
+    - id: "zavoian"
+      name_short: "Dr. Zavoian"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian"
 
   # Practice/group logo. Path is RELATIVE to the templates/ directory.

@@ -36,8 +36,24 @@ app.add_middleware(
     allow_origins=_LOCAL_DEV + _extra_origins,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["Content-Type"],
+    # `Content-Disposition` is not a CORS-safelisted response header, so the
+    # browser hides it from JS unless we explicitly expose it. Without this,
+    # `r.headers.get("Content-Disposition")` returns null on the frontend and
+    # the descriptive filename is lost (regression → "unknown.pdf").
+    expose_headers=["Content-Disposition"],
     allow_credentials=False,
 )
+
+
+# Filename tokens for the descriptive download name.
+# Format: prep-{YYYY-MM-DD}-{PhysicianLast}-[{band}kg-]{Variant}-{Facility}.pdf
+VARIANT_TOKEN = {
+    "bowel_prep": "Colon",
+    "combined": "EGDColon",
+    "egd": "EGD",
+    "flex_sig": "FlexSig",
+}
+FACILITY_TOKEN = {"scc": "SCC", "pmch": "PMCH"}
 
 
 # Path is /__health (not /healthz or /health) because Cloud Run's load
@@ -96,13 +112,10 @@ def render(req: RenderRequest):
 
     if req.procedure_type == "bowel_prep":
         pdf_bytes = bowel_prep.render_pdf(band_id=req.weight_band, **common)
-        filename_prefix = "Colonoscopy_Prep"
     elif req.procedure_type == "combined":
         pdf_bytes = combined.render_pdf(band_id=req.weight_band, **common)
-        filename_prefix = "EGD_Colonoscopy_Prep"
     elif req.procedure_type == "egd":
         pdf_bytes = egd.render_pdf(**common)
-        filename_prefix = "EGD_Prep"
     else:
         raise HTTPException(
             status_code=501,
@@ -115,18 +128,19 @@ def render(req: RenderRequest):
     if req.include_directions:
         pdf_bytes = pdf_assembly.append_directions(pdf_bytes, req.location_id, req.language)
 
-    # Patient-facing download filename. Build from the procedure prefix + band
-    # (when applicable) + a short location token. PMCH renders as "StVincent"
-    # because parents recognize the hospital name more easily than the
-    # abbreviation. Use `attachment` so the browser save-as dialog pre-fills
-    # the descriptive name rather than the random tab title.
-    # `weight_band` only exists on the prep-style request schemas
-    # (BowelPrep / Combined). EGDRequest has no such field, so use getattr
-    # with a None default rather than direct attribute access.
-    loc_short = "SCC" if req.location_id == "scc" else "StVincent"
+    # Patient-facing download filename — descriptive so a printed stack can be
+    # sorted by date / physician / procedure without opening each PDF.
+    # Format: prep-{YYYY-MM-DD}-{PhysicianLast}-[{band}kg-]{Variant}-{Facility}.pdf
+    # Example: prep-2026-05-27-Zavoian-31-40kg-EGDColon-SCC.pdf
+    # EGD requests have no weight_band; all others do. PhysicianId slugs already
+    # mirror lowercase last names (see schemas.PhysicianId), so .title() is enough.
     weight_band = getattr(req, "weight_band", None)
-    band_part = f"_{weight_band}" if weight_band else ""
-    filename = f"{filename_prefix}{band_part}_{loc_short}.pdf"
+    parts = ["prep", req.appointment_date.isoformat(), req.physician_id.title()]
+    if weight_band:
+        parts.append(f"{weight_band}kg")
+    parts.append(VARIANT_TOKEN[req.procedure_type])
+    parts.append(FACILITY_TOKEN[req.location_id])
+    filename = "-".join(parts) + ".pdf"
     return Response(
         content=pdf_bytes,
         media_type="application/pdf",
