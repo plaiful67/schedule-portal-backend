@@ -119,12 +119,12 @@ bands:
     gatorade_oz: 20
     precleanout_en: "1–2 capfuls (15–30 g) mixed into 8–16 oz of juice, water, or Gatorade"
     precleanout_es: "1–2 tapas (15–30 g) mezcladas en 8–16 oz de jugo, agua o Gatorade"
-    # Pre-cleanout for the HTML callout. Per 2026-05-08 clinical guidance,
-    # the under-30 kg bands present the lower-dose × longer-duration option
-    # only (no second option). The DOCX legacy string above is unchanged.
-    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>once</strong> daily for <strong>5 days</strong>"
-    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>una vez</strong> al día durante <strong>5 días</strong>"
-    precleanout_a_offset_days: -5
+    # Pre-cleanout for the HTML callout. Per 2026-05-12 update, all bands
+    # 15-20 kg and up run the 3-day weekend-before pattern (single option).
+    # The DOCX legacy string above is unchanged.
+    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>2 times</strong> daily for <strong>3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>2 veces</strong> al día durante <strong>3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_offset_days: null
     precleanout_b_text_en: ""
     precleanout_b_text_es: ""
     precleanout_b_offset_days: null
@@ -170,10 +170,10 @@ bands:
     gatorade_oz: 28
     precleanout_en: "2–3 capfuls (32–45 g) mixed into 16–24 oz of juice, water, or Gatorade"
     precleanout_es: "2–3 tapas (32–45 g) mezcladas en 16–24 oz de jugo, agua o Gatorade"
-    # Single option (lower dose × longer duration) per 2026-05-08 clinical guidance.
-    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>2 times</strong> daily for <strong>5 days</strong>"
-    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>2 veces</strong> al día durante <strong>5 días</strong>"
-    precleanout_a_offset_days: -5
+    # Single option, 3-day weekend-before pattern per 2026-05-12 update.
+    precleanout_a_text_en: "<strong>1 capful</strong> in <strong>4 oz</strong> of clear liquid, <strong>3 times</strong> daily for <strong>3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "<strong>1 tapa</strong> en <strong>4 oz</strong> de líquido claro, <strong>3 veces</strong> al día durante <strong>3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_offset_days: null
     precleanout_b_text_en: ""
     precleanout_b_text_es: ""
     precleanout_b_offset_days: null
