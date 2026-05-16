@@ -755,6 +755,59 @@ def build_lactulose_strings(band, lang, location=None):
     return common
 
 
+def build_clenpiq_strings(band, lang, location=None):
+    """Return placeholder → rendered string dict for a clenpiq-standard band.
+
+    CLENPIQ (sodium picosulfate / magnesium oxide / citric acid) is a
+    scheduler-only alternative prep for patients 31 kg and up who cannot
+    tolerate the MiraLAX + Gatorade volume. Dosing is identical across all
+    eligible weights — a single unified band in dosing.yaml routes all three
+    user-facing weight bands (31-40 / 41-50 / over-50) to the same handout.
+
+    `location` drives the NPO cutoff for the post-Dose-2 clears (2 h SCC vs
+    3 h PMCH); it's surfaced via `{{NPO_CLEARS_HOURS}}` rather than baked
+    into a CLENPIQ-specific placeholder so the templates stay consistent
+    with the standard / lactulose families.
+    """
+    bottle_oz = band["clenpiq_bottle_oz"]
+    bottle_ml = band["clenpiq_bottle_ml"]
+    total_bottles = band["clenpiq_total_bottles"]
+    return {
+        "{{HTML_TITLE}}":                         band[f"html_title_{lang}"],
+        # The handout cover uses the unified summary label so all three
+        # eligible weight bands see the same "31 kg and up — CLENPIQ" text.
+        "{{BAND_LABEL}}":                         band.get(f"summary_label_{lang}",
+                                                            band[f"label_{lang}"]),
+        "{{DOCX_HEADING}}":                       band[f"docx_heading_{lang}"],
+        "{{HTML_MEDICATIONS_DRUGS}}":             _medications_drugs(band, lang),
+        "{{MEDS_GIREADY_QR}}":                    _meds_giready_qr_data_uri(),
+        # Lactulose-infant template uses {{WARNING_WEIGHT}}; harmless to
+        # always provide so the same placeholder dict works downstream.
+        "{{WARNING_WEIGHT}}":                     band.get(f"warning_weight_{lang}",
+                                                            band.get("warning_weight_en", "")),
+        # Bottle + dose figures
+        "{{HTML_CLENPIQ_BOTTLE_OZ}}":             str(bottle_oz),
+        "{{HTML_CLENPIQ_BOTTLE_ML}}":             str(bottle_ml),
+        "{{HTML_CLENPIQ_TOTAL_BOTTLES}}":         str(total_bottles),
+        # Dose 1 (evening before)
+        "{{HTML_CLENPIQ_DOSE1_WINDOW}}":          band[f"dose1_window_{lang}"],
+        "{{HTML_CLENPIQ_DOSE1_CLEARS_CUPS}}":     str(band["dose1_clears_cups"]),
+        "{{HTML_CLENPIQ_DOSE1_CLEARS_OZ}}":       str(band["dose1_clears_oz"]),
+        "{{HTML_CLENPIQ_DOSE1_CLEARS_HOURS}}":    str(band["dose1_clears_hours"]),
+        # Dose 2 (morning of, started 5-9 h before procedure)
+        "{{HTML_CLENPIQ_DOSE2_HOURS_BEFORE_MIN}}": str(band["dose2_hours_before_min"]),
+        "{{HTML_CLENPIQ_DOSE2_HOURS_BEFORE_MAX}}": str(band["dose2_hours_before_max"]),
+        "{{HTML_CLENPIQ_DOSE2_CLEARS_CUPS}}":     str(band["dose2_clears_cups"]),
+        "{{HTML_CLENPIQ_DOSE2_CLEARS_OZ}}":       str(band["dose2_clears_oz"]),
+        # Cup size for the per-cup drinking cadence
+        "{{HTML_DRINK_CUP}}":                     band[f"drink_cup_{lang}"],
+        # CLENPIQ has no pre-cleanout (the prep itself supplies a stimulant
+        # via picosulfate). Empty string keeps the {{HTML_PRECLEANOUT_BLOCK}}
+        # slot a no-op so templates that include it render cleanly.
+        "{{HTML_PRECLEANOUT_BLOCK}}":             "",
+    }
+
+
 def _medications_drugs(band, lang):
     """The drug list for the Medications callout. GLP-1 agonists are only
     relevant for adolescents (~≥40 kg in our protocol), so smaller bands
@@ -1166,10 +1219,11 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     """
     protocol = band["protocol"]
     stem = band["filename_stem"]
-    # Lactulose protocols are scheduler-only and live entirely in the mobile
-    # pipeline (build_lactulose_websites.py). render.py is for the legacy SCC-
-    # printed flow (DOCX + non-mobile HTML/PDF), so skip lactulose bands here.
-    if protocol.startswith("lactulose"):
+    # Lactulose and CLENPIQ protocols are scheduler-only and live entirely in
+    # the mobile pipeline (build_lactulose_websites.py / build_clenpiq_websites.py).
+    # render.py is for the legacy SCC-printed flow (DOCX + non-mobile HTML/PDF),
+    # so skip both hidden-variant protocol families here.
+    if protocol.startswith(("lactulose", "clenpiq")):
         return None
     if protocol == "standard":
         replacements = build_strings(band, lang, location=location)

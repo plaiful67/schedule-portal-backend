@@ -70,12 +70,13 @@ def lint_template_placeholders():
             used_by_file[tmpl.relative_to(SKILL)] = matches
 
     # Scan ALL scripts/ for placeholder setters — render.py for PDF/DOCX,
-    # build_*_websites.py for mobile site rendering. Keys appear as
-    # "{{KEY}}":  in dict literals.
+    # build_*_websites.py for mobile site rendering. Two legitimate setter
+    # patterns: dict literals (`"{{KEY}}": value`) and subscript
+    # assignment (`d["{{KEY}}"] = value`).
     set_keys = set()
     for script in SCRIPTS.glob("*.py"):
         text = script.read_text(encoding="utf-8")
-        set_keys.update(re.findall(r'"(\{\{[A-Z0-9_]+\}\})"\s*:', text))
+        set_keys.update(re.findall(r'"(\{\{[A-Z0-9_]+\}\})"\s*[:\]]', text))
 
     # Forward-compat: infer dynamically-generated PARTIAL_* tokens from the
     # templates/partials/ directory if it exists. Convention:

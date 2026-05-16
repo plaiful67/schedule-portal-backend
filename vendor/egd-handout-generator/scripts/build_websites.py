@@ -137,6 +137,28 @@ def render_mobile(template_name, lang, procedure, location, pdf_button_block="")
     return out
 
 
+_ANALYTICS_SNIPPET = (
+    '<script defer src="https://analytics.giready.com/gi.js" '
+    'data-site="{site}"></script>'
+)
+
+_ANALYTICS_SITE_BY_LOC = {
+    "scc":  "egd",
+    "pmch": "egd86",
+}
+
+
+def _inject_analytics(html, location_id):
+    """Inject the giready analytics embed snippet before </head>. Idempotent."""
+    site = _ANALYTICS_SITE_BY_LOC.get(location_id)
+    if not site:
+        return html
+    snippet = _ANALYTICS_SNIPPET.format(site=site)
+    if snippet in html:
+        return html
+    return html.replace("</head>", f"  {snippet}\n</head>", 1)
+
+
 def main():
     data = render._procedure_data()
     procedure = data["procedures"]["egd"]
@@ -171,13 +193,13 @@ def main():
         # English page → repo_dir/index.html
         en = render_mobile("egd-mobile.en.html", "en", procedure, location,
                            pdf_button_block=build_pdf_button_block(en_pdf_href, "en", dl_name))
-        (repo_dir / "index.html").write_text(en, encoding="utf-8")
+        (repo_dir / "index.html").write_text(_inject_analytics(en, location_id), encoding="utf-8")
         written.append(repo_dir / "index.html")
 
         # Spanish page → repo_dir/es/index.html
         es = render_mobile("egd-mobile.es.html", "es", procedure, location,
                            pdf_button_block=build_pdf_button_block(es_pdf_href, "es", dl_name))
-        (repo_dir / "es" / "index.html").write_text(es, encoding="utf-8")
+        (repo_dir / "es" / "index.html").write_text(_inject_analytics(es, location_id), encoding="utf-8")
         written.append(repo_dir / "es" / "index.html")
 
         # Logo (referenced by both EN and ES pages — the ES page uses ../logo-pmch.png)

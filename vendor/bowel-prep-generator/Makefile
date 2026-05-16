@@ -21,7 +21,9 @@ PMCH_OUT      := $(HOME)/Desktop/peds-gi-system/bowel-prep-handouts-pmch
 REVIEW_OUT    := $(HOME)/Desktop/peds-gi-system/bowel-prep-pdf-review
 
 .PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
-        render-combined render-directions sites-colonoscopy sites-combined sites \
+        render-combined render-directions sites-colonoscopy sites-combined \
+        sites-lactulose sites-lactulose-combined \
+        sites-clenpiq sites-clenpiq-combined sites \
         render render-all clean-pdf-review
 
 help:
@@ -33,9 +35,13 @@ help:
 	@echo "  render-pdf-light   Render colonoscopy print PDFs (toner-friendly) -> $(REVIEW_OUT)"
 	@echo "  render-combined    Render combined EGD+colonoscopy print PDFs (color) -> $(REVIEW_OUT)/combined"
 	@echo "  render-directions  Render driving-directions PDFs for SCC and PMCH -> ~/Desktop/{loc}-directions.pdf"
-	@echo "  sites-colonoscopy  Build prep / prep86 mobile-site repos"
-	@echo "  sites-combined     Build egdcolon / egdcolon86 mobile-site repos"
-	@echo "  sites              sites-colonoscopy + sites-combined"
+	@echo "  sites-colonoscopy        Build prep / prep86 mobile-site repos (public MiraLAX colon-only)"
+	@echo "  sites-combined           Build egdcolon / egdcolon86 mobile-site repos (public MiraLAX combined)"
+	@echo "  sites-lactulose          Build preplact / preplact86 (hidden Lactulose colon-only)"
+	@echo "  sites-lactulose-combined Build egdcolonlact / egdcolonlact86 (hidden Lactulose combined)"
+	@echo "  sites-clenpiq            Build prepclenpiq / prepclenpiq86 (hidden CLENPIQ colon-only)"
+	@echo "  sites-clenpiq-combined   Build egdcolonclenpiq / egdcolonclenpiq86 (hidden CLENPIQ combined)"
+	@echo "  sites                    All six builders above"
 	@echo "  render-all         Everything: DOCX + HTML for both locations + all PDF variants"
 	@echo "  clean-pdf-review   Remove only the PDF review folder (does NOT touch SCC/PMCH dirs)"
 
@@ -80,7 +86,23 @@ sites-colonoscopy:
 sites-combined:
 	$(PYTHON) scripts/build_combined_websites.py
 
-sites: sites-colonoscopy sites-combined
+# Hidden scheduler-only variants — never linked from giready.com.
+# Patients reach them only via personalized URLs from schedule.giready.com.
+sites-lactulose:
+	$(PYTHON) scripts/build_lactulose_websites.py
+
+sites-lactulose-combined:
+	$(PYTHON) scripts/build_lactulose_combined_websites.py
+
+sites-clenpiq:
+	$(PYTHON) scripts/build_clenpiq_websites.py
+
+sites-clenpiq-combined:
+	$(PYTHON) scripts/build_clenpiq_combined_websites.py
+
+sites: sites-colonoscopy sites-combined \
+       sites-lactulose sites-lactulose-combined \
+       sites-clenpiq sites-clenpiq-combined
 
 render-all: render-scc render-pmch render-pdf render-pdf-light render-combined render-directions
 

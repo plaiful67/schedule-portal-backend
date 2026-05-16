@@ -507,3 +507,62 @@ bands:
     precleanout_a_offset_days: null
     precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>15 mL of lactulose daily</strong>, until the procedure."
     precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>15 mL de lactulosa al día</strong>, hasta el procedimiento."
+
+  # =====================================================================
+  # CLENPIQ PROTOCOL (scheduler-only — public: false)
+  # =====================================================================
+  # Big-kid alternative prep — sodium picosulfate / magnesium oxide / citric
+  # acid. Single unified band: dosing is identical across all eligible weights
+  # (31 kg and up); scheduler maps user-picked weight band (31-40, 41-50,
+  # over-50) to this one band via CLENPIQ_BAND_MAP in the backend adapter.
+  # Served from prepclenpiq{,86} / egdcolonclenpiq{,86} hidden subdomains.
+
+  - id: "clenpiq"
+    protocol: clenpiq-standard
+    public: false
+    label_en: "31 kg and up (68+ lb) — CLENPIQ"
+    label_es: "31 kg en adelante (68+ lb) — CLENPIQ"
+    # summary_label_* prints on the handout cover so all three eligible
+    # weight bands see the same unified label ("31 kg and up — CLENPIQ"),
+    # reinforcing that it's one prep with one set of instructions.
+    summary_label_en: "31 kg and up — CLENPIQ"
+    summary_label_es: "31 kg en adelante — CLENPIQ"
+    html_title_en: "Colonoscopy Bowel Preparation — CLENPIQ Option"
+    html_title_es: "Preparación Intestinal para Colonoscopia — Opción CLENPIQ"
+    docx_heading_en: "Children 31 kg and up &mdash; CLENPIQ"
+    docx_heading_es: "Niños de 31 kg en adelante &mdash; CLENPIQ"
+    mobile_path: "clenpiq"
+    filename_stem: "clenpiq"
+    folder_en: "31 kg and up (68+ Lb) — CLENPIQ"
+    folder_es: "31 kg en adelante (68+ Lb) — CLENPIQ"
+    # Always on — the eligible band (>=31 kg) includes adolescents who may
+    # be on GLP-1 agonists, even if rare in this weight range.
+    include_glp1_warning: true
+    # CLENPIQ dose specifics — identical across all eligible weights.
+    # Source: physician-provided weight-band texts (2026-05-16). Each bottle
+    # is ready-to-drink (no mixing); the pack ships as 2 bottles.
+    clenpiq_bottle_oz: 5.4
+    clenpiq_bottle_ml: 160
+    clenpiq_total_bottles: 2
+    # Dose 1 (evening before): one full bottle, then 5 × 8 oz cups (40 oz)
+    # of clear liquids over the next 5 hours.
+    dose1_window_en: "5:00 PM to 9:00 PM"
+    dose1_window_es: "5:00 PM a 9:00 PM"
+    dose1_clears_cups: 5
+    dose1_clears_oz: 40
+    dose1_clears_hours: 5
+    # Dose 2 (morning of): one full bottle, started 5–9 h before procedure,
+    # then 4 × 8 oz cups (32 oz). The post-Dose-2 clears must finish before
+    # the location-specific NPO cutoff (2 h SCC / 3 h PMCH) — the cutoff
+    # string is pulled from location.clears_npo_hours by build_clenpiq_strings,
+    # never hardcoded in the template.
+    dose2_hours_before_min: 5
+    dose2_hours_before_max: 9
+    dose2_clears_cups: 4
+    dose2_clears_oz: 32
+    drink_cup_en: "8 oz (~240 mL)"
+    drink_cup_es: "8 oz (~240 mL)"
+    # No pre-cleanout — CLENPIQ supplies its own stimulant via picosulfate.
+    # Empty strings keep the precleanout-block template branch a no-op.
+    precleanout_a_text_en: ""
+    precleanout_a_text_es: ""

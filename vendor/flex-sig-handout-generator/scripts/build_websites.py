@@ -316,6 +316,28 @@ def clean_repo(repo_dir, band_ids):
                 shutil.rmtree(d)
 
 
+_ANALYTICS_SNIPPET = (
+    '<script defer src="https://analytics.giready.com/gi.js" '
+    'data-site="{site}"></script>'
+)
+
+_ANALYTICS_SITE_BY_LOC = {
+    "scc":  "flexsig",
+    "pmch": "flexsig86",
+}
+
+
+def _inject_analytics(html, location_id):
+    """Inject the giready analytics embed snippet before </head>. Idempotent."""
+    site = _ANALYTICS_SITE_BY_LOC.get(location_id)
+    if not site:
+        return html
+    snippet = _ANALYTICS_SNIPPET.format(site=site)
+    if snippet in html:
+        return html
+    return html.replace("</head>", f"  {snippet}\n</head>", 1)
+
+
 def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
                    bands_by_id, band_ids,
                    landing_template_en, landing_template_es,
@@ -338,7 +360,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
         html_title=landing_title_en,
     )
     p = repo_dir / "index.html"
-    p.write_text(en_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(en_landing_html, location_id), encoding="utf-8")
     written.append(p)
 
     # --- ES landing (es/index.html) ----------------------------------------
@@ -349,7 +371,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
         html_title=landing_title_es,
     )
     p = repo_dir / "es" / "index.html"
-    p.write_text(es_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(es_landing_html, location_id), encoding="utf-8")
     written.append(p)
 
     # --- Per-band pages ----------------------------------------------------
@@ -361,6 +383,9 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
 
         # EN: <repo>/<path>/index.html
         en_dir = repo_dir / path
+        # Wipe first so overwrites don't trigger macOS NSFileVersion
+        # side-write of "handout 2.pdf" / "index 2.html" duplicates.
+        shutil.rmtree(en_dir, ignore_errors=True)
         en_dir.mkdir(parents=True, exist_ok=True)
         en_pdf_src = find_handout_pdf(band, location_id, "en")
         en_pdf_href = ""
@@ -378,11 +403,12 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = en_dir / "index.html"
-        p.write_text(en_html, encoding="utf-8")
+        p.write_text(_inject_analytics(en_html, location_id), encoding="utf-8")
         written.append(p)
 
         # ES: <repo>/es/<path>/index.html
         es_dir = repo_dir / "es" / path
+        shutil.rmtree(es_dir, ignore_errors=True)
         es_dir.mkdir(parents=True, exist_ok=True)
         es_pdf_src = find_handout_pdf(band, location_id, "es")
         es_pdf_href = ""
@@ -400,7 +426,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = es_dir / "index.html"
-        p.write_text(es_html, encoding="utf-8")
+        p.write_text(_inject_analytics(es_html, location_id), encoding="utf-8")
         written.append(p)
 
     # Logo
