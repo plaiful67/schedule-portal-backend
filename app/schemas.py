@@ -20,12 +20,17 @@ BowelPrepBand = Literal["under-15", "under-15-enema", "15-20", "21-30", "31-40",
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
 # Bowel-prep medication. MiraLAX is the default (matches what's been deployed
-# all along). Lactulose is the scheduler-gated backup for kids who can't
-# tolerate the MiraLAX+Gatorade volume — only valid for the three small-kid
-# weight bands (under-15, 15-20, 21-30) and is served from the hidden
-# preplact{,86} / egdcolonlact{,86} subdomains.
-PrepType = Literal["miralax", "lactulose"]
+# all along). The two non-default options are scheduler-gated and served from
+# hidden subdomains (never linked from giready.com):
+#   - Lactulose: backup for small kids who can't tolerate the MiraLAX+Gatorade
+#     volume — only valid for under-15, 15-20, 21-30 kg; routes to
+#     preplact{,86} / egdcolonlact{,86}.
+#   - CLENPIQ (sodium picosulfate): alternative for kids 31 kg and up who
+#     prefer a smaller-volume oral prep — only valid for 31-40, 41-50,
+#     over-50; routes to prepclenpiq{,86} / egdcolonclenpiq{,86}.
+PrepType = Literal["miralax", "lactulose", "clenpiq"]
 LACTULOSE_ALLOWED_BANDS: set[str] = {"under-15", "15-20", "21-30"}
+CLENPIQ_ALLOWED_BANDS:   set[str] = {"31-40", "41-50", "over-50"}
 
 # Performing-physician slug. Mirrors the `id:` field on each entry in
 # ~/.claude/skills/bowel-prep-generator/practice.yaml `practice.doctors[]`.
@@ -70,17 +75,22 @@ class _Base(BaseModel):
 
 class _BowelPrepBase(_Base):
     """Shared base for procedures that involve a bowel prep (colonoscopy-only
-    or combined EGD+colon). Carries weight_band + prep_type with the
-    lactulose-band cross-validation."""
+    or combined EGD+colon). Carries weight_band + prep_type with cross-
+    validation: lactulose is small-kid-only, clenpiq is big-kid-only."""
     weight_band: BowelPrepBand
     prep_type: PrepType = "miralax"
 
     @model_validator(mode="after")
-    def _lactulose_band_check(self):
+    def _prep_type_band_check(self):
         if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
             raise ValueError(
                 f"prep_type=lactulose is only available for weight bands "
                 f"{sorted(LACTULOSE_ALLOWED_BANDS)} (got {self.weight_band!r})"
+            )
+        if self.prep_type == "clenpiq" and self.weight_band not in CLENPIQ_ALLOWED_BANDS:
+            raise ValueError(
+                f"prep_type=clenpiq is only available for weight bands "
+                f"{sorted(CLENPIQ_ALLOWED_BANDS)} (got {self.weight_band!r})"
             )
         return self
 

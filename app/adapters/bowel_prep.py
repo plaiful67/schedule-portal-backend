@@ -71,6 +71,31 @@ LACTULOSE_SUBDOMAIN = {
     ("combined", "pmch"): "egdcolonlact86",
 }
 
+# CLENPIQ templates (scheduler-only; mobile sites at prepclenpiq*.giready.com).
+# Selected when prep_type == "clenpiq"; the user's weight_band is mapped to
+# the single unified "clenpiq" band id (dosing is identical across all
+# eligible weights, so we don't keep per-weight band entries).
+CLENPIQ_STANDARD_TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "clenpiq-standard-print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "clenpiq-standard-print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-clenpiq-standard-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-clenpiq-standard-print-personalized.es.html",
+}
+# weight_band (user-facing) -> clenpiq band id. All three eligible bands
+# collapse to the same dosing.yaml entry — dosing is identical across them.
+CLENPIQ_BAND_MAP = {
+    "31-40":   "clenpiq",
+    "41-50":   "clenpiq",
+    "over-50": "clenpiq",
+}
+# Hidden subdomains: prep_type=clenpiq routes to these instead of prep* / egdcolon*.
+CLENPIQ_SUBDOMAIN = {
+    ("standard", "scc"):  "prepclenpiq",
+    ("standard", "pmch"): "prepclenpiq86",
+    ("combined", "scc"):  "egdcolonclenpiq",
+    ("combined", "pmch"): "egdcolonclenpiq86",
+}
+
 
 def _load_skill_module():
     """Load the bowel-prep skill's render.py under a unique module name so
@@ -144,7 +169,7 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     variant: Literal["standard", "combined"] = "standard",
-    prep_type: Literal["miralax", "lactulose"] = "miralax",
+    prep_type: Literal["miralax", "lactulose", "clenpiq"] = "miralax",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -152,6 +177,12 @@ def render_pdf(
     band to a lactulose-specific band id in dosing.yaml, picks the
     lactulose template family, and emits a mobile URL pointing at the
     hidden preplact{,86} / egdcolonlact{,86} subdomains.
+
+    `prep_type="clenpiq"` (scheduler-only alternative for kids 31 kg and up)
+    collapses all three eligible user-facing weight bands to the single
+    unified "clenpiq" dosing.yaml entry, picks the clenpiq template family,
+    and emits a mobile URL pointing at the hidden prepclenpiq{,86} /
+    egdcolonclenpiq{,86} subdomains.
     """
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
 
@@ -167,6 +198,13 @@ def render_pdf(
                 f"(allowed: {sorted(LACTULOSE_BAND_MAP)})"
             )
         band_id = LACTULOSE_BAND_MAP[band_id]
+    elif prep_type == "clenpiq":
+        if band_id not in CLENPIQ_BAND_MAP:
+            raise ValueError(
+                f"prep_type=clenpiq not supported for band_id={band_id!r} "
+                f"(allowed: {sorted(CLENPIQ_BAND_MAP)})"
+            )
+        band_id = CLENPIQ_BAND_MAP[band_id]
 
     band = _band_for_id(band_id)
     location = _location_block(location_id)
@@ -183,6 +221,14 @@ def render_pdf(
             )
         if template_path is None:
             raise ValueError(f"No lactulose template for variant={variant!r} lang={lang!r}")
+    elif prep_type == "clenpiq":
+        if protocol != "clenpiq-standard":
+            raise ValueError(
+                f"prep_type=clenpiq expects the clenpiq-standard protocol, got {protocol!r}"
+            )
+        template_path = CLENPIQ_STANDARD_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        if template_path is None:
+            raise ValueError(f"No clenpiq template for variant={variant!r} lang={lang!r}")
     else:
         template_path = TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
         if template_path is None:
@@ -204,6 +250,8 @@ def render_pdf(
     # lactulose print templates.
     if protocol in ("lactulose-infant", "lactulose-standard"):
         replacements = skill.build_lactulose_strings(band, lang, location)
+    elif protocol == "clenpiq-standard":
+        replacements = skill.build_clenpiq_strings(band, lang, location)
     elif protocol in ("infant", "infant-enema"):
         replacements = skill.build_infant_strings(band, lang)
     else:
@@ -222,9 +270,11 @@ def render_pdf(
     # target. We point both at the per-procedure mobile site with
     # `#d=YYYY-MM-DD&t=HHMM` hash params — those sites already personalize
     # themselves from the hash via the _personalize.{en,es}.html JS partial.
-    # For prep_type=lactulose, target the hidden subdomain instead.
+    # For hidden-variant prep types, target the hidden subdomain instead.
     if prep_type == "lactulose":
         subdomain = LACTULOSE_SUBDOMAIN[(variant, location_id)]
+    elif prep_type == "clenpiq":
+        subdomain = CLENPIQ_SUBDOMAIN[(variant, location_id)]
     else:
         subdomain_key = "mobile_subdomain_combined" if variant == "combined" else "mobile_subdomain"
         subdomain = location.get(subdomain_key) or location.get("mobile_subdomain", "prep")
