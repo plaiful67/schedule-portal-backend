@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{HTML_TITLE}}</title>
+<style>
+  /* ---------------------------------------------------------------
+     Print-ready stylesheet for WeasyPrint — combined EGD +
+     colonoscopy, clear-liquids + saline-enema variant. Mirrors the
+     design of combined-print.en.html and infant-enema-print.en.html,
+     with the prominent .safety callout preserved.
+     --------------------------------------------------------------- */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.65in 0.5in 0.65in;
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 8.5pt;
+      color: #666;
+    }
+    @bottom-left {
+      content: "{{PRACTICE_FOOTER}}";
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 8.5pt;
+      color: #666;
+    }
+    @top-center {
+      content: string(band-label);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 9pt;
+      color: #555;
+      letter-spacing: 0.02em;
+    }
+  }
+  @page :first {
+    @top-center { content: ""; }
+  }
+
+  html { font-size: 10.5pt; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.33;
+  }
+
+  h1, h2, h3, h4, .ui {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #0e2233;
+  }
+  h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 12.5pt; margin: 10pt 0 3pt 0; font-weight: 600; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600; break-after: avoid; }
+  p { margin: 3pt 0; orphans: 2; widows: 2; }
+  ul, ol { margin: 3pt 0 3pt 16pt; padding: 0; }
+  li { margin: 1pt 0; }
+  strong { font-weight: 700; }
+  a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  a.qr-caption { color: inherit; text-decoration: none; }
+  /* Whole-area QR anchor (image + caption inside one <a>) and resource-card anchor */
+  .qr-block { display: block; color: inherit; text-decoration: none; }
+  a.resource-card { color: inherit; text-decoration: none; }
+  a.qr-caption:hover { text-decoration: underline; }
+  .location-text a { color: inherit; text-decoration: none; }
+  .location-text a:hover { text-decoration: underline; }
+
+  /* Cover */
+  .cover {
+    string-set: band-label "{{BAND_LABEL}}";
+    border-bottom: 2pt solid #0e2233;
+    padding-bottom: 8pt;
+    margin-bottom: 10pt;
+  }
+  .cover-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14pt;
+    margin-bottom: 4pt;
+  }
+  .practice-logo {
+    height: 0.65in;
+    width: auto;
+    flex: 0 0 auto;
+  }
+  .practice-stack {
+    flex: 1 1 auto;
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-size: 11pt;
+    font-weight: 600;
+    color: #0e2233;
+    line-height: 1.2;
+  }
+  .practice-stack .phone {
+    margin-top: 1pt;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #555;
+  }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .cover-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+.cover-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12pt;
+    margin-top: 2pt;
+    flex-wrap: wrap;
+  }
+  .cover-title-row .titles { flex: 1 1 auto; }
+  .doc-title {
+    font-size: 16pt;
+    font-weight: 600;
+    color: #0e2233;
+    margin: 1pt 0 1pt 0;
+    white-space: nowrap;
+  }
+  .band-label {
+    font-family: "Inter", sans-serif;
+    font-size: 13pt;
+    font-weight: 600;
+    color: #b03a00;
+    margin-top: 2pt;
+  }
+  .performing-physician {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #555;
+    margin-top: 3pt;
+  }
+  .option-tag {
+    font-family: "Inter", sans-serif;
+    font-size: 10.5pt;
+    font-weight: 600;
+    color: #0e4a82;
+    margin-top: 1pt;
+  }
+
+  /* Location */
+  .location {
+    display: flex;
+    gap: 10pt;
+    align-items: flex-start;
+    border: 1pt solid #c9d3dd;
+    background: #f4f7fa;
+    border-radius: 4pt;
+    padding: 5pt 9pt;
+    margin-bottom: 6pt;
+    break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; font-size: 9.5pt; }
+  .location-text .label {
+    font-family: "Inter", sans-serif;
+    font-size: 8.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+    margin-bottom: 1pt;
+  }
+  .location-text .name { font-weight: 700; font-size: 11pt; color: #0e2233; }
+  .location-text .addr { margin-top: 1pt; }
+  .location-text .arrival {
+    margin-top: 3pt;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    color: #b03a00;
+  }
+  .location-qr { flex: 0 0 auto; }
+  .location-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .location-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .location-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.95in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+/* Section headings */
+  h2.step, h2.section-heading {
+    background: #0e2233;
+    color: #ffffff;
+    padding: 3pt 8pt;
+    border-radius: 3pt;
+    margin: 7pt 0 3pt 0;
+    font-size: 11.5pt;
+    break-after: avoid;
+    font-family: "Inter", sans-serif;
+  }
+  h2.step .icon, h2.section-heading .icon {
+    display: inline-block;
+    margin-right: 4pt;
+  }
+  p.note {
+    font-size: 9.5pt;
+    color: #555;
+    font-style: italic;
+    margin: 3pt 0 0 0;
+  }
+  h3.sub {
+    color: #0e2233;
+    border-bottom: 1pt solid #c9d3dd;
+    padding-bottom: 1pt;
+    break-after: avoid;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4pt 0 8pt 0;
+    font-size: 10pt;
+    break-inside: auto;
+  }
+  thead { display: table-header-group; }
+  th {
+    background: #e3eaf1;
+    color: #0e2233;
+    font-family: "Inter", sans-serif;
+    font-size: 9.5pt;
+    text-align: left;
+    padding: 4pt 6pt;
+    border-bottom: 1pt solid #c9d3dd;
+    font-weight: 600;
+  }
+  td {
+    padding: 4pt 6pt;
+    border-bottom: 0.5pt solid #d8dee5;
+    vertical-align: top;
+  }
+  tr { break-inside: avoid; }
+
+  table.avoid-allowed {
+    border: 1pt solid #c9d3dd;
+    border-radius: 4pt;
+    overflow: hidden;
+  }
+  table.avoid-allowed td { width: 50%; background: #ffffff; }
+  table.avoid-allowed td.col-avoid { border-right: 0.5pt solid #e6d8d4; }
+  table.avoid-allowed th { background: #f4f7fa; }
+  table.avoid-allowed th.col-avoid {
+    color: #7a1f00; border-bottom: 1.5pt solid #c0392b;
+  }
+  table.avoid-allowed th.col-allowed {
+    color: #1f4d12; border-bottom: 1.5pt solid #2e7d32; border-left: 0.5pt solid #c9d3dd;
+  }
+
+  /* Generic callout / warning */
+  .callout, .warning {
+    border-radius: 4pt;
+    padding: 6pt 9pt;
+    margin: 6pt 0;
+    break-inside: avoid;
+  }
+  .callout { background: #fffaeb; border: 1pt solid #d4a017; }
+  .callout-title {
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    color: #7a4f00;
+    margin-bottom: 3pt;
+  }
+  .callout p, .callout li { font-size: 12px; line-height: 1.4; }
+  .warning {
+    background: #fdecea;
+    border: 1pt solid #c0392b;
+    color: #7a1f00;
+    font-weight: 600;
+  }
+
+  /* Prominent safety callout — preserved for the enema variant.
+     Heavier border, larger padding, distinctive icon column. */
+  .safety {
+    display: flex;
+    gap: 12pt;
+    align-items: flex-start;
+    border: 2.5pt solid #c0392b;
+    background: #fef6f4;
+    border-radius: 5pt;
+    padding: 10pt 12pt;
+    margin: 8pt 0;
+    break-inside: avoid;
+  }
+  .safety .safety-icon {
+    flex: 0 0 auto;
+    font-size: 20pt;
+    line-height: 1;
+    color: #c0392b;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+  }
+  .safety .safety-body { flex: 1 1 auto; font-size: 10pt; }
+  .safety .safety-title {
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    color: #8a1d10;
+    font-size: 11.5pt;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 3pt;
+  }
+  .safety p { margin: 2pt 0; }
+
+  /* Resources two-column — horizontal card layout */
+  .two-col {
+    display: flex;
+    gap: 8pt;
+    align-items: flex-start;
+    margin: 6pt 0;
+  }
+  .two-col > * { flex: 1 1 0; }
+  .resource-card {
+    display: flex;
+    align-items: center;
+    gap: 5pt;
+    border: 1pt solid #c9d3dd;
+    border-radius: 4pt;
+    padding: 4pt 6pt;
+    background: #f8fafc;
+    break-inside: avoid;
+  }
+  .resource-card img {
+    width: 0.55in; height: 0.55in;
+    flex: 0 0 auto;
+  }
+  .resource-card .label {
+    font-family: "Inter", sans-serif;
+    font-size: 8pt;
+    color: #333;
+    line-height: 1.2;
+    flex: 1 1 auto;
+  }
+
+  .keep-together { break-inside: avoid; }
+  .fineprint { font-size: 8.5pt; color: #555; font-style: italic; }
+
+  /* Toner-friendly theme */
+  body.theme-print-light h2.step,
+  body.theme-print-light h2.section-heading {
+    background: #ffffff;
+    color: #0e2233;
+    border: 1pt solid #0e2233;
+    border-left: 4pt solid #0e2233;
+  }
+  body.theme-print-light th {
+    background: #ffffff;
+    color: #0e2233;
+    border-bottom: 1.5pt solid #0e2233;
+  }
+  body.theme-print-light table.avoid-allowed .col-avoid,
+  body.theme-print-light table.avoid-allowed .col-allowed { background: #ffffff; }
+  body.theme-print-light table.avoid-allowed th.col-avoid {
+    background: #ffffff; color: #7a1f00; border-bottom: 1.5pt solid #c0392b;
+  }
+  body.theme-print-light table.avoid-allowed th.col-allowed {
+    background: #ffffff; color: #1f4d12; border-bottom: 1.5pt solid #2e7d32;
+  }
+  body.theme-print-light .callout {
+    background: #ffffff; border: 1pt solid #d4a017; border-left: 3pt solid #d4a017;
+  }
+  body.theme-print-light .warning {
+    background: #ffffff; border: 1pt solid #c0392b; border-left: 3pt solid #c0392b;
+  }
+  body.theme-print-light .safety {
+    background: #ffffff; border: 2.5pt solid #c0392b;
+  }
+  body.theme-print-light .location { background: #ffffff; }
+  body.theme-print-light .resource-card { background: #ffffff; }
+
+  /* --- Personalized appointment callout --- */
+  .appt-callout {
+    margin: 6pt 0;
+    padding: 5pt 14pt;
+    border: 2pt solid #0e2233;
+    border-radius: 6pt;
+    background: #f7f8fa;
+    page-break-inside: avoid;
+  }
+  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+  .appt-block { flex: 1 1 0; min-width: 0; }
+  .appt-block.appt-block-date { flex: 2 1 0; }
+  .appt-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; margin-bottom: 1pt;
+  }
+  .appt-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13pt; font-weight: 700; color: #0e2233;
+    white-space: nowrap;
+  }
+  /* --- Standalone narrow follow-up appointment callout --- */
+  .followup-callout {
+    margin: 8pt 0; padding: 6pt 12pt;
+    border-left: 3pt solid #0e4a82;
+    background: #f5f8fb;
+    display: flex; align-items: baseline; gap: 8pt;
+    page-break-inside: avoid;
+  }
+  .followup-callout .followup-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; font-weight: 600;
+  }
+  .followup-callout .followup-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11pt; font-weight: 600; color: #0e2233;
+  }
+  .followup-callout.fallback .followup-value {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="cover-row">
+    <img class="practice-logo" src="{{PRACTICE_LOGO_FILE}}" alt="{{PRACTICE_LOGO_ALT}}">
+    <div class="practice-stack">
+      <div>{{PRACTICE_STACK_LINE_1}}</div>
+      <div>{{PRACTICE_STACK_LINE_2}}</div>
+      <div class="phone">{{PRACTICE_STACK_LINE_3}}</div>
+    </div>
+    <div class="cover-qr">
+    <a class="qr-block" href="{{MOBILE_URL}}">
+      <span class="qr-caption">Scan or visit<br>giready.com</span>
+      <img id="qr-mobile" src="qr-placeholder.png" alt="Mobile-friendly version QR">
+    </a>
+  </div>
+  </div>
+  <div class="cover-title-row">
+    <div class="titles">
+      <h1 class="doc-title">EGD + Colonoscopy Prep</h1>
+      <div class="option-tag">Clear Liquids + Saline Enema Option</div>
+    </div>
+    <div class="band-label">{{BAND_LABEL}}</div>
+    <div class="performing-physician">Performing physician: {{PERFORMING_PHYSICIAN}}</div>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- APPOINTMENT CALLOUT (personalized handout only)               -->
+<!-- ============================================================= -->
+<section class="appt-callout">
+  <div class="appt-row">
+    <div class="appt-block appt-block-date">
+      <div class="appt-label">Procedure date</div>
+      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Arrival</div>
+      <div class="appt-value">{{ARRIVAL_TIME}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Procedure time</div>
+      <div class="appt-value">{{APPT_TIME}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location">
+  <div class="location-text">
+    <div class="label">Procedure Location</div>
+    <div class="name">{{LOCATION_NAME}}</div>
+    <div class="addr"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">{{LOCATION_ADDRESS}}</a></div>
+    <div class="addr">{{LOCATION_PHONE_LABEL}}: <a href="tel:{{LOCATION_PHONE_TEL}}"><strong>{{LOCATION_PHONE}}</strong></a></div>
+    <div class="arrival">{{LOCATION_ARRIVAL}}</div>
+  </div>
+  <div class="location-qr">
+    <a class="qr-block" href="{{MAPS_URL}}" target="_blank" rel="noopener">
+      <span class="qr-caption">Scan for Google Maps</span>
+      <img id="qr-maps" src="qr-placeholder.png" alt="Google Maps directions QR">
+    </a>
+  </div>
+</section>
+
+<!-- Follow-up appointment (narrow standalone callout) -->
+{{FOLLOWUP_BLOCK_HTML}}
+
+<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->
+<h2 class="step"><span class="icon">&#128269;</span> What Are These Procedures?</h2>
+<p>Your child is scheduled for <strong>two procedures done back-to-back</strong> while asleep under anesthesia:</p>
+<ul>
+  <li><strong>EGD (upper endoscopy)</strong> &mdash; a thin camera is passed through the mouth to look at the esophagus, stomach, and the first part of the small intestine. Small biopsies are usually taken.</li>
+  <li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>
+</ul>
+<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>
+
+<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>
+<p>The colon must be clean for the doctor to see clearly during the colonoscopy. The clear-liquid + enema steps below empty it over the day before. The EGD itself does not need bowel prep &mdash; only the fasting times.</p>
+
+<!-- SAFETY CALLOUT — only if directed by the doctor -->
+<div class="safety">
+  <div class="safety-icon">&#9888;</div>
+  <div class="safety-body">
+    <div class="safety-title">Use this option only if directed by the doctor</div>
+    <p>This handout describes a <strong>clear-liquids + saline-enema</strong> prep
+    for infants and children under {{WARNING_WEIGHT}}. Use this protocol
+    <strong>only when our office has specifically directed you to do so</strong>.
+    If a saline enema was not prescribed for home use, do not give one &mdash;
+    the doctor will administer it just before the procedure.</p>
+  </div>
+</div>
+
+<!-- PLAN AHEAD -->
+<h2 class="step"><span class="icon">&#9989;</span> Plan Ahead &mdash; pick up from the pharmacy</h2>
+<ul>
+  <li>Pedialyte&reg; or clear apple juice.</li>
+  <li>Clear broth (chicken or vegetable).</li>
+  <li>Popsicles or plain gelatin (no red or purple colors).</li>
+  <li>Saline enema &mdash; <strong>only if prescribed</strong>, or if we have separately instructed you to give one.</li>
+  <li>Protective ointment (A&amp;D, Desitin&reg;, or Vaseline&reg;) for the diaper area.</li>
+</ul>
+
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare a list of medications and be ready to discuss them with the nurse or scheduler when they call.<br>
+        <strong>Stop {{HTML_MEDICATIONS_DRUGS}} 7 days before.</strong><br>
+        You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+<!-- DAY BEFORE -->
+<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>
+
+<table class="avoid-allowed">
+  <thead>
+    <tr>
+      <th class="col-avoid">AVOID</th>
+      <th class="col-allowed">OK to drink</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-avoid">All solid foods</td>
+      <td class="col-allowed">Formula or milk (until 12:00 PM)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Formula or milk after 12:00 PM</td>
+      <td class="col-allowed">Breast milk (until 8:00 PM)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Breast milk after 8:00 PM</td>
+      <td class="col-allowed">Pedialyte&reg;; clear apple juice (no pulp); water</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Anything red or purple (looks like blood)</td>
+      <td class="col-allowed">Clear broth (chicken or vegetable, strained); popsicles or plain gelatin (no red/purple)</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout keep-together">
+  <div class="callout-title">Saline enema (only if directed)</div>
+  <p>If your doctor prescribed a saline enema for home use, give it in the evening.
+  The dose is <strong>10 mL per kg of body weight</strong>. If you were not told
+  to give one at home, the doctor will give it right before the procedure.</p>
+</div>
+
+<p>Apply protective ointment to the diaper area.</p>
+
+<!-- FASTING -->
+<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>
+<p>These times are counted backward from your child&rsquo;s scheduled procedure time. The fasting rules apply to both the EGD and the colonoscopy.</p>
+<table class="keep-together">
+  <thead>
+    <tr><th style="width: 55%;">What</th><th>When to Stop</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Formula or milk (1 year and older)</td><td>12:00 PM the day before</td></tr>
+    <tr><td>Breast milk</td><td>8:00 PM the day before</td></tr>
+    <tr><td>Clear liquids (Pedialyte, water, clear juice)</td><td>{{NPO_CLEARS_HOURS}} hours before procedure time</td></tr>
+  </tbody>
+</table>
+<div class="warning keep-together">
+  After the clear-liquid cutoff, no food or drink. This keeps your child safe during anesthesia.
+</div>
+
+<!-- WHEN TO CALL -->
+<div class="keep-together">
+<h2 class="step"><span class="icon">&#9888;</span> When to Call the Doctor</h2>
+<ul>
+  <li>Your child won&rsquo;t drink, or has dehydration signs: no tears, dry mouth, or no wet diapers for 6+ hours.</li>
+  <li>Vomiting that prevents your child from keeping liquids down.</li>
+  <li>Fever, bloody stools, or severe belly pain.</li>
+  <li>You are unsure whether the prep is working.</li>
+  <li>You have questions about your child&rsquo;s medications.</li>
+</ul>
+</div>
+
+<div class="keep-together">
+<!-- TIPS -->
+<h2 class="step"><span class="icon">&#128161;</span> Tips for Success</h2>
+<ul>
+  <li>Offer clear liquids frequently in small amounts &mdash; a syringe, sippy cup, or bottle may help. Frequent small drinks beat occasional large ones &mdash; better hydration, easier on the stomach.</li>
+  <li>Popsicles and gelatin help keep your child hydrated. Avoid red and purple &mdash; they can look like blood.</li>
+  <li>Expect frequent watery stools &mdash; this means the prep is working.</li>
+  <li>Keep the diaper area well protected with ointment to prevent irritation.</li>
+  <li>Bring comfort items for your child (favorite blanket, pacifier, lovey, etc.).</li>
+</ul>
+
+<!-- RESOURCES -->
+<h2 class="step"><span class="icon">&#128218;</span> Helpful Resources</h2>
+<div class="two-col">
+  <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
+    <img id="qr-youtube" src="qr-placeholder.png" alt="Prep video QR">
+    <div class="label"><strong>Watch the prep video</strong><br>Example only &mdash; follow this handout, not the video.</div>
+  </a>
+  <a class="resource-card" href="{{PORTAL_URL}}" target="_blank" rel="noopener">
+    <img id="qr-portal" src="qr-placeholder.png" alt="Patient portal QR">
+    <div class="label"><strong>Patient portal</strong><br>Message us<br>Urgent: (317) 338-9450</div>
+  </a>
+  <a class="resource-card" href="{{GIKIDS_URL}}" target="_blank" rel="noopener">
+    <img id="qr-gikids" src="qr-placeholder.png" alt="GIKids resource QR">
+    <div class="label"><strong>GIKids.org</strong><br>General info on pediatric GI procedures.</div>
+  </a>
+</div>
+</div>
+
+<p class="fineprint" style="margin-top: 10pt;">
+  Pediatric Gastroenterology at {{LOCATION_NAME}}.
+  For urgent issues call (317) 338-9450.
+  This document is patient education material; for medical advice contact your healthcare provider.
+</p>
+
+</body>
+</html>

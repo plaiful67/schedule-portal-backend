@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 # Weight bands as they appear in dosing.yaml (band.id values).
 # Phase 1 ships only bowel_prep; the other unions are stubbed for forward-compat.
-BowelPrepBand = Literal["under-15", "15-20", "21-30", "31-40", "41-50", "over-50"]
+BowelPrepBand = Literal["under-15", "under-15-enema", "15-20", "21-30", "31-40", "41-50", "over-50"]
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
 # Performing-physician slug. Mirrors the `id:` field on each entry in
