@@ -26,6 +26,15 @@ TEMPLATE_BY_VARIANT_LANG = {
     ("combined", "en"): TEMPLATES_DIR / "combined-print-personalized.en.html",
     ("combined", "es"): TEMPLATES_DIR / "combined-print-personalized.es.html",
 }
+# Infant-protocol bands (under-15 kg) use a separate set of personalized
+# templates derived from the vendored infant-print sources. Selected at
+# render time when band["protocol"] == "infant".
+INFANT_TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "infant-print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "infant-print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-infant-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-infant-print-personalized.es.html",
+}
 
 
 def _load_skill_module():
@@ -75,9 +84,9 @@ def _load_dosing() -> dict[str, Any]:
 def _band_for_id(band_id: str) -> dict[str, Any]:
     dosing = _load_dosing()
     for b in dosing["bands"]:
-        if b["id"] == band_id and b.get("protocol") == "standard":
+        if b["id"] == band_id:
             return b
-    raise ValueError(f"No standard-protocol band found for id={band_id!r}")
+    raise ValueError(f"No band found for id={band_id!r}")
 
 
 def _location_block(location_id: str) -> dict[str, Any]:
@@ -112,11 +121,21 @@ def render_pdf(
     band = _band_for_id(band_id)
     location = _location_block(location_id)
 
+    if band.get("protocol") == "infant":
+        template_path = INFANT_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        if template_path is None:
+            raise ValueError(f"No infant template for variant={variant!r} lang={lang!r}")
+
     # Build the same replacements dict the skill's batch render uses.
     # `location` is forwarded so build_contingency_block resolves the per-site
     # NPO window (2 h SCC vs 3 h PMCH) instead of falling through to the 2-hour
     # default. LOCATION_* placeholders still come from build_location_placeholders.
-    replacements = skill.build_strings(band, lang, location)
+    # Infant bands have no oral-prep dosing fields, so the skill provides a
+    # separate minimal builder for that protocol.
+    if band.get("protocol") == "infant":
+        replacements = skill.build_infant_strings(band, lang)
+    else:
+        replacements = skill.build_strings(band, lang, location)
     replacements.update(skill.build_location_placeholders(location, lang))
     replacements.update(skill.build_practice_placeholders(lang))
 
