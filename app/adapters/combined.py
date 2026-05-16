@@ -8,6 +8,7 @@ variant="combined".
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Literal
 
 from . import bowel_prep
 
@@ -23,6 +24,7 @@ def render_pdf(
     arrival_time_display: str,
     followup_block_html: str,
     appt_dt: datetime,
+    prep_type: Literal["miralax", "lactulose"] = "miralax",
 ) -> bytes:
     return bowel_prep.render_pdf(
         band_id=band_id,
@@ -35,4 +37,5 @@ def render_pdf(
         followup_block_html=followup_block_html,
         appt_dt=appt_dt,
         variant="combined",
+        prep_type=prep_type,
     )

@@ -409,6 +409,34 @@ def clean_repo(repo_dir, band_ids, bands_by_id):
                 shutil.rmtree(d)
 
 
+_ANALYTICS_SNIPPET = (
+    '<script defer src="https://analytics.giready.com/gi.js" '
+    'data-site="{site}"></script>'
+)
+
+_ANALYTICS_SITE_BY_FAMILY_LOC = {
+    ("colonoscopy", "scc"):  "prep",
+    ("colonoscopy", "pmch"): "prep86",
+    ("combined",    "scc"):  "egdcolon",
+    ("combined",    "pmch"): "egdcolon86",
+}
+
+
+def _inject_analytics(html, family, location_id):
+    """Inject the giready analytics embed snippet before </head>.
+
+    Idempotent: if the snippet is already present, returns html unchanged.
+    Skips silently for unknown family/location combos (no analytics hookup).
+    """
+    site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
+    if not site:
+        return html
+    snippet = _ANALYTICS_SNIPPET.format(site=site)
+    if snippet in html:
+        return html
+    return html.replace("</head>", f"  {snippet}\n</head>", 1)
+
+
 def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, band_ids,
                    landing_template_en, landing_template_es,
                    landing_title_en, landing_title_es,
@@ -435,7 +463,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=landing_title_en,
     )
     p = repo_dir / "index.html"
-    p.write_text(en_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(en_landing_html, family, location_id), encoding="utf-8")
     written.append(p)
 
     # --- ES landing (es/index.html) ----------------------------------------
@@ -446,7 +474,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=landing_title_es,
     )
     p = repo_dir / "es" / "index.html"
-    p.write_text(es_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(es_landing_html, family, location_id), encoding="utf-8")
     written.append(p)
 
     # --- Per-band pages ----------------------------------------------------
@@ -458,6 +486,9 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
 
         # EN: <repo>/<path>/index.html
         en_dir = repo_dir / path
+        # Wipe first so overwrites don't trigger macOS NSFileVersion
+        # side-write of "handout 2.pdf" / "index 2.html" duplicates.
+        shutil.rmtree(en_dir, ignore_errors=True)
         en_dir.mkdir(parents=True, exist_ok=True)
         en_pdf_src = find_handout_pdf(band, location_id, "en", family)
         en_pdf_href = ""
@@ -476,11 +507,12 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             handout_pdf_download_name=pdf_download_name(family, band, location_id),
         )
         p = en_dir / "index.html"
-        p.write_text(en_html, encoding="utf-8")
+        p.write_text(_inject_analytics(en_html, family, location_id), encoding="utf-8")
         written.append(p)
 
         # ES: <repo>/es/<path>/index.html
         es_dir = repo_dir / "es" / path
+        shutil.rmtree(es_dir, ignore_errors=True)
         es_dir.mkdir(parents=True, exist_ok=True)
         es_pdf_src = find_handout_pdf(band, location_id, "es", family)
         es_pdf_href = ""
@@ -499,7 +531,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             handout_pdf_download_name=pdf_download_name(family, band, location_id),
         )
         p = es_dir / "index.html"
-        p.write_text(es_html, encoding="utf-8")
+        p.write_text(_inject_analytics(es_html, family, location_id), encoding="utf-8")
         written.append(p)
 
     # Logo
@@ -540,10 +572,18 @@ def main():
     locations    = dosing_cfg["locations"]
     bands_by_id  = {b["id"]: b for b in dosing_cfg["bands"]}
 
-    # Sanity check that every BAND_ORDER entry exists in the data.
+    # Sanity check that every BAND_ORDER entry exists in the data and is
+    # marked public. Scheduler-only bands (e.g. lactulose) carry `public: false`
+    # in dosing.yaml and must never be shipped to the public mobile sites.
     for bid in BAND_ORDER:
         if bid not in bands_by_id:
             sys.exit(f"band {bid!r} missing from data/dosing.yaml")
+        if not bands_by_id[bid].get("public", True):
+            sys.exit(f"band {bid!r} is marked `public: false` and must not appear in BAND_ORDER")
+    # Reverse check: warn if a public band exists in dosing.yaml but isn't listed.
+    for bid, band in bands_by_id.items():
+        if band.get("public", True) and bid not in BAND_ORDER:
+            print(f"  WARN: public band {bid!r} is in dosing.yaml but missing from BAND_ORDER")
 
     landing_template_en = TEMPLATES / "colonoscopy-mobile-landing.en.html"
     landing_template_es = TEMPLATES / "colonoscopy-mobile-landing.es.html"

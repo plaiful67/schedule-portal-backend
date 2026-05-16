@@ -532,6 +532,229 @@ def build_infant_strings(band, lang):
     }
 
 
+def _lactulose_daily_table_html(tiers, lang):
+    """Build the dose-by-weight table for lactulose-infant bands."""
+    if lang == "en":
+        headers = ("Your Child's Weight", "Lactulose Dose", "How to Give")
+    else:
+        headers = ("Peso de su Niño", "Dosis de Lactulosa", "Cómo Administrar")
+    rows = "\n".join(
+        f'      <tr><td>{t[f"label_{lang}"]}</td><td><strong>{t[f"dose_label_{lang}"]}</strong></td><td>{t[f"how_{lang}"]}</td></tr>'
+        for t in tiers
+    )
+    return (
+        '<table class="dose-table">\n'
+        '  <thead>\n'
+        f'    <tr><th>{headers[0]}</th><th>{headers[1]}</th><th>{headers[2]}</th></tr>\n'
+        '  </thead>\n'
+        '  <tbody>\n'
+        f'{rows}\n'
+        '  </tbody>\n'
+        '</table>'
+    )
+
+
+def _lactulose_big_prep_table_html(tiers, gat_oz_default, lang):
+    """Build the per-weight big-prep mix table for lactulose-standard bands.
+
+    Each row tells the family how much lactulose to mix into how much Gatorade
+    for their child's specific weight. Single-row tables (21-30 kg) still
+    render as a one-row table so the format stays consistent.
+    """
+    if lang == "en":
+        headers = ("Your Child's Weight", "Lactulose to Mix", "Into Gatorade")
+    else:
+        headers = ("Peso de su Niño", "Lactulosa a Mezclar", "En Gatorade")
+    rows = []
+    for t in tiers:
+        oz = t.get("gatorade_oz", gat_oz_default)
+        ml = oz_to_ml(oz)
+        rows.append(
+            f'      <tr><td>{t[f"label_{lang}"]}</td>'
+            f'<td><strong>{t["lactulose_ml"]} mL</strong></td>'
+            f'<td><strong>{oz} oz (~{ml} mL)</strong></td></tr>'
+        )
+    return (
+        '<table class="dose-table">\n'
+        '  <thead>\n'
+        f'    <tr><th>{headers[0]}</th><th>{headers[1]}</th><th>{headers[2]}</th></tr>\n'
+        '  </thead>\n'
+        '  <tbody>\n' + "\n".join(rows) + '\n'
+        '  </tbody>\n'
+        '</table>'
+    )
+
+
+def _lactulose_rescue_block_html(band, lang, location):
+    """Rescue plan: extra lactulose if stools aren't clearing 4 hours in."""
+    npo_hours = (location or {}).get("clears_npo_hours", 2)
+    ev_ml = band["rescue_evening_lactulose_ml"]
+    ev_oz = band["rescue_evening_gatorade_oz"]
+    mo_ml = band["rescue_morning_lactulose_ml"]
+    mo_oz = band["rescue_morning_gatorade_oz"]
+    if lang == "en":
+        return (
+            '<div class="callout">\n'
+            '  <div class="callout-title">&#9888;&#65039; Rescue plan</div>\n'
+            f'  <p>If stools are not clear or pale yellow <strong>4 hours</strong> after starting (or if no stools), give extra lactulose:</p>\n'
+            '  <ul>\n'
+            f'    <li><strong>Evening:</strong> give <strong>{ev_ml} mL more lactulose</strong> in {ev_oz} oz of Gatorade.</li>\n'
+            f'    <li><strong>Morning of procedure:</strong> give <strong>{mo_ml} mL more lactulose</strong> in {mo_oz} oz of Gatorade, at least <strong>{npo_hours} hours before</strong> the procedure.</li>\n'
+            '  </ul>\n'
+            '</div>'
+        )
+    else:
+        return (
+            '<div class="callout">\n'
+            '  <div class="callout-title">&#9888;&#65039; Plan de rescate</div>\n'
+            f'  <p>Si las heces no son claras o amarillo pálido <strong>4 horas</strong> después de comenzar (o si no hay heces), dé lactulosa adicional:</p>\n'
+            '  <ul>\n'
+            f'    <li><strong>Por la noche:</strong> dé <strong>{ev_ml} mL más de lactulosa</strong> en {ev_oz} oz de Gatorade.</li>\n'
+            f'    <li><strong>Mañana del procedimiento:</strong> dé <strong>{mo_ml} mL más de lactulosa</strong> en {mo_oz} oz de Gatorade, al menos <strong>{npo_hours} horas antes</strong> del procedimiento.</li>\n'
+            '  </ul>\n'
+            '</div>'
+        )
+
+
+def _lactulose_two_days_before_block_html(band, lang):
+    """For lactulose-standard bands with a bedtime Dulcolax dose (21-30 kg).
+
+    15-20 kg has no bedtime Dulcolax — returns empty string. For bands with a
+    bedtime Dulcolax dose, also include the evening "mix lactulose + Gatorade
+    and refrigerate overnight" step.
+    """
+    bedtime_tabs = band.get("dulcolax_bedtime_tablets", 0)
+    if bedtime_tabs <= 0:
+        return ""
+    bedtime_mg = bedtime_tabs * 5
+    dayof_tabs = band.get("dulcolax_dayof_tablets", 0)
+    forgot_tabs = band.get("dulcolax_forgot_dayof_tablets", bedtime_tabs + dayof_tabs)
+    forgot_mg = forgot_tabs * 5
+    tiers = band["lactulose_big_prep_tiers"]
+    # Build the mix-overnight tier list (one or two rows, same as the dose table).
+    def _mix_rows(lang):
+        rows = []
+        for t in tiers:
+            oz = t.get("gatorade_oz", 20)
+            ml = oz_to_ml(oz)
+            if lang == "en":
+                rows.append(f'<li><strong>{t["label_en"]}:</strong> Mix <strong>{t["lactulose_ml"]} mL of lactulose</strong> into <strong>{oz} oz (~{ml} mL) of Gatorade</strong>. Shake, refrigerate overnight.</li>')
+            else:
+                rows.append(f'<li><strong>{t["label_es"]}:</strong> Mezcle <strong>{t["lactulose_ml"]} mL de lactulosa</strong> en <strong>{oz} oz (~{ml} mL) de Gatorade</strong>. Agite, refrigere durante la noche.</li>')
+        return "\n              ".join(rows)
+    if lang == "en":
+        tab = "tablet" if bedtime_tabs == 1 else "tablets"
+        ftab = "tablet" if forgot_tabs == 1 else "tablets"
+        dtab = "tablet" if dayof_tabs == 1 else "tablets"
+        return (
+            '<h2 class="section-heading step" data-pz-day="-2" data-pz-suffix=" — 2 Days Before the Procedure"><span class="icon">📅</span> 2 Days Before the Procedure</h2>\n'
+            '        <div class="details-content">\n'
+            '            <div class="time-box">\n'
+            '                <div class="when">At bedtime</div>\n'
+            f'                <div class="what">Give Dulcolax tablets — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — with a sip of water.</div>\n'
+            '            </div>\n'
+            '            <div class="time-box">\n'
+            '                <div class="when">Evening — prepare the prep</div>\n'
+            '                <div class="what"><strong>Prepare only — do NOT drink yet.</strong> Mix lactulose into Gatorade and refrigerate overnight:\n'
+            f'                  <ul style="margin-top: 6px;">\n              {_mix_rows("en")}\n                  </ul>\n'
+            '                </div>\n'
+            '            </div>\n'
+            f'            <p class="note">If you forget the bedtime Dulcolax dose: on the day of prep, give <strong>{forgot_tabs} {ftab} ({forgot_mg} mg)</strong> with or just before the lactulose — that\'s the bedtime dose ({bedtime_tabs} {tab}) added to the scheduled day-of dose ({dayof_tabs} {dtab}). Don\'t skip — combine.</p>\n'
+            '        </div>\n        '
+        )
+    else:
+        tab = "tableta" if bedtime_tabs == 1 else "tabletas"
+        ftab = "tableta" if forgot_tabs == 1 else "tabletas"
+        dtab = "tableta" if dayof_tabs == 1 else "tabletas"
+        return (
+            '<h2 class="section-heading step" data-pz-day="-2" data-pz-suffix=" — 2 Días Antes del Procedimiento"><span class="icon">📅</span> 2 Días Antes del Procedimiento</h2>\n'
+            '        <div class="details-content">\n'
+            '            <div class="time-box">\n'
+            '                <div class="when">Antes de dormir</div>\n'
+            f'                <div class="what">Dé las tabletas de Dulcolax — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — con un sorbo de agua.</div>\n'
+            '            </div>\n'
+            '            <div class="time-box">\n'
+            '                <div class="when">Por la noche — preparar la preparación</div>\n'
+            '                <div class="what"><strong>Solo preparar — NO beber aún.</strong> Mezcle la lactulosa con Gatorade y refrigere durante la noche:\n'
+            f'                  <ul style="margin-top: 6px;">\n              {_mix_rows("es")}\n                  </ul>\n'
+            '                </div>\n'
+            '            </div>\n'
+            f'            <p class="note">Si olvida la dosis nocturna de Dulcolax: el día de la preparación, dé <strong>{forgot_tabs} {ftab} ({forgot_mg} mg)</strong> con o justo antes de la lactulosa — eso es la dosis nocturna ({bedtime_tabs} {tab}) sumada a la dosis programada del día ({dayof_tabs} {dtab}). No la omita — combine.</p>\n'
+            '        </div>\n        '
+        )
+
+
+def build_lactulose_strings(band, lang, location=None):
+    """Return placeholder → rendered string dict for a lactulose-protocol band.
+
+    Handles both `lactulose-infant` (daily-dose, no big-prep day, no Dulcolax)
+    and `lactulose-standard` (Dulcolax + lactulose-in-Gatorade big-prep with a
+    sub-table of doses by sub-weight).
+    """
+    protocol = band["protocol"]
+    common = {
+        "{{HTML_TITLE}}": band[f"html_title_{lang}"],
+        "{{BAND_LABEL}}": band[f"label_{lang}"],
+        "{{DOCX_HEADING}}": band[f"docx_heading_{lang}"],
+        "{{HTML_MEDICATIONS_DRUGS}}": _medications_drugs(band, lang),
+        "{{MEDS_GIREADY_QR}}": _meds_giready_qr_data_uri(),
+        # Used by the lactulose-infant "for kids under {weight} only" callout.
+        # Lactulose-standard doesn't reference this token, but it's harmless to
+        # always provide so the same placeholder dict works for both protocols.
+        "{{WARNING_WEIGHT}}": band.get(f"warning_weight_{lang}",
+                                       band.get("warning_weight_en", "15 kg")),
+    }
+
+    if protocol == "lactulose-infant":
+        tiers = band["lactulose_daily_tiers"]
+        common["{{HTML_LACTULOSE_DAILY_TABLE}}"] = _lactulose_daily_table_html(tiers, lang)
+        # Reasonable default — under-15 kids only need a small bottle; not
+        # band-specific, just a hint for the Plan-Ahead section.
+        common["{{HTML_LACTULOSE_BOTTLE_HINT_EN}}"] = "one small bottle"
+        return common
+
+    # lactulose-standard
+    tiers = band["lactulose_big_prep_tiers"]
+    gat_oz = band.get("gatorade_oz") or tiers[0].get("gatorade_oz", 20)
+    common["{{HTML_LACTULOSE_BIG_PREP_TABLE}}"] = _lactulose_big_prep_table_html(tiers, gat_oz, lang)
+    # Total mL to buy: sum of the highest dose tier plus a small buffer for rescue.
+    max_dose = max(t["lactulose_ml"] for t in tiers)
+    rescue_buffer = band.get("rescue_evening_lactulose_ml", 0) + band.get("rescue_morning_lactulose_ml", 0)
+    common["{{HTML_LACTULOSE_TOTAL_BOTTLE_ML}}"] = str(max_dose + rescue_buffer + 30)  # +30 mL safety
+    # Gatorade total for shopping (max tier + rescue oz buffer).
+    max_gat = max(t.get("gatorade_oz", gat_oz) for t in tiers)
+    rescue_gat = band.get("rescue_evening_gatorade_oz", 0) + band.get("rescue_morning_gatorade_oz", 0)
+    common["{{HTML_LACTULOSE_GATORADE_TOTAL_OZ}}"] = str(max_gat + rescue_gat)
+    # Dulcolax dosing strings
+    dayof_tabs = band.get("dulcolax_dayof_tablets", 1)
+    dayof_mg = dayof_tabs * 5
+    bedtime_tabs = band.get("dulcolax_bedtime_tablets", 0)
+    bedtime_mg = bedtime_tabs * 5
+    total_tabs = bedtime_tabs + dayof_tabs
+    total_mg = total_tabs * 5
+    if lang == "en":
+        dtab = "tablet" if dayof_tabs == 1 else "tablets"
+        btab = "tablet" if bedtime_tabs == 1 else "tablets"
+        ttab = "tablet" if total_tabs == 1 else "tablets"
+        common["{{HTML_DULCOLAX_TOTAL_LONG}}"] = f"{total_tabs} Dulcolax 5 mg {ttab} ({total_mg} mg total)"
+    else:
+        dtab = "tableta" if dayof_tabs == 1 else "tabletas"
+        btab = "tableta" if bedtime_tabs == 1 else "tabletas"
+        ttab = "tableta" if total_tabs == 1 else "tabletas"
+        common["{{HTML_DULCOLAX_TOTAL_LONG}}"] = f"{total_tabs} {ttab} de Dulcolax 5 mg ({total_mg} mg total)"
+    common["{{HTML_DULCOLAX_DAYOF_SHORT}}"] = f"{dayof_tabs} {dtab} ({dayof_mg} mg)"
+    common["{{HTML_DULCOLAX_BEDTIME_SHORT}}"] = (
+        f"{bedtime_tabs} {btab} ({bedtime_mg} mg)" if bedtime_tabs > 0 else REMOVE_PARAGRAPH_MARKER
+    )
+    common["{{HTML_DULCOLAX_DAYOF_TIME}}"] = band.get("dulcolax_dayof_time", "3:00 PM")
+    common["{{HTML_LACTULOSE_TIME}}"] = band.get("lactulose_time", "3:00 PM")
+    common["{{HTML_DRINK_CUP}}"] = band.get(f"drink_cup_{lang}", "3 oz (~90 mL)")
+    common["{{HTML_TWO_DAYS_BEFORE_BLOCK}}"] = _lactulose_two_days_before_block_html(band, lang)
+    common["{{HTML_LACTULOSE_RESCUE_BLOCK}}"] = _lactulose_rescue_block_html(band, lang, location)
+    common["{{HTML_PRECLEANOUT_BLOCK}}"] = build_precleanout_block(band, lang)
+    return common
+
+
 def _medications_drugs(band, lang):
     """The drug list for the Medications callout. GLP-1 agonists are only
     relevant for adolescents (~≥40 kg in our protocol), so smaller bands
@@ -943,6 +1166,11 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     """
     protocol = band["protocol"]
     stem = band["filename_stem"]
+    # Lactulose protocols are scheduler-only and live entirely in the mobile
+    # pipeline (build_lactulose_websites.py). render.py is for the legacy SCC-
+    # printed flow (DOCX + non-mobile HTML/PDF), so skip lactulose bands here.
+    if protocol.startswith("lactulose"):
+        return None
     if protocol == "standard":
         replacements = build_strings(band, lang, location=location)
     elif protocol in ("infant", "infant-enema"):
@@ -1064,6 +1292,11 @@ def main():
                 out = render_band(band, lang, fmt, out_dir, flat=args.flat,
                                   location=location, location_id=args.location, theme=args.theme,
                                   variant=args.variant)
+                # render_band returns None when a band/format combination is
+                # intentionally skipped (e.g. lactulose protocols only ship
+                # mobile HTML in Phase 1; combined variant skips lactulose).
+                if out is None:
+                    continue
                 written.append(out)
                 print(f"  wrote {out}")
 

@@ -42,6 +42,34 @@ INFANT_ENEMA_TEMPLATE_BY_VARIANT_LANG = {
     ("combined", "en"): TEMPLATES_DIR / "combined-infant-enema-print-personalized.en.html",
     ("combined", "es"): TEMPLATES_DIR / "combined-infant-enema-print-personalized.es.html",
 }
+# Lactulose templates (scheduler-only; mobile sites at preplact*.giready.com).
+# Selected when prep_type == "lactulose"; the user's weight_band is mapped to
+# the lactulose-specific band id (e.g. "15-20" -> "15-20-lact") below.
+LACTULOSE_STANDARD_TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "lactulose-standard-print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "lactulose-standard-print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-lactulose-standard-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-lactulose-standard-print-personalized.es.html",
+}
+LACTULOSE_INFANT_TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "lactulose-infant-print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "lactulose-infant-print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-lactulose-infant-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-lactulose-infant-print-personalized.es.html",
+}
+# weight_band (user-facing) -> lactulose band id (in dosing.yaml).
+LACTULOSE_BAND_MAP = {
+    "under-15": "under-15-lact",
+    "15-20":    "15-20-lact",
+    "21-30":    "21-30-lact",
+}
+# Hidden subdomains: prep_type=lactulose routes to these instead of prep* / egdcolon*.
+LACTULOSE_SUBDOMAIN = {
+    ("standard", "scc"):  "preplact",
+    ("standard", "pmch"): "preplact86",
+    ("combined", "scc"):  "egdcolonlact",
+    ("combined", "pmch"): "egdcolonlact86",
+}
 
 
 def _load_skill_module():
@@ -116,34 +144,67 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     variant: Literal["standard", "combined"] = "standard",
+    prep_type: Literal["miralax", "lactulose"] = "miralax",
 ) -> bytes:
-    """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF."""
+    """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
+
+    `prep_type="lactulose"` (scheduler-only backup) maps the user's weight
+    band to a lactulose-specific band id in dosing.yaml, picks the
+    lactulose template family, and emits a mobile URL pointing at the
+    hidden preplact{,86} / egdcolonlact{,86} subdomains.
+    """
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
 
     _reset_caches_for_live_dev()
-    template_path = TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
-    if template_path is None:
-        raise ValueError(f"No template for variant={variant!r} lang={lang!r}")
+
+    # For lactulose, swap the user's weight_band id for the lactulose-specific
+    # band id BEFORE looking up the band (the dosing.yaml lactulose bands have
+    # `-lact` suffix and the lactulose-* protocols).
+    if prep_type == "lactulose":
+        if band_id not in LACTULOSE_BAND_MAP:
+            raise ValueError(
+                f"prep_type=lactulose not supported for band_id={band_id!r} "
+                f"(allowed: {sorted(LACTULOSE_BAND_MAP)})"
+            )
+        band_id = LACTULOSE_BAND_MAP[band_id]
 
     band = _band_for_id(band_id)
     location = _location_block(location_id)
 
     protocol = band.get("protocol")
-    if protocol == "infant":
-        template_path = INFANT_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
-    elif protocol == "infant-enema":
-        template_path = INFANT_ENEMA_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
-    if protocol in ("infant", "infant-enema") and template_path is None:
-        raise ValueError(f"No infant template for variant={variant!r} lang={lang!r}")
+    if prep_type == "lactulose":
+        if protocol == "lactulose-infant":
+            template_path = LACTULOSE_INFANT_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        elif protocol == "lactulose-standard":
+            template_path = LACTULOSE_STANDARD_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        else:
+            raise ValueError(
+                f"prep_type=lactulose expects a lactulose-* protocol, got {protocol!r}"
+            )
+        if template_path is None:
+            raise ValueError(f"No lactulose template for variant={variant!r} lang={lang!r}")
+    else:
+        template_path = TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        if template_path is None:
+            raise ValueError(f"No template for variant={variant!r} lang={lang!r}")
+        if protocol == "infant":
+            template_path = INFANT_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        elif protocol == "infant-enema":
+            template_path = INFANT_ENEMA_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        if protocol in ("infant", "infant-enema") and template_path is None:
+            raise ValueError(f"No infant template for variant={variant!r} lang={lang!r}")
 
     # Build the same replacements dict the skill's batch render uses.
     # `location` is forwarded so build_contingency_block resolves the per-site
     # NPO window (2 h SCC vs 3 h PMCH) instead of falling through to the 2-hour
     # default. LOCATION_* placeholders still come from build_location_placeholders.
-    # Infant bands (both MiraLAX and saline-enema variants) have no oral-prep
-    # dosing fields, so the skill provides a separate minimal builder for those
-    # protocols.
-    if band.get("protocol") in ("infant", "infant-enema"):
+    # Pick the dose-string builder by protocol family. Lactulose protocols
+    # have their own builder that produces lactulose-specific placeholders
+    # (HTML_LACTULOSE_*, HTML_DULCOLAX_TOTAL_LONG, etc.) used by the
+    # lactulose print templates.
+    if protocol in ("lactulose-infant", "lactulose-standard"):
+        replacements = skill.build_lactulose_strings(band, lang, location)
+    elif protocol in ("infant", "infant-enema"):
         replacements = skill.build_infant_strings(band, lang)
     else:
         replacements = skill.build_strings(band, lang, location)
@@ -158,11 +219,15 @@ def render_pdf(
     replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # MOBILE_URL is the cover-row QR's clickable href AND the QR image's encoded
-    # target. We point both at the existing per-procedure mobile site with
+    # target. We point both at the per-procedure mobile site with
     # `#d=YYYY-MM-DD&t=HHMM` hash params — those sites already personalize
     # themselves from the hash via the _personalize.{en,es}.html JS partial.
-    subdomain_key = "mobile_subdomain_combined" if variant == "combined" else "mobile_subdomain"
-    subdomain = location.get(subdomain_key) or location.get("mobile_subdomain", "prep")
+    # For prep_type=lactulose, target the hidden subdomain instead.
+    if prep_type == "lactulose":
+        subdomain = LACTULOSE_SUBDOMAIN[(variant, location_id)]
+    else:
+        subdomain_key = "mobile_subdomain_combined" if variant == "combined" else "mobile_subdomain"
+        subdomain = location.get(subdomain_key) or location.get("mobile_subdomain", "prep")
     mobile_path = band.get("mobile_path", "")
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"

@@ -76,9 +76,13 @@ def main():
     locations    = dosing_cfg["locations"]
     bands_by_id  = {b["id"]: b for b in dosing_cfg["bands"]}
 
+    # Scheduler-only bands (e.g. lactulose) carry `public: false` in
+    # dosing.yaml and must never be shipped to the public combined sites.
     for bid in BAND_ORDER:
         if bid not in bands_by_id:
             sys.exit(f"band {bid!r} missing from data/dosing.yaml")
+        if not bands_by_id[bid].get("public", True):
+            sys.exit(f"band {bid!r} is marked `public: false` and must not appear in BAND_ORDER")
 
     landing_template_en = TEMPLATES / "combined-mobile-landing.en.html"
     landing_template_es = TEMPLATES / "combined-mobile-landing.es.html"

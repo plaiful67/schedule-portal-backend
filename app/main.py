@@ -99,6 +99,7 @@ def render(req: RenderRequest):
         "physician_id": req.physician_id,
         "language": req.language,
         "weight_band": getattr(req, "weight_band", None),
+        "prep_type": getattr(req, "prep_type", None),
         "include_directions": req.include_directions,
         "has_followup": bool(req.followup_date and req.followup_time),
         "appointment_date": req.appointment_date.isoformat(),
@@ -162,9 +163,13 @@ def _render_impl(req: RenderRequest):
     )
 
     if req.procedure_type == "bowel_prep":
-        pdf_bytes = bowel_prep.render_pdf(band_id=req.weight_band, **common)
+        pdf_bytes = bowel_prep.render_pdf(
+            band_id=req.weight_band, prep_type=req.prep_type, **common
+        )
     elif req.procedure_type == "combined":
-        pdf_bytes = combined.render_pdf(band_id=req.weight_band, **common)
+        pdf_bytes = combined.render_pdf(
+            band_id=req.weight_band, prep_type=req.prep_type, **common
+        )
     elif req.procedure_type == "egd":
         pdf_bytes = egd.render_pdf(**common)
     else:

@@ -19,6 +19,14 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 BowelPrepBand = Literal["under-15", "under-15-enema", "15-20", "21-30", "31-40", "41-50", "over-50"]
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
+# Bowel-prep medication. MiraLAX is the default (matches what's been deployed
+# all along). Lactulose is the scheduler-gated backup for kids who can't
+# tolerate the MiraLAX+Gatorade volume — only valid for the three small-kid
+# weight bands (under-15, 15-20, 21-30) and is served from the hidden
+# preplact{,86} / egdcolonlact{,86} subdomains.
+PrepType = Literal["miralax", "lactulose"]
+LACTULOSE_ALLOWED_BANDS: set[str] = {"under-15", "15-20", "21-30"}
+
 # Performing-physician slug. Mirrors the `id:` field on each entry in
 # ~/.claude/skills/bowel-prep-generator/practice.yaml `practice.doctors[]`.
 # Backend resolves slug → display name via app/physicians.py.
@@ -60,18 +68,33 @@ class _Base(BaseModel):
         return self
 
 
-class BowelPrepRequest(_Base):
-    procedure_type: Literal["bowel_prep"]
+class _BowelPrepBase(_Base):
+    """Shared base for procedures that involve a bowel prep (colonoscopy-only
+    or combined EGD+colon). Carries weight_band + prep_type with the
+    lactulose-band cross-validation."""
     weight_band: BowelPrepBand
+    prep_type: PrepType = "miralax"
+
+    @model_validator(mode="after")
+    def _lactulose_band_check(self):
+        if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
+            raise ValueError(
+                f"prep_type=lactulose is only available for weight bands "
+                f"{sorted(LACTULOSE_ALLOWED_BANDS)} (got {self.weight_band!r})"
+            )
+        return self
+
+
+class BowelPrepRequest(_BowelPrepBase):
+    procedure_type: Literal["bowel_prep"]
 
 
 class EGDRequest(_Base):
     procedure_type: Literal["egd"]
 
 
-class CombinedRequest(_Base):
+class CombinedRequest(_BowelPrepBase):
     procedure_type: Literal["combined"]
-    weight_band: BowelPrepBand
 
 
 class FlexSigRequest(_Base):

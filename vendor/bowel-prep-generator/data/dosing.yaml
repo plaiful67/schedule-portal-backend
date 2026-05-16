@@ -351,3 +351,159 @@ bands:
     contingency_total_grams: 340
     contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
+
+  # =====================================================================
+  # LACTULOSE PROTOCOLS (scheduler-only — public: false)
+  # =====================================================================
+  # Backup prep option for kids who cannot tolerate MiraLAX + Gatorade volume.
+  # These bands are excluded from the public prep / egdcolon site builders by
+  # the `public: false` flag; they are served from preplact.giready.com and
+  # egdcolonlact.giready.com (Phase 2) via the scheduler portal only.
+  #
+  # Two sub-protocols:
+  #   - lactulose-infant:   daily oral lactulose, no big-prep day, no Dulcolax
+  #                          (under-15 kg only)
+  #   - lactulose-standard: Dulcolax + lactulose-in-Gatorade big-prep
+  #                          (15–20 and 21–30 kg)
+
+  - id: "under-15-lact"
+    protocol: lactulose-infant
+    public: false
+    label_en: "Infants and Children Under 15 kg (<33 lb) — Lactulose"
+    label_es: "Bebés y Niños Menores de 15 kg (<33 lb) — Lactulosa"
+    html_title_en: "Colonoscopy Prep — Lactulose Option — Infants and Children Under 15 kg"
+    html_title_es: "Preparación para Colonoscopia — Opción Lactulosa — Bebés y Niños Menores de 15 kg"
+    docx_heading_en: "Infants and Children Under 15 kg (&lt;33 lb) &mdash; Lactulose"
+    docx_heading_es: "Bebés y Niños Menores de 15 kg (&lt;33 lb) &mdash; Lactulosa"
+    mobile_path: "u15kgLact"
+    warning_weight_en: "15 kg"
+    warning_weight_es: "15 kg"
+    filename_stem: "under-15kg-lact"
+    folder_en: "Under 15 kg (Under 33 Lb) — Lactulose"
+    folder_es: "Menos de 15 kg (Menos de 33 Lb) — Lactulosa"
+    include_glp1_warning: false
+    # Daily-dose tiers: each entry is one row in the dose-by-weight table.
+    lactulose_daily_tiers:
+      - min_kg: 0
+        max_kg: 5
+        label_en: "Under 5 kg (under 11 lb)"
+        label_es: "Menos de 5 kg (menos de 11 lb)"
+        dose_ml: 5
+        dose_label_en: "5 mL (one teaspoon)"
+        dose_label_es: "5 mL (una cucharadita)"
+        how_en: "Give by mouth using a syringe; may mix into a small amount of juice or Pedialyte."
+        how_es: "Administre por boca con una jeringa; puede mezclarse en una pequeña cantidad de jugo o Pedialyte."
+      - min_kg: 5
+        max_kg: 9
+        label_en: "5–9 kg (11–20 lb)"
+        label_es: "5–9 kg (11–20 lb)"
+        dose_ml: 10
+        dose_label_en: "10 mL (two teaspoons)"
+        dose_label_es: "10 mL (dos cucharaditas)"
+        how_en: "Give by mouth using a syringe or medicine cup; may mix into 2–4 oz of juice or Pedialyte."
+        how_es: "Administre por boca con jeringa o vaso medidor; puede mezclarse en 2–4 oz de jugo o Pedialyte."
+      - min_kg: 10
+        max_kg: 15
+        label_en: "10–15 kg (22–33 lb)"
+        label_es: "10–15 kg (22–33 lb)"
+        dose_ml: 15
+        dose_label_en: "15 mL (one tablespoon)"
+        dose_label_es: "15 mL (una cucharada)"
+        how_en: "Give by mouth; may mix into 4–6 oz of juice or Pedialyte."
+        how_es: "Administre por boca; puede mezclarse en 4–6 oz de jugo o Pedialyte."
+
+  - id: "15-20-lact"
+    protocol: lactulose-standard
+    public: false
+    label_en: "15-20 kg (33-44 lb) — Lactulose"
+    label_es: "15-20 kg (33-44 lb) — Lactulosa"
+    html_title_en: "Colonoscopy Bowel Preparation — Lactulose Option — Children 15-20 kg"
+    html_title_es: "Preparación Intestinal para Colonoscopia — Opción Lactulosa — Niños de 15-20 kg"
+    docx_heading_en: "Children 15-20 kg (33-44 lb) &mdash; Lactulose"
+    docx_heading_es: "Niños de 15-20 kg (33-44 lb) &mdash; Lactulosa"
+    mobile_path: "u20kgLact"
+    filename_stem: "15-20kg-lact"
+    folder_en: "15-20 kg (33-44 Lb) — Lactulose"
+    folder_es: "15-20 kg (33-44 Lb) — Lactulosa"
+    include_glp1_warning: false
+    # Dulcolax: 1 tablet at the start of prep (no bedtime dose for this band).
+    dulcolax_tablets: 1
+    dulcolax_bedtime_tablets: 0
+    dulcolax_dayof_tablets: 1
+    dulcolax_dayof_time: "12:00 PM"
+    dulcolax_mg_total: 5
+    # Big-prep mix start time (lactulose+Gatorade).
+    lactulose_time: "1:00 PM"
+    # Sub-tiers for the big-prep mix: 15-17 kg uses 60 mL lactulose, 18-20 kg uses 75 mL.
+    lactulose_big_prep_tiers:
+      - min_kg: 15
+        max_kg: 17
+        label_en: "15–17 kg (33–37 lb)"
+        label_es: "15–17 kg (33–37 lb)"
+        lactulose_ml: 60
+        gatorade_oz: 20
+      - min_kg: 18
+        max_kg: 20
+        label_en: "18–20 kg (38–44 lb)"
+        label_es: "18–20 kg (38–44 lb)"
+        lactulose_ml: 75
+        gatorade_oz: 20
+    drink_cup_oz: 3
+    drink_cup_ml: 90
+    drink_cup_en: "3 oz (~90 mL)"
+    drink_cup_es: "3 oz (~90 mL)"
+    # Rescue plan (lactulose) — used by build_lactulose_rescue_block().
+    rescue_evening_lactulose_ml: 30
+    rescue_evening_gatorade_oz: 8
+    rescue_morning_lactulose_ml: 15
+    rescue_morning_gatorade_oz: 4
+    # Pre-cleanout (lactulose) — daily dose × 3 days, weekend before. Single option.
+    precleanout_a_text_en: "<strong>15 mL of lactulose</strong> mixed into <strong>4 oz</strong> of clear liquid, <strong>2 times daily for 3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "<strong>15 mL de lactulosa</strong> mezclados en <strong>4 oz</strong> de líquido claro, <strong>2 veces al día durante 3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_offset_days: null
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>15 mL of lactulose daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>15 mL de lactulosa al día</strong>, hasta el procedimiento."
+
+  - id: "21-30-lact"
+    protocol: lactulose-standard
+    public: false
+    label_en: "21-30 kg (46-66 lb) — Lactulose"
+    label_es: "21-30 kg (46-66 lb) — Lactulosa"
+    html_title_en: "Colonoscopy Bowel Preparation — Lactulose Option — Children 21-30 kg"
+    html_title_es: "Preparación Intestinal para Colonoscopia — Opción Lactulosa — Niños de 21-30 kg"
+    docx_heading_en: "Children 21-30 kg (46-66 lb) &mdash; Lactulose"
+    docx_heading_es: "Niños de 21-30 kg (46-66 lb) &mdash; Lactulosa"
+    mobile_path: "u30kgLact"
+    filename_stem: "21-30kg-lact"
+    folder_en: "21-30 kg (46-66 Lb) — Lactulose"
+    folder_es: "21-30 kg (46-66 Lb) — Lactulosa"
+    include_glp1_warning: false
+    # Dulcolax: 1 tablet bedtime night-before + 1 tablet day-of (10 mg total).
+    dulcolax_tablets: 2
+    dulcolax_bedtime_tablets: 1
+    dulcolax_dayof_tablets: 1
+    dulcolax_forgot_dayof_tablets: 2
+    dulcolax_dayof_time: "3:00 PM"
+    dulcolax_mg_total: 10
+    lactulose_time: "3:00 PM"
+    # 21-30 kg uses a single dose row (per Sebastian's note: same dose across the band).
+    lactulose_big_prep_tiers:
+      - min_kg: 21
+        max_kg: 30
+        label_en: "21–30 kg (46–66 lb)"
+        label_es: "21–30 kg (46–66 lb)"
+        lactulose_ml: 90
+        gatorade_oz: 28
+    drink_cup_oz: 5
+    drink_cup_ml: 150
+    drink_cup_en: "5 oz (~150 mL)"
+    drink_cup_es: "5 oz (~150 mL)"
+    rescue_evening_lactulose_ml: 45
+    rescue_evening_gatorade_oz: 12
+    rescue_morning_lactulose_ml: 15
+    rescue_morning_gatorade_oz: 5
+    precleanout_a_text_en: "<strong>15 mL of lactulose</strong> mixed into <strong>4 oz</strong> of clear liquid, <strong>3 times daily for 3 days</strong> &mdash; best done over the weekend before the procedure"
+    precleanout_a_text_es: "<strong>15 mL de lactulosa</strong> mezclados en <strong>4 oz</strong> de líquido claro, <strong>3 veces al día durante 3 días</strong> &mdash; mejor hecho durante el fin de semana antes del procedimiento"
+    precleanout_a_offset_days: null
+    precleanout_maintenance_en: "Then continue prescribed daily laxatives, or at least <strong>15 mL of lactulose daily</strong>, until the procedure."
+    precleanout_maintenance_es: "Luego continúe los laxantes diarios prescritos, o al menos <strong>15 mL de lactulosa al día</strong>, hasta el procedimiento."
