@@ -100,11 +100,11 @@ _CSS_APPT_CALLOUT = """
 # physicians.lookup(physician_id)["name_short"].
 _PERFORMING_PHYSICIAN_HTML_EN = (
     '    <div class="performing-physician">'
-    'Performing physician: {{PERFORMING_PHYSICIAN}}</div>'
+    'Performing physician:<br>{{PERFORMING_PHYSICIAN}}</div>'
 )
 _PERFORMING_PHYSICIAN_HTML_ES = (
     '    <div class="performing-physician">'
-    'Médico que realiza el procedimiento: {{PERFORMING_PHYSICIAN}}</div>'
+    'Médico que realiza el procedimiento:<br>{{PERFORMING_PHYSICIAN}}</div>'
 )
 
 
