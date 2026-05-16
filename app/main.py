@@ -140,6 +140,8 @@ def render(req: RenderRequest):
         parts.append(f"{weight_band}kg")
     parts.append(VARIANT_TOKEN[req.procedure_type])
     parts.append(FACILITY_TOKEN[req.location_id])
+    if req.language == "es":
+        parts.append("ES")
     filename = "-".join(parts) + ".pdf"
     return Response(
         content=pdf_bytes,

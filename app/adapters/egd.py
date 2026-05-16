@@ -19,7 +19,11 @@ from ._paths import skill_dir
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("egd-handout-generator")
 SKILL_RENDER = SKILL_ROOT / "scripts" / "render.py"
-TEMPLATE_PATH = BACKEND_DIR / "app" / "templates" / "egd" / "print-personalized.en.html"
+TEMPLATES_DIR = BACKEND_DIR / "app" / "templates" / "egd"
+TEMPLATE_BY_LANG = {
+    "en": TEMPLATES_DIR / "print-personalized.en.html",
+    "es": TEMPLATES_DIR / "print-personalized.es.html",
+}
 
 
 def _load_skill_module():
@@ -138,7 +142,10 @@ def render_pdf(
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
 
-    html = TEMPLATE_PATH.read_text(encoding="utf-8")
+    template_path = TEMPLATE_BY_LANG.get(lang)
+    if template_path is None:
+        raise ValueError(f"No EGD template for lang={lang!r}")
+    html = template_path.read_text(encoding="utf-8")
     all_replacements = {**replacements, **qr_replacements, **personalization_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))

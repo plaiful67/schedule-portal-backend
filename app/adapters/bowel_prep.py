@@ -20,16 +20,12 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("bowel-prep-generator")
 SKILL_RENDER = SKILL_ROOT / "scripts" / "render.py"
 TEMPLATES_DIR = BACKEND_DIR / "app" / "templates" / "bowel_prep"
-TEMPLATE_BY_VARIANT = {
-    "standard": TEMPLATES_DIR / "print-personalized.en.html",
-    "combined": TEMPLATES_DIR / "combined-print-personalized.en.html",
+TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-print-personalized.es.html",
 }
-# Pre-existing gap (not from physician personalization): this dict ignores `lang`,
-# so Spanish requests fall through to the EN template. The ES partner template
-# `combined-print-personalized.es.html` exists and is current (including the
-# {{PERFORMING_PHYSICIAN}} callout in Spanish) but is never selected today.
-# When fixing, key on (variant, lang) and add a bowel-prep ES template too —
-# `print-personalized.es.html` does not yet exist.
 
 
 def _load_skill_module():
@@ -109,9 +105,9 @@ def render_pdf(
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
 
     _reset_caches_for_live_dev()
-    template_path = TEMPLATE_BY_VARIANT.get(variant)
+    template_path = TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
     if template_path is None:
-        raise ValueError(f"Unknown variant={variant!r}")
+        raise ValueError(f"No template for variant={variant!r} lang={lang!r}")
 
     band = _band_for_id(band_id)
     location = _location_block(location_id)
@@ -140,7 +136,7 @@ def render_pdf(
     mobile_path = band.get("mobile_path", "")
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
-    mobile_url = f"https://{subdomain}.giready.com/{mobile_path}/{lang_seg}{hash_params}"
+    mobile_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/{hash_params}"
     mobile_qr_data_uri = skill._png_to_data_uri(skill._generate_maps_qr(mobile_url))
 
     qr_replacements = {
