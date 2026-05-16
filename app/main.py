@@ -7,7 +7,10 @@ Endpoints:
 """
 from __future__ import annotations
 
+import json
 import os
+import sys
+import time as _time
 from datetime import datetime, time
 
 from fastapi import FastAPI, HTTPException, Response
@@ -56,6 +59,14 @@ VARIANT_TOKEN = {
 FACILITY_TOKEN = {"scc": "SCC", "pmch": "PMCH"}
 
 
+def _emit_event(payload: dict) -> None:
+    """Write one JSON line to stdout. Cloud Run forwards it to Cloud Logging,
+    which parses the line into `jsonPayload`. No PHI is ever included — only
+    procedure metadata (procedure_type, location, physician, weight_band, etc.)."""
+    sys.stdout.write(json.dumps(payload, default=str) + "\n")
+    sys.stdout.flush()
+
+
 # Path is /__health (not /healthz or /health) because Cloud Run's load
 # balancer reserves /healthz and /health at the GFE layer — they 404 before
 # the request reaches the container.
@@ -80,10 +91,50 @@ def get_medications(lang: str = "en"):
 
 @app.post("/render")
 def render(req: RenderRequest):
-    # Validate every stop_meds id exists.
-    for med_id in req.stop_meds:
-        if not medications.lookup(med_id):
-            raise HTTPException(status_code=422, detail=f"unknown med id: {med_id!r}")
+    _t0 = _time.monotonic()
+    _event = {
+        "evt": "render",
+        "procedure_type": req.procedure_type,
+        "location_id": req.location_id,
+        "physician_id": req.physician_id,
+        "language": req.language,
+        "weight_band": getattr(req, "weight_band", None),
+        "include_directions": req.include_directions,
+        "has_followup": bool(req.followup_date and req.followup_time),
+        "appointment_date": req.appointment_date.isoformat(),
+    }
+    try:
+        # Validate every stop_meds id exists.
+        for med_id in req.stop_meds:
+            if not medications.lookup(med_id):
+                raise HTTPException(status_code=422, detail=f"unknown med id: {med_id!r}")
+        result = _render_impl(req)
+        _event.update({
+            "status": "ok",
+            "render_ms": int((_time.monotonic() - _t0) * 1000),
+        })
+        _emit_event(_event)
+        return result
+    except HTTPException as e:
+        _event.update({
+            "status": "error",
+            "error_class": "HTTPException",
+            "http_status": e.status_code,
+            "render_ms": int((_time.monotonic() - _t0) * 1000),
+        })
+        _emit_event(_event)
+        raise
+    except Exception as e:
+        _event.update({
+            "status": "error",
+            "error_class": type(e).__name__,
+            "render_ms": int((_time.monotonic() - _t0) * 1000),
+        })
+        _emit_event(_event)
+        raise
+
+
+def _render_impl(req: RenderRequest):
 
     appt_date_human = format_appt_date(req.appointment_date, req.language)
     appt_time = format_time_12h(req.appointment_time)
