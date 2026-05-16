@@ -103,6 +103,16 @@ def render(req: RenderRequest):
         "include_directions": req.include_directions,
         "has_followup": bool(req.followup_date and req.followup_time),
         "appointment_date": req.appointment_date.isoformat(),
+        # True when the request routed through a partner-specific MiraLAX
+        # variant (per-physician dose overrides). False for canonical doses
+        # and for procedure types that don't carry a weight_band + prep_type.
+        # Lets analytics.giready.com query per-partner adoption without a
+        # schema change. See bowel_prep.PARTNER_OVERRIDE_PHYSICIANS.
+        "physician_variant_active": bowel_prep.is_partner_variant_active(
+            req.physician_id,
+            getattr(req, "weight_band", None),
+            getattr(req, "prep_type", "miralax"),
+        ),
     }
     try:
         # Validate every stop_meds id exists.

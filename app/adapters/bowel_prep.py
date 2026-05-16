@@ -96,6 +96,46 @@ CLENPIQ_SUBDOMAIN = {
     ("combined", "pmch"): "egdcolonclenpiq86",
 }
 
+# Partner-variant standard protocol — mirrors the lactulose / clenpiq pattern
+# but keyed on physician_id instead of prep_type. Phase 1 ships with an empty
+# registry: production behavior is unchanged until a partner is onboarded.
+# Composition rule: partner variants apply only when prep_type=="miralax" and
+# the band has a partner-specific entry in dosing.yaml. Lactulose, clenpiq,
+# and infant protocols are not partner-overridable in Phase 1.
+#
+# To onboard a partner {slug}:
+#   1. Add bands to dosing.yaml: {canonical-id}-{slug} (e.g. "15-20-dunn"),
+#      protocol: standard, public: false. Clone the canonical band and edit
+#      only the differing fields (miralax_capfuls, miralax_grams, gatorade_oz,
+#      miralax_time, drink_cup_*, etc.).
+#   2. Copy templates into app/templates/bowel_prep/:
+#      {slug}-print-personalized.{en,es}.html
+#      combined-{slug}-print-personalized.{en,es}.html
+#      (Initial copies can be identical to canonical — they pick up the new
+#      dose numbers via build_strings, which reads off the partner-specific band.)
+#   3. Stand up four hidden Cloudflare Pages subdomains: prep{slug}{,86} and
+#      egdcolon{slug}{,86}. None are linked from giready.com.
+#   4. Add the partner's entry to all four dicts below.
+# See docs/PLAYBOOK.md "Adding a partner-specific MiraLAX variant" for the full recipe.
+PARTNER_OVERRIDE_PHYSICIANS: set[str] = set()
+# physician_id -> {(variant, lang): Path}
+PARTNER_TEMPLATE_BY_VARIANT_LANG: dict[str, dict[tuple[str, str], Path]] = {}
+# physician_id -> {canonical_band_id: partner_band_id}
+PARTNER_BAND_MAP: dict[str, dict[str, str]] = {}
+# physician_id -> {(variant, location_id): subdomain_label}
+PARTNER_SUBDOMAIN: dict[str, dict[tuple[str, str], str]] = {}
+
+
+def is_partner_variant_active(physician_id: str, band_id: str | None, prep_type: str) -> bool:
+    """Return True iff the partner-variant routing path applies for this
+    request. Used by app/main.py to surface the flag in the analytics event.
+    Mirrors the in-render check so the answer is authoritative."""
+    if prep_type != "miralax" or band_id is None:
+        return False
+    if physician_id not in PARTNER_OVERRIDE_PHYSICIANS:
+        return False
+    return band_id in PARTNER_BAND_MAP.get(physician_id, {})
+
 
 def _load_skill_module():
     """Load the bowel-prep skill's render.py under a unique module name so
@@ -206,6 +246,14 @@ def render_pdf(
             )
         band_id = CLENPIQ_BAND_MAP[band_id]
 
+    # Partner variant: applied only on top of the standard MiraLAX path
+    # (lactulose / clenpiq are already routed by this point). The composition
+    # is intentionally narrow in Phase 1 — see the registry comment at the
+    # top of this module.
+    partner_active = is_partner_variant_active(physician_id, band_id, prep_type)
+    if partner_active:
+        band_id = PARTNER_BAND_MAP[physician_id][band_id]
+
     band = _band_for_id(band_id)
     location = _location_block(location_id)
 
@@ -239,6 +287,15 @@ def render_pdf(
             template_path = INFANT_ENEMA_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
         if protocol in ("infant", "infant-enema") and template_path is None:
             raise ValueError(f"No infant template for variant={variant!r} lang={lang!r}")
+        # Partner variant overrides the canonical standard template only.
+        # Infant protocols are not partner-overridable in Phase 1.
+        if partner_active and protocol == "standard":
+            template_path = PARTNER_TEMPLATE_BY_VARIANT_LANG[physician_id].get((variant, lang))
+            if template_path is None:
+                raise ValueError(
+                    f"No partner template for physician_id={physician_id!r} "
+                    f"variant={variant!r} lang={lang!r}"
+                )
 
     # Build the same replacements dict the skill's batch render uses.
     # `location` is forwarded so build_contingency_block resolves the per-site
@@ -275,6 +332,8 @@ def render_pdf(
         subdomain = LACTULOSE_SUBDOMAIN[(variant, location_id)]
     elif prep_type == "clenpiq":
         subdomain = CLENPIQ_SUBDOMAIN[(variant, location_id)]
+    elif partner_active:
+        subdomain = PARTNER_SUBDOMAIN[physician_id][(variant, location_id)]
     else:
         subdomain_key = "mobile_subdomain_combined" if variant == "combined" else "mobile_subdomain"
         subdomain = location.get(subdomain_key) or location.get("mobile_subdomain", "prep")
