@@ -20,7 +20,7 @@ BowelPrepBand = Literal["under-15", "under-15-enema", "15-20", "21-30", "31-40",
 FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 
 # Bowel-prep medication. MiraLAX is the default (matches what's been deployed
-# all along). The two non-default options are scheduler-gated and served from
+# all along). The non-default options are scheduler-gated and served from
 # hidden subdomains (never linked from giready.com):
 #   - Lactulose: backup for small kids who can't tolerate the MiraLAX+Gatorade
 #     volume — only valid for under-15, 15-20, 21-30 kg; routes to
@@ -28,9 +28,13 @@ FlexSigBand = Literal["under-15kg", "20-40kg", "over-40kg"]
 #   - CLENPIQ (sodium picosulfate): alternative for kids 31 kg and up who
 #     prefer a smaller-volume oral prep — only valid for 31-40, 41-50,
 #     over-50; routes to prepclenpiq{,86} / egdcolonclenpiq{,86}.
-PrepType = Literal["miralax", "lactulose", "clenpiq"]
+#   - SUPREP (sodium/potassium/magnesium sulfate, Rx, FDA age 12+):
+#     sulfate-based alternative for patients 50 kg and up — only valid for
+#     over-50; routes to prepsuprep{,86} / egdcolonsuprep{,86}.
+PrepType = Literal["miralax", "lactulose", "clenpiq", "suprep"]
 LACTULOSE_ALLOWED_BANDS: set[str] = {"under-15", "15-20", "21-30"}
 CLENPIQ_ALLOWED_BANDS:   set[str] = {"31-40", "41-50", "over-50"}
+SUPREP_ALLOWED_BANDS:    set[str] = {"over-50"}
 
 # Performing-physician slug. Mirrors the `id:` field on each entry in
 # ~/.claude/skills/bowel-prep-generator/practice.yaml `practice.doctors[]`.
@@ -91,6 +95,11 @@ class _BowelPrepBase(_Base):
             raise ValueError(
                 f"prep_type=clenpiq is only available for weight bands "
                 f"{sorted(CLENPIQ_ALLOWED_BANDS)} (got {self.weight_band!r})"
+            )
+        if self.prep_type == "suprep" and self.weight_band not in SUPREP_ALLOWED_BANDS:
+            raise ValueError(
+                f"prep_type=suprep is only available for weight bands "
+                f"{sorted(SUPREP_ALLOWED_BANDS)} (got {self.weight_band!r})"
             )
         return self
 

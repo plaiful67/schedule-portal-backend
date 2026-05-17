@@ -96,6 +96,28 @@ CLENPIQ_SUBDOMAIN = {
     ("combined", "pmch"): "egdcolonclenpiq86",
 }
 
+# SUPREP templates (scheduler-only; mobile sites at prepsuprep*.giready.com).
+# Selected when prep_type == "suprep"; the user's weight_band is mapped to
+# the single unified "suprep" band id (only "over-50" is eligible — SUPREP
+# is FDA-approved age 12+).
+SUPREP_STANDARD_TEMPLATE_BY_VARIANT_LANG = {
+    ("standard", "en"): TEMPLATES_DIR / "suprep-standard-print-personalized.en.html",
+    ("standard", "es"): TEMPLATES_DIR / "suprep-standard-print-personalized.es.html",
+    ("combined", "en"): TEMPLATES_DIR / "combined-suprep-standard-print-personalized.en.html",
+    ("combined", "es"): TEMPLATES_DIR / "combined-suprep-standard-print-personalized.es.html",
+}
+# weight_band (user-facing) -> suprep band id. Only over-50 is eligible.
+SUPREP_BAND_MAP = {
+    "over-50": "suprep",
+}
+# Hidden subdomains: prep_type=suprep routes to these instead of prep* / egdcolon*.
+SUPREP_SUBDOMAIN = {
+    ("standard", "scc"):  "prepsuprep",
+    ("standard", "pmch"): "prepsuprep86",
+    ("combined", "scc"):  "egdcolonsuprep",
+    ("combined", "pmch"): "egdcolonsuprep86",
+}
+
 # Partner-variant standard protocol — mirrors the lactulose / clenpiq pattern
 # but keyed on physician_id instead of prep_type. Phase 1 ships with an empty
 # registry: production behavior is unchanged until a partner is onboarded.
@@ -209,7 +231,7 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     variant: Literal["standard", "combined"] = "standard",
-    prep_type: Literal["miralax", "lactulose", "clenpiq"] = "miralax",
+    prep_type: Literal["miralax", "lactulose", "clenpiq", "suprep"] = "miralax",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -223,6 +245,12 @@ def render_pdf(
     unified "clenpiq" dosing.yaml entry, picks the clenpiq template family,
     and emits a mobile URL pointing at the hidden prepclenpiq{,86} /
     egdcolonclenpiq{,86} subdomains.
+
+    `prep_type="suprep"` (scheduler-only sulfate-based alternative for
+    patients ≥50 kg, Rx, FDA age 12+) maps the over-50 user band to the
+    unified "suprep" dosing.yaml entry, picks the suprep template family,
+    and emits a mobile URL pointing at the hidden prepsuprep{,86} /
+    egdcolonsuprep{,86} subdomains.
     """
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
 
@@ -245,6 +273,13 @@ def render_pdf(
                 f"(allowed: {sorted(CLENPIQ_BAND_MAP)})"
             )
         band_id = CLENPIQ_BAND_MAP[band_id]
+    elif prep_type == "suprep":
+        if band_id not in SUPREP_BAND_MAP:
+            raise ValueError(
+                f"prep_type=suprep not supported for band_id={band_id!r} "
+                f"(allowed: {sorted(SUPREP_BAND_MAP)})"
+            )
+        band_id = SUPREP_BAND_MAP[band_id]
 
     # Partner variant: applied only on top of the standard MiraLAX path
     # (lactulose / clenpiq are already routed by this point). The composition
@@ -277,6 +312,14 @@ def render_pdf(
         template_path = CLENPIQ_STANDARD_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
         if template_path is None:
             raise ValueError(f"No clenpiq template for variant={variant!r} lang={lang!r}")
+    elif prep_type == "suprep":
+        if protocol != "suprep-standard":
+            raise ValueError(
+                f"prep_type=suprep expects the suprep-standard protocol, got {protocol!r}"
+            )
+        template_path = SUPREP_STANDARD_TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
+        if template_path is None:
+            raise ValueError(f"No suprep template for variant={variant!r} lang={lang!r}")
     else:
         template_path = TEMPLATE_BY_VARIANT_LANG.get((variant, lang))
         if template_path is None:
@@ -309,6 +352,8 @@ def render_pdf(
         replacements = skill.build_lactulose_strings(band, lang, location)
     elif protocol == "clenpiq-standard":
         replacements = skill.build_clenpiq_strings(band, lang, location)
+    elif protocol == "suprep-standard":
+        replacements = skill.build_suprep_strings(band, lang, location)
     elif protocol in ("infant", "infant-enema"):
         replacements = skill.build_infant_strings(band, lang)
     else:
@@ -332,6 +377,8 @@ def render_pdf(
         subdomain = LACTULOSE_SUBDOMAIN[(variant, location_id)]
     elif prep_type == "clenpiq":
         subdomain = CLENPIQ_SUBDOMAIN[(variant, location_id)]
+    elif prep_type == "suprep":
+        subdomain = SUPREP_SUBDOMAIN[(variant, location_id)]
     elif partner_active:
         subdomain = PARTNER_SUBDOMAIN[physician_id][(variant, location_id)]
     else:
