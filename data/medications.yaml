@@ -524,8 +524,9 @@ meds:
     primary_name: "Doxycycline"
     search_aliases: ["doxycycline", "Vibramycin", "Doryx", "Acticlate", "Oracea", "Adoxa", "Monodox"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   - id: tetracycline
@@ -533,8 +534,9 @@ meds:
     primary_name: "Tetracycline"
     search_aliases: ["tetracycline", "Sumycin"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   - id: minocycline
@@ -542,8 +544,9 @@ meds:
     primary_name: "Minocycline"
     search_aliases: ["minocycline", "Minocin", "Solodyn", "Ximino", "Dynacin"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   # ---------- Antibiotics — Fluoroquinolones (timed for CLENPIQ / SUPREP) ----------
@@ -552,8 +555,9 @@ meds:
     primary_name: "Ciprofloxacin"
     search_aliases: ["ciprofloxacin", "Cipro", "Cipro XR"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   - id: levofloxacin
@@ -561,8 +565,9 @@ meds:
     primary_name: "Levofloxacin"
     search_aliases: ["levofloxacin", "Levaquin"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   - id: moxifloxacin
@@ -570,8 +575,9 @@ meds:
     primary_name: "Moxifloxacin"
     search_aliases: ["moxifloxacin", "Avelox"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   # ---------- Cardiac Glycosides (timed for CLENPIQ / SUPREP) ----------
@@ -580,8 +586,9 @@ meds:
     primary_name: "Digoxin"
     search_aliases: ["digoxin", "Lanoxin", "Digitek"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   # ---------- Antipsychotics — Phenothiazines (timed for CLENPIQ / SUPREP) ----------
@@ -590,8 +597,9 @@ meds:
     primary_name: "Chlorpromazine"
     search_aliases: ["chlorpromazine", "Thorazine"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
 
   # ---------- Chelating Agents (timed for CLENPIQ / SUPREP) ----------
@@ -600,6 +608,7 @@ meds:
     primary_name: "Penicillamine"
     search_aliases: ["penicillamine", "Cuprimine", "Depen"]
     action: timed
-    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_text: "Space 2 h before / 6 h after each CLENPIQ or SUPREP dose."
     hold_days: null
+    note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
