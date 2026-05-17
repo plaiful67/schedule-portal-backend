@@ -3,26 +3,86 @@
 # Universal pre-anesthesia/sedation holds. Apply to all four procedures
 # (bowel prep, EGD, combined EGD+colonoscopy, flex sig).
 #
-# English only by design. The EMR renders med names in English; the
-# autocomplete only needs to match English aliases. Spanish-language
-# handouts also display the English med names because families recognize
-# the brand on the bottle (Children's Motrin, Lovenox) more easily than
-# a translation.
+# English by default for EMR / scheduler use; the patient-facing site
+# meds.giready.com renders the same data with a Spanish UI. Brand names
+# are kept in their original form because families recognize the bottle
+# label (Children's Motrin, Lovenox) more reliably than a translation.
 #
 # hold_days: numeric value used for sorting. 0 = day of procedure.
 #   For ranges (e.g. "5-7 days"), use the upper bound.
 # hold_text:  human-readable instruction printed on the handout.
 # search_aliases: every brand + generic name; the frontend autocomplete
 #   matches against this flattened list (case-insensitive substring).
+# action:     hold | defer | continue | avoid | timed (default: hold).
+#             `timed` is for drugs that aren't held outright but must be
+#             spaced around each bowel-prep dose for CLENPIQ or SUPREP.
+# colonoscopy_only: when true, the patient-facing site hides the row
+#             unless the user picks "colonoscopy" in the procedure banner.
+# timed_with_per_dose_window: when true, the patient-facing site shows
+#             a per-dose timing callout for the affected drug when the
+#             user selects CLENPIQ or SUPREP as their prep type. The
+#             timing text is sourced from `prep_interaction_rulesets`.
 
-version: 1
+version: 2
+
+# -----------------------------------------------------------------------------
+# Prep types — drive the prep-picker on meds.giready.com. The picker is
+# revealed only after the user selects "Colonoscopy" in the procedure banner.
+# `interaction_ruleset` keys into `prep_interaction_rulesets` below to surface
+# per-dose drug-timing rules. MiraLAX + lactulose have no ruleset; CLENPIQ +
+# SUPREP share the same `per_dose_window` ruleset from their FDA labels.
+# -----------------------------------------------------------------------------
+prep_types:
+  - id: miralax
+    label_en: "MiraLAX"
+    label_es: "MiraLAX"
+    is_default: true
+  - id: lactulose
+    label_en: "Lactulose"
+    label_es: "Lactulosa"
+  - id: clenpiq
+    label_en: "CLENPIQ"
+    label_es: "CLENPIQ"
+    interaction_ruleset: per_dose_window
+  - id: suprep
+    label_en: "SUPREP"
+    label_es: "SUPREP"
+    interaction_ruleset: per_dose_window
+
+prep_interaction_rulesets:
+  # CLENPIQ + SUPREP share an identical FDA-label drug-interaction profile:
+  # 6 specific drug classes need a 2 h-before / 6 h-after window around each
+  # prep dose; all other oral medications need ≥1 h-before each dose.
+  per_dose_window:
+    timed_card:
+      title_en: "Timing around each prep dose"
+      title_es: "Tiempo alrededor de cada dosis de la preparación"
+      body_en: "Take this medication at least <strong>2 hours BEFORE</strong> and <strong>not less than 6 hours AFTER</strong> each {prep_label} dose."
+      body_es: "Administre este medicamento al menos <strong>2 horas ANTES</strong> y <strong>no menos de 6 horas DESPUÉS</strong> de cada dosis de {prep_label}."
+    default_oral_meds_blackout:
+      hours_before: 1
+      banner_en: "Give other oral medications at least <strong>1 hour before</strong> each {prep_label} dose."
+      banner_es: "Administre otros medicamentos orales al menos <strong>1 hora antes</strong> de cada dosis de {prep_label}."
 
 categories:
   - { id: anticoagulants, label: "Anticoagulants / Antiplatelets" }
   - { id: diabetes_glp1,  label: "Diabetes & GLP-1 Receptor Agonists" }
   - { id: weight_loss,    label: "Weight Loss" }
   - { id: nsaids,         label: "Pain & Anti-Inflammatory (NSAIDs)" }
-  - { id: stimulants,     label: "Neurological / Psychiatric — Stimulants & Related" }
+  - { id: stimulants,     label: "Stimulants / ADHD — Continue as Prescribed (NOT held)" }
+  - { id: aeds,           label: "Anti-Epileptic Drugs — Continue as Prescribed (NOT held)" }
+  - { id: mood_stabilizer, label: "Mood Stabilizers" }
+  - { id: anti_diarrheals, label: "Anti-Diarrheal Medications", colonoscopy_only: true }
+  - { id: iron,           label: "Iron Supplements", colonoscopy_only: true }
+  - { id: fiber_bowel,    label: "Fiber & Bulk-Forming Supplements", colonoscopy_only: true }
+  # New categories (2026-05-16) to support SUPREP / CLENPIQ drug-interaction
+  # timing. Members are `action: timed` — they're continued for MiraLAX /
+  # lactulose preps but spaced around each prep dose for CLENPIQ / SUPREP.
+  - { id: antibiotics_tetracycline,    label: "Antibiotics — Tetracyclines" }
+  - { id: antibiotics_fluoroquinolone, label: "Antibiotics — Fluoroquinolones" }
+  - { id: cardiac_glycoside,           label: "Cardiac Glycosides" }
+  - { id: antipsychotic_phenothiazine, label: "Antipsychotics — Phenothiazines" }
+  - { id: chelating_agent,             label: "Chelating Agents" }
 
 meds:
   # ---------- Anticoagulants / Antiplatelets ----------
@@ -53,6 +113,14 @@ meds:
     search_aliases: ["enoxaparin", "Lovenox"]
     hold_text: "Hold 24 hours before procedure"
     hold_days: 1
+
+  - id: clopidogrel
+    category: anticoagulants
+    primary_name: "Clopidogrel"
+    search_aliases: ["clopidogrel", "Plavix"]
+    action: defer
+    hold_text: "Defer to the prescribing provider (usually pediatric cardiologist or hematologist)."
+    hold_days: null
 
   # ---------- Diabetes & GLP-1 Receptor Agonists ----------
   - id: dulaglutide
@@ -176,27 +244,33 @@ meds:
     hold_text: "Hold 10 days before procedure"
     hold_days: 10
 
-  # ---------- Neurological / Psychiatric — Stimulants & Related ----------
+  # ---------- Stimulants / ADHD — Continue as prescribed (NOT held) ----------
+  # Practice stance updated to continue these through the procedure rather than
+  # the historical "hold 7 days." `action: continue` short-circuits the
+  # "stop this med" treatment in the patient-facing site.
   - id: amphetamine_dextroamphetamine
     category: stimulants
     primary_name: "Amphetamine/Dextroamphetamine"
     search_aliases: ["amphetamine/dextroamphetamine", "amphetamine", "dextroamphetamine", "Adderall", "Adderall XR", "Mydayis"]
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
   - id: dextroamphetamine
     category: stimulants
     primary_name: "Dextroamphetamine"
     search_aliases: ["dextroamphetamine", "Dexedrine", "Dexedrine Spansule", "Zenzedi", "ProCentra"]
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
   - id: lisdexamfetamine
     category: stimulants
     primary_name: "Lisdexamfetamine"
     search_aliases: ["lisdexamfetamine", "Vyvanse"]
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
   - id: methylphenidate
     category: stimulants
@@ -220,26 +294,312 @@ meds:
       - "Jornay PM"
       - "Adhansia XR"
       - "Azstarys"
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
   - id: modafinil
     category: stimulants
     primary_name: "Modafinil"
     search_aliases: ["modafinil", "Provigil"]
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
   - id: armodafinil
     category: stimulants
     primary_name: "Armodafinil"
     search_aliases: ["armodafinil", "Nuvigil"]
-    hold_text: "Hold 7 days before procedure"
-    hold_days: 7
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
 
+  # ---------- Mood Stabilizers ----------
   - id: lithium
     category: mood_stabilizer
     primary_name: "Lithium"
     search_aliases: ["lithium", "Lithobid", "Eskalith"]
     hold_text: "Stop 72 hrs before procedure if possible, after verifying with prescribing provider."
     hold_days: 3
+
+  # ---------- Anti-Epileptic Drugs — Continue as prescribed (NOT held) ----------
+  - id: levetiracetam
+    category: aeds
+    primary_name: "Levetiracetam"
+    search_aliases: ["levetiracetam", "Keppra", "Keppra XR", "Elepsia XR", "Spritam"]
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
+
+  - id: valproic_acid
+    category: aeds
+    primary_name: "Valproic Acid"
+    search_aliases: ["valproic acid", "Depakote", "Depakote ER", "Depakene", "Stavzor"]
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
+
+  - id: lamotrigine
+    category: aeds
+    primary_name: "Lamotrigine"
+    search_aliases: ["lamotrigine", "Lamictal", "Lamictal XR", "Lamictal ODT"]
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
+
+  - id: oxcarbazepine
+    category: aeds
+    primary_name: "Oxcarbazepine"
+    search_aliases: ["oxcarbazepine", "Trileptal", "Oxtellar XR"]
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
+
+  - id: topiramate
+    category: aeds
+    primary_name: "Topiramate"
+    search_aliases: ["topiramate", "Topamax", "Trokendi XR", "Qudexy XR"]
+    action: continue
+    hold_text: "Continue as prescribed — NOT held for procedure"
+    hold_days: null
+
+  # ---------- Anti-Diarrheal Medications (colonoscopy-only) ----------
+  - id: loperamide
+    category: anti_diarrheals
+    colonoscopy_only: true
+    primary_name: "Loperamide"
+    search_aliases: ["loperamide", "Imodium", "Imodium A-D", "Diamode", "Anti-Diarrheal"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Slows colonic motility and interferes with bowel preparation."
+
+  - id: diphenoxylate_atropine
+    category: anti_diarrheals
+    colonoscopy_only: true
+    primary_name: "Diphenoxylate/Atropine"
+    search_aliases: ["diphenoxylate/atropine", "diphenoxylate", "Lomotil", "Lonox"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Slows colonic motility and interferes with bowel preparation."
+
+  - id: bismuth_subsalicylate
+    category: anti_diarrheals
+    colonoscopy_only: true
+    primary_name: "Bismuth Subsalicylate"
+    search_aliases: ["bismuth subsalicylate", "bismuth", "Pepto-Bismol", "Pepto Bismol", "Kaopectate", "Bismatrol", "Kao-Tin"]
+    action: hold
+    hold_text: "Hold 7 days before colonoscopy"
+    hold_days: 7
+    note: "Causes dark discoloration of the colonic mucosa, impairing visualization."
+
+  # ---------- Iron Supplements (colonoscopy-only) ----------
+  # `timed_with_per_dose_window: true` cross-references the per_dose_window
+  # ruleset for CLENPIQ / SUPREP preps. The "stop 7–10 days before" rule
+  # remains primary; the per-dose window is a secondary note rendered only
+  # when CLENPIQ / SUPREP is selected.
+  - id: ferrous_sulfate
+    category: iron
+    colonoscopy_only: true
+    primary_name: "Ferrous Sulfate"
+    search_aliases: ["ferrous sulfate", "iron", "Feosol", "Slow FE", "Slow Release Iron", "Fer-In-Sol", "Fer-Iron"]
+    action: hold
+    hold_text: "Hold 7–10 days before colonoscopy"
+    hold_days: 10
+    note: "Iron darkens stool and stains colonic mucosa, impairing visualization."
+    timed_with_per_dose_window: true
+
+  - id: ferrous_gluconate
+    category: iron
+    colonoscopy_only: true
+    primary_name: "Ferrous Gluconate"
+    search_aliases: ["ferrous gluconate", "Fergon", "Ferate"]
+    action: hold
+    hold_text: "Hold 7–10 days before colonoscopy"
+    hold_days: 10
+    note: "Iron darkens stool and stains colonic mucosa, impairing visualization."
+    timed_with_per_dose_window: true
+
+  - id: ferrous_fumarate
+    category: iron
+    colonoscopy_only: true
+    primary_name: "Ferrous Fumarate"
+    search_aliases: ["ferrous fumarate", "Ferretts", "Hemocyte", "Ferrocite"]
+    action: hold
+    hold_text: "Hold 7–10 days before colonoscopy"
+    hold_days: 10
+    note: "Iron darkens stool and stains colonic mucosa, impairing visualization."
+    timed_with_per_dose_window: true
+
+  - id: polysaccharide_iron
+    category: iron
+    colonoscopy_only: true
+    primary_name: "Polysaccharide Iron Complex"
+    search_aliases: ["polysaccharide iron complex", "polysaccharide iron", "Niferex", "Nu-Iron", "Poly-Iron", "EZFE"]
+    action: hold
+    hold_text: "Hold 7–10 days before colonoscopy"
+    hold_days: 10
+    note: "Iron darkens stool and stains colonic mucosa, impairing visualization."
+    timed_with_per_dose_window: true
+
+  - id: iron_multivitamin
+    category: iron
+    colonoscopy_only: true
+    primary_name: "Multivitamins Containing Iron"
+    search_aliases:
+      - "multivitamin with iron"
+      - "vitamin with iron"
+      - "Flintstones with Iron"
+      - "Flintstones Complete"
+      - "Centrum"
+      - "Centrum Kids"
+      - "One A Day with Iron"
+      - "prenatal vitamin"
+      - "prenatal vitamins"
+      - "PreNexa"
+      - "Poly-Vi-Sol with Iron"
+    action: hold
+    hold_text: "Hold 7–10 days before colonoscopy"
+    hold_days: 10
+    note: "Any multivitamin or chewable that contains iron. Iron-free vitamins are okay to continue."
+    timed_with_per_dose_window: true
+
+  # ---------- Fiber & Bulk-Forming Supplements (colonoscopy-only) ----------
+  - id: psyllium
+    category: fiber_bowel
+    colonoscopy_only: true
+    primary_name: "Psyllium"
+    search_aliases: ["psyllium", "Metamucil", "Konsyl", "Fiberall"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Bulk-forming fiber can leave residue and interfere with bowel preparation."
+
+  - id: methylcellulose
+    category: fiber_bowel
+    colonoscopy_only: true
+    primary_name: "Methylcellulose"
+    search_aliases: ["methylcellulose", "Citrucel"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Bulk-forming fiber can leave residue and interfere with bowel preparation."
+
+  - id: polycarbophil
+    category: fiber_bowel
+    colonoscopy_only: true
+    primary_name: "Polycarbophil"
+    search_aliases: ["polycarbophil", "FiberCon", "Fiber-Lax", "Equalactin"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Bulk-forming fiber can leave residue and interfere with bowel preparation."
+
+  - id: wheat_dextrin
+    category: fiber_bowel
+    colonoscopy_only: true
+    primary_name: "Wheat Dextrin"
+    search_aliases: ["wheat dextrin", "Benefiber"]
+    action: hold
+    hold_text: "Hold 3 days before colonoscopy"
+    hold_days: 3
+    note: "Bulk-forming fiber can leave residue and interfere with bowel preparation."
+
+  - id: activated_charcoal
+    category: fiber_bowel
+    colonoscopy_only: true
+    primary_name: "Activated Charcoal"
+    search_aliases: ["activated charcoal", "charcoal", "CharcoCaps", "Actidose"]
+    action: hold
+    hold_text: "Hold 7 days before colonoscopy"
+    hold_days: 7
+    note: "Stains the colonic mucosa and interferes with bowel preparation."
+
+  # ---------- Antibiotics — Tetracyclines (timed for CLENPIQ / SUPREP) ----------
+  # FDA labels for CLENPIQ and SUPREP require these drugs be spaced 2 h before
+  # and 6 h after each prep dose. Other preps: continue as prescribed.
+  - id: doxycycline
+    category: antibiotics_tetracycline
+    primary_name: "Doxycycline"
+    search_aliases: ["doxycycline", "Vibramycin", "Doryx", "Acticlate", "Oracea", "Adoxa", "Monodox"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  - id: tetracycline
+    category: antibiotics_tetracycline
+    primary_name: "Tetracycline"
+    search_aliases: ["tetracycline", "Sumycin"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  - id: minocycline
+    category: antibiotics_tetracycline
+    primary_name: "Minocycline"
+    search_aliases: ["minocycline", "Minocin", "Solodyn", "Ximino", "Dynacin"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  # ---------- Antibiotics — Fluoroquinolones (timed for CLENPIQ / SUPREP) ----------
+  - id: ciprofloxacin
+    category: antibiotics_fluoroquinolone
+    primary_name: "Ciprofloxacin"
+    search_aliases: ["ciprofloxacin", "Cipro", "Cipro XR"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  - id: levofloxacin
+    category: antibiotics_fluoroquinolone
+    primary_name: "Levofloxacin"
+    search_aliases: ["levofloxacin", "Levaquin"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  - id: moxifloxacin
+    category: antibiotics_fluoroquinolone
+    primary_name: "Moxifloxacin"
+    search_aliases: ["moxifloxacin", "Avelox"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  # ---------- Cardiac Glycosides (timed for CLENPIQ / SUPREP) ----------
+  - id: digoxin
+    category: cardiac_glycoside
+    primary_name: "Digoxin"
+    search_aliases: ["digoxin", "Lanoxin", "Digitek"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  # ---------- Antipsychotics — Phenothiazines (timed for CLENPIQ / SUPREP) ----------
+  - id: chlorpromazine
+    category: antipsychotic_phenothiazine
+    primary_name: "Chlorpromazine"
+    search_aliases: ["chlorpromazine", "Thorazine"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
+
+  # ---------- Chelating Agents (timed for CLENPIQ / SUPREP) ----------
+  - id: penicillamine
+    category: chelating_agent
+    primary_name: "Penicillamine"
+    search_aliases: ["penicillamine", "Cuprimine", "Depen"]
+    action: timed
+    hold_text: "Continue as prescribed for MiraLAX or lactulose preps. For CLENPIQ or SUPREP: take at least 2 hours before and not less than 6 hours after each prep dose."
+    hold_days: null
+    timed_with_per_dose_window: true
