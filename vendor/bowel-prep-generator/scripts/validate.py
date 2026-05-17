@@ -248,6 +248,55 @@ def audit_meds_giready_paired_with_medications_drugs():
     return missing
 
 
+def audit_partner_variant_bands():
+    """Partner-variant bands (id pattern `{canonical-id}-{partner-slug}`)
+    must satisfy two invariants:
+      1. A canonical band with the prefix exists in the same dosing.yaml.
+      2. The variant band is marked `public: false` so it doesn't leak to
+         the public mobile sites.
+
+    Phase 1 ships with no partner-variant bands, so this is a no-op pass.
+    The check activates the moment the first partner is onboarded.
+
+    Returns list of (band_id, reason) tuples for failures.
+    """
+    # Known protocol suffixes that are NOT partner slugs — these are the
+    # already-shipped variant patterns (lactulose / clenpiq / enema). Any
+    # other trailing token after a canonical band-id prefix is treated as a
+    # partner slug.
+    KNOWN_PROTOCOL_SUFFIXES = {"lact", "enema"}
+
+    bands = load_bands()
+    by_id = {b["id"]: b for b in bands}
+
+    failures = []
+    for band in bands:
+        band_id = band["id"]
+        if "-" not in band_id:
+            continue
+        # Iterate suffix-length candidates so multi-segment canonical ids
+        # like "under-15" are handled (a child "under-15-dunn" must split
+        # off the trailing "dunn", not the trailing "15-dunn").
+        suffix_candidate = band_id.rsplit("-", 1)[-1]
+        prefix_candidate = band_id[: -(len(suffix_candidate) + 1)]
+        if suffix_candidate in KNOWN_PROTOCOL_SUFFIXES:
+            continue
+        # If the prefix isn't itself a canonical band, this is just a
+        # canonical band whose id happens to contain a hyphen (e.g. "15-20",
+        # "under-15") — skip it.
+        if prefix_candidate not in by_id:
+            continue
+        # Looks like a partner-variant band. Enforce invariants.
+        if band.get("public") is not False:
+            failures.append((band_id, "must declare `public: false`"))
+        if band.get("protocol") != "standard":
+            failures.append((
+                band_id,
+                f"partner variants must use protocol: standard (got {band.get('protocol')!r})",
+            ))
+    return failures
+
+
 def audit_translation_gaps():
     """Scan *.es.html for English-residue markers. Returns list of
     (file, lineno, marker, line) tuples."""
@@ -344,6 +393,20 @@ def main():
         failures.append(f"translation gaps: {len(trans_findings)} hit(s)")
     else:
         print("      ✅ no English-residue markers found in ES templates")
+
+    # ------------------------------------------------------------------
+    # 3c. Partner-variant band integrity (no-op until first partner ships)
+    # ------------------------------------------------------------------
+    print("\n[3c] Partner-variant band integrity")
+    partner_failures = audit_partner_variant_bands()
+    if partner_failures:
+        print(f"      ❌ {len(partner_failures)} partner-variant band issue(s):")
+        for band_id, reason in partner_failures:
+            print(f"         {band_id}: {reason}")
+        print("      Hint: see dosing.yaml header + bowel_prep.py PARTNER_OVERRIDE_PHYSICIANS.")
+        failures.append(f"partner-variant integrity: {len(partner_failures)} hit(s)")
+    else:
+        print("      ✅ no partner-variant integrity issues")
 
     # ------------------------------------------------------------------
     # 3b. meds.giready.com pairing audit (phase 2)

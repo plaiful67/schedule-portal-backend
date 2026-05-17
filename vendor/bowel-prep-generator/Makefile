@@ -23,7 +23,8 @@ REVIEW_OUT    := $(HOME)/Desktop/peds-gi-system/bowel-prep-pdf-review
 .PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
         render-combined render-directions sites-colonoscopy sites-combined \
         sites-lactulose sites-lactulose-combined \
-        sites-clenpiq sites-clenpiq-combined sites \
+        sites-clenpiq sites-clenpiq-combined \
+        sites-suprep sites-suprep-combined sites \
         render render-all clean-pdf-review
 
 help:
@@ -41,7 +42,9 @@ help:
 	@echo "  sites-lactulose-combined Build egdcolonlact / egdcolonlact86 (hidden Lactulose combined)"
 	@echo "  sites-clenpiq            Build prepclenpiq / prepclenpiq86 (hidden CLENPIQ colon-only)"
 	@echo "  sites-clenpiq-combined   Build egdcolonclenpiq / egdcolonclenpiq86 (hidden CLENPIQ combined)"
-	@echo "  sites                    All six builders above"
+	@echo "  sites-suprep             Build prepsuprep / prepsuprep86 (hidden SUPREP colon-only)"
+	@echo "  sites-suprep-combined    Build egdcolonsuprep / egdcolonsuprep86 (hidden SUPREP combined)"
+	@echo "  sites                    All eight builders above"
 	@echo "  render-all         Everything: DOCX + HTML for both locations + all PDF variants"
 	@echo "  clean-pdf-review   Remove only the PDF review folder (does NOT touch SCC/PMCH dirs)"
 
@@ -100,9 +103,16 @@ sites-clenpiq:
 sites-clenpiq-combined:
 	$(PYTHON) scripts/build_clenpiq_combined_websites.py
 
+sites-suprep:
+	$(PYTHON) scripts/build_suprep_websites.py
+
+sites-suprep-combined:
+	$(PYTHON) scripts/build_suprep_combined_websites.py
+
 sites: sites-colonoscopy sites-combined \
        sites-lactulose sites-lactulose-combined \
-       sites-clenpiq sites-clenpiq-combined
+       sites-clenpiq sites-clenpiq-combined \
+       sites-suprep sites-suprep-combined
 
 render-all: render-scc render-pmch render-pdf render-pdf-light render-combined render-directions
 

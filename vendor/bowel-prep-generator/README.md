@@ -101,7 +101,7 @@ bowel-prep-pdf-review/
 Each review folder is split by `English/` and `Spanish/`, then by weight band.
 
 The `make sites` target writes directly into the four website repos at
-`~/Desktop/{prep,prep86,egdcolon,egdcolon86}-peds-gi/`. Cloudflare Pages
+`~/Desktop/{prep,prep86,egdcolon,egdcolon86}-giready/`. Cloudflare Pages
 auto-deploys when those repos are pushed.
 
 > **Don't `rm -rf` the SCC/PMCH handout folders.** Hand-exported PDFs may

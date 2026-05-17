@@ -48,6 +48,16 @@ locations:
 # Precleanout strings are stored as fully-formed localized sentences because
 # their phrasing varies (e.g. "4 capfuls" vs "1–2 capfuls"). Dosing numbers
 # are structured so render.py can assemble consistent wording per language.
+#
+# Partner-specific variants (scheduler-only, hidden from public site):
+# Each band may be cloned with a `-{slug}` suffix on the id (e.g. "15-20-dunn")
+# to express a partner's preferred MiraLAX dose. Cloned bands keep
+# `protocol: standard` and add `public: false` so they don't render to the
+# public mobile pages. The backend's bowel_prep adapter swaps the canonical
+# band id for the partner band id when physician_id matches the registered
+# slug. See PARTNER_OVERRIDE_PHYSICIANS in
+# schedule-portal-backend/app/adapters/bowel_prep.py and the onboarding
+# recipe in docs/PLAYBOOK.md ("Adding a partner-specific MiraLAX variant").
 
 bands:
 
@@ -566,3 +576,80 @@ bands:
     # Empty strings keep the precleanout-block template branch a no-op.
     precleanout_a_text_en: ""
     precleanout_a_text_es: ""
+
+  # =====================================================================
+  # SUPREP PROTOCOL (scheduler-only — public: false)
+  # =====================================================================
+  # Big-kid sulfate-based alternative prep — sodium sulfate / potassium sulfate
+  # / magnesium sulfate. FDA-approved age 12+ (Rx required). Single unified
+  # band; the user-facing weight band is "over-50" only and maps to this one
+  # band via SUPREP_BAND_MAP in the backend adapter. Served from
+  # prepsuprep{,86} / egdcolonsuprep{,86} hidden subdomains.
+
+  - id: "suprep"
+    protocol: suprep-standard
+    public: false
+    label_en: "50 kg and up (110+ lb) — SUPREP"
+    label_es: "50 kg en adelante (110+ lb) — SUPREP"
+    # summary_label_* prints on the handout cover. SUPREP only has one
+    # eligible band (over-50) so the summary label matches the full label.
+    summary_label_en: "50 kg and up — SUPREP"
+    summary_label_es: "50 kg en adelante — SUPREP"
+    html_title_en: "Colonoscopy Bowel Preparation — SUPREP Option"
+    html_title_es: "Preparación Intestinal para Colonoscopia — Opción SUPREP"
+    docx_heading_en: "Children 50 kg and up &mdash; SUPREP"
+    docx_heading_es: "Niños de 50 kg en adelante &mdash; SUPREP"
+    mobile_path: "suprep"
+    filename_stem: "suprep"
+    folder_en: "50 kg and up (110+ Lb) — SUPREP"
+    folder_es: "50 kg en adelante (110+ Lb) — SUPREP"
+    # Always on — the eligible band (>=50 kg) is adolescents (FDA age 12+),
+    # who may be on GLP-1 agonists.
+    include_glp1_warning: true
+    # SUPREP dose specifics — identical across all eligible weights (≥50 kg).
+    # Source: SUPREP FDA label + OpenEvidence-generated patient instructions
+    # (2026-05-16). Each bottle = one dose; the concentrate MUST be diluted
+    # with water to the 12-oz fill line on the supplied mixing container
+    # before drinking (do NOT drink straight from the bottle).
+    suprep_bottle_oz: 6
+    suprep_total_bottles: 2
+    suprep_fill_line_oz: 12
+    suprep_requires_mixing: true
+    suprep_age_floor: 12
+    # Dose 1 (evening before): mix 1 bottle with cool water to 12-oz fill
+    # line, drink, then drink 2 more 12-oz containers of water (24 oz total)
+    # over the next hour.
+    dose1_window_en: "5:00 PM to 8:00 PM"
+    dose1_window_es: "5:00 PM a 8:00 PM"
+    dose1_solution_oz: 12
+    dose1_chasers_oz: 24
+    dose1_chaser_fills: 2
+    dose1_chasers_hours: 1
+    # Dose 2 (morning of): second bottle, 10–12 h after Dose 1 and at least
+    # 5 h before the procedure (per FDA label). Same dilution + chaser
+    # pattern. All SUPREP solution plus required water must finish at least
+    # 2 h before the procedure — the cutoff string is pulled from
+    # location.clears_npo_hours by build_suprep_strings, never hardcoded.
+    dose2_hours_before_min: 5
+    dose_separation_hours_min: 10
+    dose_separation_hours_max: 12
+    dose2_solution_oz: 12
+    dose2_chasers_oz: 24
+    dose2_chaser_fills: 2
+    dose2_chasers_hours: 1
+    drink_cup_en: "12 oz (~360 mL)"
+    drink_cup_es: "12 oz (~360 mL)"
+    # No pre-cleanout — SUPREP supplies its own stimulant via sulfate salts,
+    # and the FDA label prohibits concurrent stimulant laxatives.
+    precleanout_a_text_en: ""
+    precleanout_a_text_es: ""
+    # SUPREP-specific drug-interaction window: timing separation around each
+    # dose for tetracycline / fluoroquinolone antibiotics, iron, digoxin,
+    # chlorpromazine, penicillamine. Rendered into the medications block by
+    # build_suprep_strings.
+    suprep_drug_interaction_note_en: "If taking tetracycline or fluoroquinolone antibiotics, iron, digoxin, chlorpromazine, or penicillamine — take these <strong>at least 2 hours before</strong> and <strong>not less than 6 hours after</strong> each SUPREP dose."
+    suprep_drug_interaction_note_es: "Si está tomando antibióticos de tetraciclina o fluoroquinolona, hierro, digoxina, clorpromazina o penicilamina — tome estos medicamentos <strong>al menos 2 horas antes</strong> y <strong>no menos de 6 horas después</strong> de cada dosis de SUPREP."
+    # Also: no oral medications within 1 hour of starting each SUPREP dose
+    # (separate from the timed-interaction list above; applies to ALL oral
+    # meds, per the FDA label).
+    suprep_oral_meds_blackout_hours: 1

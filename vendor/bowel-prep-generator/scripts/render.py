@@ -808,6 +808,61 @@ def build_clenpiq_strings(band, lang, location=None):
     }
 
 
+def build_suprep_strings(band, lang, location=None):
+    """Return placeholder → rendered string dict for a suprep-standard band.
+
+    SUPREP (sodium / potassium / magnesium sulfate) is a scheduler-only
+    sulfate-based alternative prep for patients ≥50 kg (FDA age 12+, Rx
+    required). Each kit ships as 2 bottles of concentrate; each dose mixes
+    1 bottle with cool water to the 12-oz fill line on the supplied
+    container, drunk in full, then chased with 2 more 12-oz container
+    fills of plain water (24 oz total) over the next hour.
+
+    `location` drives the NPO cutoff for the post-Dose-2 clears (2 h SCC vs
+    3 h PMCH); it's surfaced via `{{NPO_CLEARS_HOURS}}` rather than baked
+    into a SUPREP-specific placeholder so the templates stay consistent
+    with the standard / lactulose / clenpiq families.
+    """
+    return {
+        "{{HTML_TITLE}}":                         band[f"html_title_{lang}"],
+        "{{BAND_LABEL}}":                         band.get(f"summary_label_{lang}",
+                                                            band[f"label_{lang}"]),
+        "{{DOCX_HEADING}}":                       band[f"docx_heading_{lang}"],
+        "{{HTML_MEDICATIONS_DRUGS}}":             _medications_drugs(band, lang),
+        "{{MEDS_GIREADY_QR}}":                    _meds_giready_qr_data_uri(),
+        # Lactulose-infant template uses {{WARNING_WEIGHT}}; harmless to
+        # always provide so the same placeholder dict works downstream.
+        "{{WARNING_WEIGHT}}":                     band.get(f"warning_weight_{lang}",
+                                                            band.get("warning_weight_en", "")),
+        # Bottle + dose figures
+        "{{HTML_SUPREP_BOTTLE_OZ}}":              str(band["suprep_bottle_oz"]),
+        "{{HTML_SUPREP_TOTAL_BOTTLES}}":          str(band["suprep_total_bottles"]),
+        "{{HTML_SUPREP_FILL_LINE_OZ}}":           str(band["suprep_fill_line_oz"]),
+        # Dose 1 (evening before)
+        "{{HTML_SUPREP_DOSE1_WINDOW}}":           band[f"dose1_window_{lang}"],
+        "{{HTML_SUPREP_DOSE1_SOLUTION_OZ}}":      str(band["dose1_solution_oz"]),
+        "{{HTML_SUPREP_DOSE1_CHASERS_OZ}}":       str(band["dose1_chasers_oz"]),
+        "{{HTML_SUPREP_DOSE1_CHASER_FILLS}}":     str(band["dose1_chaser_fills"]),
+        "{{HTML_SUPREP_DOSE1_CHASERS_HOURS}}":    str(band["dose1_chasers_hours"]),
+        # Dose 2 (morning of, started 10–12 h after Dose 1, ≥5 h before procedure)
+        "{{HTML_SUPREP_DOSE2_HOURS_BEFORE_MIN}}": str(band["dose2_hours_before_min"]),
+        "{{HTML_SUPREP_DOSE_SEPARATION_MIN}}":    str(band["dose_separation_hours_min"]),
+        "{{HTML_SUPREP_DOSE_SEPARATION_MAX}}":    str(band["dose_separation_hours_max"]),
+        "{{HTML_SUPREP_DOSE2_SOLUTION_OZ}}":      str(band["dose2_solution_oz"]),
+        "{{HTML_SUPREP_DOSE2_CHASERS_OZ}}":       str(band["dose2_chasers_oz"]),
+        "{{HTML_SUPREP_DOSE2_CHASER_FILLS}}":     str(band["dose2_chaser_fills"]),
+        "{{HTML_SUPREP_DOSE2_CHASERS_HOURS}}":    str(band["dose2_chasers_hours"]),
+        # Drug-interaction window unique to SUPREP
+        "{{HTML_SUPREP_DRUG_INTERACTION_NOTE}}":  band[f"suprep_drug_interaction_note_{lang}"],
+        "{{HTML_SUPREP_ORAL_MEDS_BLACKOUT_HOURS}}": str(band["suprep_oral_meds_blackout_hours"]),
+        # Cup size for the per-cup drinking cadence (12 oz fill line)
+        "{{HTML_DRINK_CUP}}":                     band[f"drink_cup_{lang}"],
+        # SUPREP has no separate pre-cleanout (sulfate stimulant is built in,
+        # and the FDA label prohibits concurrent stimulant laxatives).
+        "{{HTML_PRECLEANOUT_BLOCK}}":             "",
+    }
+
+
 def _medications_drugs(band, lang):
     """The drug list for the Medications callout. GLP-1 agonists are only
     relevant for adolescents (~≥40 kg in our protocol), so smaller bands
@@ -1219,11 +1274,12 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     """
     protocol = band["protocol"]
     stem = band["filename_stem"]
-    # Lactulose and CLENPIQ protocols are scheduler-only and live entirely in
-    # the mobile pipeline (build_lactulose_websites.py / build_clenpiq_websites.py).
-    # render.py is for the legacy SCC-printed flow (DOCX + non-mobile HTML/PDF),
-    # so skip both hidden-variant protocol families here.
-    if protocol.startswith(("lactulose", "clenpiq")):
+    # Lactulose, CLENPIQ, and SUPREP protocols are scheduler-only and live
+    # entirely in the mobile pipeline (build_lactulose_websites.py /
+    # build_clenpiq_websites.py / build_suprep_websites.py). render.py is
+    # for the legacy SCC-printed flow (DOCX + non-mobile HTML/PDF), so skip
+    # all hidden-variant protocol families here.
+    if protocol.startswith(("lactulose", "clenpiq", "suprep")):
         return None
     if protocol == "standard":
         replacements = build_strings(band, lang, location=location)
