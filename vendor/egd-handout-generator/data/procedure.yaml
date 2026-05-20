@@ -39,8 +39,9 @@ locations:
     mobile_subdomain: "egd86"      # → https://egd86.giready.com/  (ES: /es/)
     clear_hours: 3
 
-# A `procedure` is one handout. v1 ships only `egd`. Add `flex-sig`, `capsule`,
-# etc. with the same shape when ready.
+# A `procedure` is one handout. Add `flex-sig`, `capsule`, etc. with the same
+# shape when ready. Optional per-procedure `locations:` field restricts which
+# locations the procedure is offered at (omit = both SCC and PMCH).
 procedures:
   egd:
     label_en: "Upper Endoscopy (EGD)"
@@ -65,3 +66,84 @@ procedures:
     # prior; off Carafate or Tums one day prior." Default off — wired but unused
     # in v1; set to `true` when generating the impedance-probe variant later.
     impedance_probe_callout: false
+
+  # EGD + 24-hr pH impedance monitoring (pH-MII). Always at PMCH because the
+  # motility nurses are part of the adult-GI department and only staff 86th St.
+  # See ~/.claude/projects/.../memory/project_pmch_only_procedures.md.
+  egdph:
+    label_en: "EGD + pH Impedance Monitoring"
+    label_es: "EGD con monitoreo de impedancia-pH"
+    html_title_en: "EGD + pH Impedance Monitoring — What to Expect"
+    html_title_es: "EGD con monitoreo de impedancia-pH — Qué Esperar"
+
+    # PMCH-only. Renderer skips the SCC outputs entirely when this is set.
+    locations: [pmch]
+
+    # Override the location's default mobile_subdomain (which is "egd86" for
+    # PMCH on the EGD-only handout) — pH-MII has its own subdomain.
+    mobile_subdomain: "egdph"
+
+    # Procedure-specific YouTube video. Falls back to practice.yaml
+    # qr_targets.youtube_url_* when unset. The default EGD video isn't
+    # appropriate for the pH-MII combined case.
+    youtube_url_en: "https://www.youtube.com/watch?v=1nq-8lGfgEU"
+    youtube_url_es: "https://www.youtube.com/watch?v=1nq-8lGfgEU"
+
+    # Procedure-specific GIKids reference page. Default points at the
+    # generic upper-endoscopy page; the pH-MII handout sends families to
+    # the impedance-study page instead.
+    gikids_url: "https://gikids.org/tests-procedures/ph-impedance-study/"
+
+    # EGD-portion duration; the probe placement adds <5 min. Total facility
+    # stay is several hours; that's narrated separately in the template copy.
+    duration_min: 20
+
+    # Same pre-procedure NPO as the EGD-only handout.
+    npo:
+      solid_hours:       8
+      formula_hours:     6
+      breastmilk_hours:  4
+      clear_hours:       2
+      thickener_hours:   6
+
+    impedance_probe_callout: true
+
+# Medication-stop rules consumed by handouts that include a "Medications to
+# Stop" table (currently the pH-MII variant). Each entry has `consumed_by` so
+# we can later add more procedures without rewriting the renderer.
+medication_stops:
+  - id: ppi
+    stop_days: 7
+    consumed_by: [egdph]
+    label_en: "Proton pump inhibitors (PPIs)"
+    label_es: "Inhibidores de la bomba de protones (IBP)"
+    examples_en: "omeprazole (Prilosec), esomeprazole (Nexium), lansoprazole (Prevacid), pantoprazole (Protonix), others"
+    examples_es: "omeprazol (Prilosec), esomeprazol (Nexium), lansoprazol (Prevacid), pantoprazol (Protonix), otros"
+  - id: h2_blocker
+    stop_days: 3
+    consumed_by: [egdph]
+    label_en: "H2 blockers"
+    label_es: "Bloqueadores H2"
+    examples_en: "famotidine (Pepcid), others"
+    examples_es: "famotidina (Pepcid), otros"
+  - id: antacid
+    stop_days: 3
+    consumed_by: [egdph]
+    label_en: "Antacids"
+    label_es: "Antiácidos"
+    examples_en: "Tums, Maalox, Mylanta"
+    examples_es: "Tums, Maalox, Mylanta"
+  - id: prokinetic
+    stop_days: 3
+    consumed_by: [egdph]
+    label_en: "Prokinetics"
+    label_es: "Procinéticos"
+    examples_en: "metoclopramide (Reglan), erythromycin (when used for motility)"
+    examples_es: "metoclopramida (Reglan), eritromicina (cuando se usa para motilidad)"
+  - id: glp1
+    stop_days: 7
+    consumed_by: [egdph]
+    label_en: "GLP-1 medications"
+    label_es: "Medicamentos GLP-1"
+    examples_en: "Ozempic, Wegovy, Mounjaro, Trulicity"
+    examples_es: "Ozempic, Wegovy, Mounjaro, Trulicity"

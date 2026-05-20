@@ -388,14 +388,22 @@ def render_pdf(
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/{hash_params}"
-    mobile_qr_data_uri = skill._png_to_data_uri(skill._generate_maps_qr(mobile_url))
+    # FEEDBACK_URL splices ?feedback=1&source=print BEFORE the hash so
+    # survey.js auto-opens on arrival and tags the D1 row as PDF-origin.
+    # Cover and mid-doc QRs both encode this URL; the cover-QR href also
+    # uses it so click and scan land in the same place.
+    feedback_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/?feedback=1&source=print{hash_params}"
+    mobile_qr_data_uri  = skill._png_to_data_uri(skill._generate_maps_qr(feedback_url))
+    feedback_qr_data_uri = mobile_qr_data_uri  # identical encoding; reuse the bytes
 
     qr_replacements = {
-        "{{MOBILE_QR_DATA_URI}}": mobile_qr_data_uri,
-        "{{MAPS_QR_DATA_URI}}":   skill._png_to_data_uri(skill._generate_maps_qr(
+        "{{MOBILE_QR_DATA_URI}}":   mobile_qr_data_uri,
+        "{{FEEDBACK_QR_DATA_URI}}": feedback_qr_data_uri,
+        "{{MAPS_QR_DATA_URI}}":     skill._png_to_data_uri(skill._generate_maps_qr(
             location.get(f"maps_url_{lang}", location.get("maps_url_en", ""))
         )),
-        "{{MOBILE_URL}}":          mobile_url,
+        "{{MOBILE_URL}}":          feedback_url,
+        "{{FEEDBACK_URL}}":        feedback_url,
         "{{MAPS_URL}}":            location.get(f"maps_url_{lang}", location.get("maps_url_en", "")),
         "{{YOUTUBE_URL}}":         skill._qr_target("youtube_url_es" if lang == "es" else "youtube_url_en"),
         "{{PORTAL_URL}}":          skill._qr_target("portal_url"),
@@ -447,13 +455,14 @@ def render_pdf(
     for token, value in forward_compat_stubs.items():
         html = html.replace(token, str(value))
 
-    # Rewrite all five QR <img id="qr-*"> srcs (mobile + maps + 3 resource cards).
+    # Rewrite all six QR <img id="qr-*"> srcs (mobile + feedback + maps + 3 resource cards).
     html = skill._inject_qr_into_imgs(html, {
-        "qr-mobile":  mobile_qr_data_uri,
-        "qr-maps":    qr_replacements["{{MAPS_QR_DATA_URI}}"],
-        "qr-youtube": skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{YOUTUBE_URL}}"])),
-        "qr-portal":  skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{PORTAL_URL}}"])),
-        "qr-gikids": skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{GIKIDS_URL}}"])),
+        "qr-mobile":   mobile_qr_data_uri,
+        "qr-feedback": feedback_qr_data_uri,
+        "qr-maps":     qr_replacements["{{MAPS_QR_DATA_URI}}"],
+        "qr-youtube":  skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{YOUTUBE_URL}}"])),
+        "qr-portal":   skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{PORTAL_URL}}"])),
+        "qr-gikids":   skill._png_to_data_uri(skill._generate_maps_qr(qr_replacements["{{GIKIDS_URL}}"])),
     })
 
     # Server-side equivalent of the mobile-page pz-only JS: walk every
@@ -473,6 +482,11 @@ def render_pdf(
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
         raise RuntimeError(f"Unreplaced placeholders: {sorted(set(unreplaced))}")
+
+    # Splice shared print-base.css in front of the template's own <style>
+    # block so design-token + feedback-cell changes propagate without
+    # editing every template. Template-local CSS still overrides.
+    html = skill._inject_shared_print_css(html)
 
     # Resolve relative URLs (logo PNG, etc.) against the skill's templates/ dir.
     base_url = (SKILL_ROOT / "templates").as_uri() + "/"

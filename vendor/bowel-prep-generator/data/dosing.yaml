@@ -4,6 +4,8 @@ locations:
   scc:
     name_en: "Surgery Center of Carmel"
     name_es: "Surgery Center of Carmel"
+    # Short label used on the internal staff cheat-sheet (doses.giready.com / staff PDF).
+    cheatsheet_name: "Surgery Center of Carmel (SCC)"
     address: "12188-A N Meridian St #150, Carmel, IN 46032"
     phone: "(317) 569-8250"
     phone_label_en: "Surgery Center phone"
@@ -23,6 +25,7 @@ locations:
   pmch:
     name_en: "St. Vincent Hospital — Pediatric Preop, Door #1"
     name_es: "Hospital St. Vincent — Preop Pediátrico, Puerta #1"
+    cheatsheet_name: "St. Vincent — PMCH Peds Preop"
     address: "2001 W 86th St, Indianapolis, IN 46260 (Surgery Parking Lot)"
     phone: "(317) 338-5851"
     phone_label_en: "Pediatric Preop phone"
@@ -81,6 +84,24 @@ bands:
     folder_en: "Under 15 kg (Under 33 Lb)"
     folder_es: "Menos de 15 kg (Menos de 33 Lb)"
     include_glp1_warning: false
+    # MiraLAX infant dose-by-weight tiers — rendered as table rows on the
+    # internal staff cheat-sheet (doses.giready.com). These values are
+    # already encoded in the patient handout prose; surfacing them here as
+    # structured data lets the cheat-sheet stay in lock-step with the
+    # patient handouts.
+    miralax_infant_tiers:
+      - label_en: "<5 kg"
+        capfuls_label_en: "¼"
+        grams_label_en: "4 g"
+        mix_in_en: "2–4 oz"
+      - label_en: "5–9 kg"
+        capfuls_label_en: "½"
+        grams_label_en: "8.5 g"
+        mix_in_en: "4–6 oz"
+      - label_en: "10–15 kg"
+        capfuls_label_en: "¾"
+        grams_label_en: "13 g"
+        mix_in_en: "6–8 oz"
 
   - id: "under-15-enema"
     protocol: infant-enema
@@ -151,6 +172,10 @@ bands:
     contingency_total_grams: 136
     contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
+    # Internal staff cheat-sheet — compact phrasings (doses.giready.com / staff PDF).
+    cheatsheet_disimpaction: "1 cap / 4 oz clear &times; <strong>2&times;/day &times; 3 d</strong> (weekend)"
+    cheatsheet_maintenance: "<strong>&frac12; capful of MiraLAX daily</strong>"
+    cheatsheet_contingency_backup: "NS enema (10 mL/kg) or reschedule"
   - id: "21-30"
     protocol: standard
     label_en: "21-30 kg (46-66 lb)"
@@ -200,6 +225,9 @@ bands:
     contingency_total_grams: 187
     contingency_backup_en: "We may suggest a saline enema (10 mL/kg) at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina (10 mL/kg) en el centro, o reprogramar el procedimiento."
+    cheatsheet_disimpaction: "1 cap / 4 oz clear &times; <strong>3&times;/day &times; 3 d</strong> (weekend)"
+    cheatsheet_maintenance: "<strong>&frac12; capful of MiraLAX daily</strong>"
+    cheatsheet_contingency_backup: "NS enema (10 mL/kg) or reschedule"
   - id: "31-40"
     protocol: standard
     label_en: "31-40 kg (68-88 lb)"
@@ -252,6 +280,9 @@ bands:
     contingency_total_grams: 255
     contingency_backup_en: "We may suggest a saline enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema de solución salina en el centro, o reprogramar el procedimiento."
+    cheatsheet_disimpaction: "1 cap / 4 oz clear &times; <strong>4&times;/day &times; 3 d</strong> (weekend)"
+    cheatsheet_maintenance: "<strong>1 capful of MiraLAX daily</strong>"
+    cheatsheet_contingency_backup: "NS enema or reschedule"
   - id: "41-50"
     protocol: standard
     label_en: "41-50 kg (90-110 lb)"
@@ -306,6 +337,9 @@ bands:
     contingency_total_grams: 306
     contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
+    cheatsheet_disimpaction: "<strong>8 caps in 32 oz Gatorade</strong> over ~4 h (weekend)"
+    cheatsheet_maintenance: "<strong>1 capful of MiraLAX daily</strong>"
+    cheatsheet_contingency_backup: "Enema or reschedule"
   - id: "over-50"
     protocol: standard
     label_en: "Over 50 kg (>110 lb)"
@@ -361,6 +395,9 @@ bands:
     contingency_total_grams: 340
     contingency_backup_en: "We may suggest an enema at the facility, or rescheduling the procedure."
     contingency_backup_es: "Podemos sugerir un enema en el centro, o reprogramar el procedimiento."
+    cheatsheet_disimpaction: "<strong>10 caps in 40 oz Gatorade</strong> over ~4 h (weekend)"
+    cheatsheet_maintenance: "<strong>1 capful of MiraLAX daily</strong>"
+    cheatsheet_contingency_backup: "Enema or reschedule"
 
   # =====================================================================
   # LACTULOSE PROTOCOLS (scheduler-only — public: false)
@@ -393,6 +430,10 @@ bands:
     folder_es: "Menos de 15 kg (Menos de 33 Lb) — Lactulosa"
     include_glp1_warning: false
     # Daily-dose tiers: each entry is one row in the dose-by-weight table.
+    # `cheatsheet_mix_in_en` is the compact volume range printed in the staff
+    # cheat-sheet's "Mix in" column — separate from the patient-facing how_en
+    # prose so the staff version can show a concrete oz range even where the
+    # patient handout uses softer wording ("a small amount").
     lactulose_daily_tiers:
       - min_kg: 0
         max_kg: 5
@@ -403,6 +444,7 @@ bands:
         dose_label_es: "5 mL (una cucharadita)"
         how_en: "Give by mouth using a syringe; may mix into a small amount of juice or Pedialyte."
         how_es: "Administre por boca con una jeringa; puede mezclarse en una pequeña cantidad de jugo o Pedialyte."
+        cheatsheet_mix_in_en: "2–4 oz"
       - min_kg: 5
         max_kg: 9
         label_en: "5–9 kg (11–20 lb)"
@@ -412,6 +454,7 @@ bands:
         dose_label_es: "10 mL (dos cucharaditas)"
         how_en: "Give by mouth using a syringe or medicine cup; may mix into 2–4 oz of juice or Pedialyte."
         how_es: "Administre por boca con jeringa o vaso medidor; puede mezclarse en 2–4 oz de jugo o Pedialyte."
+        cheatsheet_mix_in_en: "2–4 oz"
       - min_kg: 10
         max_kg: 15
         label_en: "10–15 kg (22–33 lb)"
@@ -420,6 +463,7 @@ bands:
         dose_label_en: "15 mL (one tablespoon)"
         dose_label_es: "15 mL (una cucharada)"
         how_en: "Give by mouth; may mix into 4–6 oz of juice or Pedialyte."
+        cheatsheet_mix_in_en: "4–6 oz"
         how_es: "Administre por boca; puede mezclarse en 4–6 oz de jugo o Pedialyte."
 
   - id: "15-20-lact"

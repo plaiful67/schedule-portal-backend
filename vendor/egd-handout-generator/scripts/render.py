@@ -34,6 +34,22 @@ TEMPLATES     = SKILL_DIR / "templates"
 PROCEDURE_PATH = SKILL_DIR / "data" / "procedure.yaml"
 PRACTICE_PATH  = SKILL_DIR / "practice.yaml"
 
+# Shared design tokens + feedback-cell layout. Auto-prepended to every
+# template's <head> so future cross-skill style changes (color tokens,
+# font stack, feedback CTA layout) live in ONE file. Templates' own
+# <style> blocks still load AFTER and win on override.
+_SHARED_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "print-base.css"
+try:
+    _SHARED_PRINT_CSS = _SHARED_PRINT_CSS_PATH.read_text(encoding="utf-8") if _SHARED_PRINT_CSS_PATH.exists() else ""
+except OSError:
+    _SHARED_PRINT_CSS = ""
+
+
+def _inject_shared_print_css(html: str) -> str:
+    if not _SHARED_PRINT_CSS:
+        return html
+    return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
+
 
 # ---------------------------------------------------------------------------
 # Config loading
@@ -64,6 +80,26 @@ def _procedure_data():
 
 def _qr_target(key):
     return _practice()["qr_targets"][key]
+
+
+def procedure_qr_target(procedure, key, lang=None):
+    """Resolve a QR target URL with procedure-level override fallback.
+
+    Procedures may override `youtube_url_<lang>` and `gikids_url` directly
+    on the procedure block (used by the pH-MII variant, which sends families
+    to a different YouTube video + GIKids reference page than the EGD-only
+    handout). Falls back to the practice.yaml qr_targets dict.
+    """
+    if procedure:
+        if lang:
+            ov = procedure.get(f"{key}_{lang}")
+            if ov:
+                return ov
+        ov = procedure.get(key)
+        if ov:
+            return ov
+    full_key = f"{key}_{lang}" if lang else key
+    return _qr_target(full_key)
 
 
 # ---------------------------------------------------------------------------
@@ -121,6 +157,78 @@ def build_egd_placeholders(procedure, lang, location=None):
         # on every mobile HTML and print PDF.
         "{{MEDS_GIREADY_QR}}":    _meds_giready_qr_data_uri(),
     }
+
+
+def _med_stops_for(procedure_id):
+    """Filter `medication_stops:` entries that apply to `procedure_id`."""
+    entries = _procedure_data().get("medication_stops") or []
+    return [e for e in entries if procedure_id in (e.get("consumed_by") or [])]
+
+
+def _format_stop_days(days, lang):
+    if lang == "es":
+        return f"{days} días antes"
+    return f"{days} days before"
+
+
+# Short-form weekday + month names, duplicated from schedule-portal-backend's
+# personalization.py so the skill stays self-contained but produces the same
+# format used elsewhere in the personalized handout ("Wed, May 28" / "mié, 28 may").
+_EN_WEEKDAYS_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_ES_WEEKDAYS_SHORT = ["lun", "mar", "mié", "jue", "vie", "sáb", "dom"]
+_EN_MONTHS_SHORT   = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+_ES_MONTHS_SHORT   = ["", "ene", "feb", "mar", "abr", "may", "jun",
+                      "jul", "ago", "sep", "oct", "nov", "dic"]
+
+
+def _format_short_date(d, lang):
+    """Match `personalization.format_appt_date_short` exactly so dates inside
+    the med-stop table align with dates the portal stamps into headings."""
+    if lang == "es":
+        return f"{_ES_WEEKDAYS_SHORT[d.weekday()]}, {d.day} {_ES_MONTHS_SHORT[d.month]}"
+    return f"{_EN_WEEKDAYS_SHORT[d.weekday()]}, {_EN_MONTHS_SHORT[d.month]} {d.day}"
+
+
+def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph", appt_dt=None):
+    """Extends `build_egd_placeholders` with the pH-MII–specific tokens.
+
+    {{MED_STOPS_TBODY}} renders the inner <tbody> rows of the medication-stop
+    table — the surrounding <table> + styling stay in the template. Driven
+    by the `medication_stops:` block in procedure.yaml so the schedule portal
+    can reuse the same rules.
+
+    When `appt_dt` is provided (personalized renders), each row appends a
+    small second line under the "X days before" text showing the calendar
+    date by which the family must stop (appt_date - stop_days). The public
+    static handout doesn't know an appointment date so this line is omitted.
+    """
+    import datetime as _dt
+    base = build_egd_placeholders(procedure, lang, location=location)
+    rows = []
+    for entry in _med_stops_for(procedure_id):
+        label = entry.get(f"label_{lang}", entry.get("label_en", ""))
+        examples = entry.get(f"examples_{lang}", entry.get("examples_en", ""))
+        stop_days = int(entry.get("stop_days", 0))
+        stop = _format_stop_days(stop_days, lang)
+        date_line = ""
+        if appt_dt is not None:
+            target_date = appt_dt.date() - _dt.timedelta(days=stop_days)
+            label_text = "antes del" if lang == "es" else "by"
+            date_line = (
+                f"<div class=\"med-stop-date\">"
+                f"{label_text} {_format_short_date(target_date, lang)}"
+                f"</div>"
+            )
+        rows.append(
+            "<tr>"
+            f"<td><strong>{label}</strong>"
+            f"<div class=\"med-examples\">{examples}</div></td>"
+            f"<td class=\"col-stop\"><span class=\"stop-hours\">{stop}</span>{date_line}</td>"
+            "</tr>"
+        )
+    base["{{MED_STOPS_TBODY}}"] = "\n".join(rows)
+    return base
 
 
 # ---------------------------------------------------------------------------
@@ -198,27 +306,45 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
     with open(template_path, encoding="utf-8") as f:
         html = f.read()
 
-    sub = location.get("mobile_subdomain", "") or _procedure_data().get("mobile_site", {}).get("subdomain", "")
+    # Procedure-level `mobile_subdomain` (e.g. egdph) wins over the location's
+    # default (e.g. egd86) so variant handouts point to their own subdomain.
+    sub = procedure.get("mobile_subdomain") or location.get("mobile_subdomain", "") or _procedure_data().get("mobile_site", {}).get("subdomain", "")
     mobile_url = (f"https://{sub}.giready.com/" + ("es/" if lang == "es" else "")) if sub else ""
+    # ?feedback=1 auto-opens survey.js; &source=print swaps q3 to the
+    # print-vs-phone question and tags the D1 row.
+    feedback_url = (mobile_url + "?feedback=1&source=print") if mobile_url else ""
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
-    youtube_url = _qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
+    youtube_url = procedure_qr_target(procedure, "youtube_url", lang)
     portal_url = _qr_target("portal_url")
-    gikids_url = _qr_target("gikids_url")
+    gikids_url = procedure_qr_target(procedure, "gikids_url")
     location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
 
+    # The cover (`qr-mobile`) and mid-doc (`qr-feedback`) both encode the
+    # ?feedback=1 URL so families who scan either get the survey modal.
     qr_uris = {
-        "qr-mobile":  _png_to_data_uri(_generate_qr(mobile_url, size_px=150)) if mobile_url else "",
-        "qr-maps":    _png_to_data_uri(_generate_qr(maps_url)) if maps_url else "",
-        "qr-youtube": _png_to_data_uri(_generate_qr(youtube_url)) if youtube_url else "",
-        "qr-portal":  _png_to_data_uri(_generate_qr(portal_url)) if portal_url else "",
-        "qr-gikids":  _png_to_data_uri(_generate_qr(gikids_url)) if gikids_url else "",
+        "qr-mobile":   _png_to_data_uri(_generate_qr(feedback_url, size_px=150)) if feedback_url else "",
+        "qr-feedback": _png_to_data_uri(_generate_qr(feedback_url, size_px=120)) if feedback_url else "",
+        "qr-maps":     _png_to_data_uri(_generate_qr(maps_url)) if maps_url else "",
+        "qr-youtube":  _png_to_data_uri(_generate_qr(youtube_url)) if youtube_url else "",
+        "qr-portal":   _png_to_data_uri(_generate_qr(portal_url)) if portal_url else "",
+        "qr-gikids":   _png_to_data_uri(_generate_qr(gikids_url)) if gikids_url else "",
     }
+
+    # Variant-specific placeholder builders: egdph adds {{MED_STOPS_TBODY}}.
+    if procedure_id == "egdph":
+        procedure_placeholders = build_egdph_placeholders(procedure, lang, location=location, procedure_id=procedure_id)
+    else:
+        procedure_placeholders = build_egd_placeholders(procedure, lang, location=location)
 
     replacements = {
         **build_practice_placeholders(lang),
         **build_location_placeholders(location, lang),
-        **build_egd_placeholders(procedure, lang, location=location),
-        "{{MOBILE_URL}}":         mobile_url,
+        **procedure_placeholders,
+        # MOBILE_URL is the clickable href on the cover-QR anchor; keep it
+        # in lockstep with the QR PNG so click and scan land in the same
+        # place (mobile page + auto-opened survey, tagged source=print).
+        "{{MOBILE_URL}}":         feedback_url or mobile_url,
+        "{{FEEDBACK_URL}}":       feedback_url,
         "{{MAPS_URL}}":            maps_url,
         "{{YOUTUBE_URL}}":         youtube_url,
         "{{PORTAL_URL}}":          portal_url,
@@ -236,6 +362,8 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
         raise RuntimeError(f"Unreplaced placeholders in {out_path.name}: {sorted(set(unreplaced))}")
+
+    html = _inject_shared_print_css(html)
 
     _ensure_weasyprint_libpath()
     try:
@@ -267,7 +395,12 @@ def main():
     procedure = procedures[args.procedure]
 
     locations_data = data["locations"]
-    location_ids = list(locations_data.keys()) if args.location == "all" else [args.location]
+    if args.location == "all":
+        # Honor optional per-procedure `locations:` allowlist (e.g. egdph → pmch only).
+        allowed = procedure.get("locations") or list(locations_data.keys())
+        location_ids = [lid for lid in locations_data.keys() if lid in allowed]
+    else:
+        location_ids = [args.location]
     for lid in location_ids:
         if lid not in locations_data:
             sys.exit(f"ERROR: location {lid!r} not found. Available: {list(locations_data.keys())}")

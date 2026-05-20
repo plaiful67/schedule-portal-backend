@@ -317,8 +317,9 @@ def clean_repo(repo_dir, band_ids):
 
 
 _ANALYTICS_SNIPPET = (
-    '<script defer src="https://analytics.giready.com/gi.js" '
-    'data-site="{site}"></script>'
+    '<meta name="giready:context" content=\'{ctx}\'>\n'
+    '  <script defer src="https://analytics.giready.com/gi.js" data-site="{site}"></script>\n'
+    '  <script defer src="https://analytics.giready.com/survey.js" data-site="{site}" data-survey-delay="90"></script>'
 )
 
 _ANALYTICS_SITE_BY_LOC = {
@@ -327,13 +328,21 @@ _ANALYTICS_SITE_BY_LOC = {
 }
 
 
-def _inject_analytics(html, location_id):
-    """Inject the giready analytics embed snippet before </head>. Idempotent."""
+def _inject_analytics(html, location_id, lang, band_id=""):
+    """Inject the giready analytics + survey embed snippets before </head>. Idempotent."""
+    import json
     site = _ANALYTICS_SITE_BY_LOC.get(location_id)
     if not site:
         return html
-    snippet = _ANALYTICS_SNIPPET.format(site=site)
-    if snippet in html:
+    ctx = json.dumps({
+        "procedure": "flex-sig",
+        "band": band_id,
+        "location": location_id,
+        "lang": lang,
+        "source": "web",
+    }, separators=(",", ":"))
+    snippet = _ANALYTICS_SNIPPET.format(site=site, ctx=ctx)
+    if 'giready:context' in html and f'data-site="{site}"' in html and 'survey.js' in html:
         return html
     return html.replace("</head>", f"  {snippet}\n</head>", 1)
 
@@ -360,7 +369,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
         html_title=landing_title_en,
     )
     p = repo_dir / "index.html"
-    p.write_text(_inject_analytics(en_landing_html, location_id), encoding="utf-8")
+    p.write_text(_inject_analytics(en_landing_html, location_id, "en"), encoding="utf-8")
     written.append(p)
 
     # --- ES landing (es/index.html) ----------------------------------------
@@ -371,7 +380,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
         html_title=landing_title_es,
     )
     p = repo_dir / "es" / "index.html"
-    p.write_text(_inject_analytics(es_landing_html, location_id), encoding="utf-8")
+    p.write_text(_inject_analytics(es_landing_html, location_id, "es"), encoding="utf-8")
     written.append(p)
 
     # --- Per-band pages ----------------------------------------------------
@@ -403,7 +412,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = en_dir / "index.html"
-        p.write_text(_inject_analytics(en_html, location_id), encoding="utf-8")
+        p.write_text(_inject_analytics(en_html, location_id, "en", bid), encoding="utf-8")
         written.append(p)
 
         # ES: <repo>/es/<path>/index.html
@@ -426,7 +435,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
             handout_pdf_download_name=pdf_download_name(band, location_id),
         )
         p = es_dir / "index.html"
-        p.write_text(_inject_analytics(es_html, location_id), encoding="utf-8")
+        p.write_text(_inject_analytics(es_html, location_id, "es", bid), encoding="utf-8")
         written.append(p)
 
     # Logo

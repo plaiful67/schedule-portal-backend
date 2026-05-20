@@ -101,8 +101,9 @@ bowel-prep-pdf-review/
 Each review folder is split by `English/` and `Spanish/`, then by weight band.
 
 The `make sites` target writes directly into the four website repos at
-`~/Desktop/{prep,prep86,egdcolon,egdcolon86}-giready/`. Cloudflare Pages
-auto-deploys when those repos are pushed.
+`~/Desktop/{prep,prep86,egdcolon,egdcolon86}-giready/`. Each repo's
+GitHub Actions workflow deploys to a Cloudflare Worker named after the
+repo (e.g. `prep-giready`) on push to `main` — ≈ 30 s per repo.
 
 > **Don't `rm -rf` the SCC/PMCH handout folders.** Hand-exported PDFs may
 > live there alongside the DOCX files. The Makefile deliberately exposes

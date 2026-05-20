@@ -410,8 +410,9 @@ def clean_repo(repo_dir, band_ids, bands_by_id):
 
 
 _ANALYTICS_SNIPPET = (
-    '<script defer src="https://analytics.giready.com/gi.js" '
-    'data-site="{site}"></script>'
+    '<meta name="giready:context" content=\'{ctx}\'>\n'
+    '  <script defer src="https://analytics.giready.com/gi.js" data-site="{site}"></script>\n'
+    '  <script defer src="https://analytics.giready.com/survey.js" data-site="{site}" data-survey-delay="90"></script>'
 )
 
 _ANALYTICS_SITE_BY_FAMILY_LOC = {
@@ -419,20 +420,54 @@ _ANALYTICS_SITE_BY_FAMILY_LOC = {
     ("colonoscopy", "pmch"): "prep86",
     ("combined",    "scc"):  "egdcolon",
     ("combined",    "pmch"): "egdcolon86",
+    # Hidden prep variants (lactulose / CLENPIQ / Suprep). Currently
+    # near-zero traffic; analytics + survey ship for parity so the data
+    # is in place when a variant graduates to public.
+    ("lactulose",          "scc"):  "preplact",
+    ("lactulose",          "pmch"): "preplact86",
+    ("lactulose-combined", "scc"):  "egdcolonlact",
+    ("lactulose-combined", "pmch"): "egdcolonlact86",
+    ("clenpiq",            "scc"):  "prepclenpiq",
+    ("clenpiq",            "pmch"): "prepclenpiq86",
+    ("clenpiq-combined",   "scc"):  "egdcolonclenpiq",
+    ("clenpiq-combined",   "pmch"): "egdcolonclenpiq86",
+    ("suprep",             "scc"):  "prepsuprep",
+    ("suprep",             "pmch"): "prepsuprep86",
+    ("suprep-combined",    "scc"):  "egdcolonsuprep",
+    ("suprep-combined",    "pmch"): "egdcolonsuprep86",
+}
+
+_PROCEDURE_BY_FAMILY = {
+    "colonoscopy":        "bowel-prep",
+    "combined":           "egd-colon",
+    "lactulose":          "bowel-prep",
+    "lactulose-combined": "egd-colon",
+    "clenpiq":            "bowel-prep",
+    "clenpiq-combined":   "egd-colon",
+    "suprep":             "bowel-prep",
+    "suprep-combined":    "egd-colon",
 }
 
 
-def _inject_analytics(html, family, location_id):
-    """Inject the giready analytics embed snippet before </head>.
+def _inject_analytics(html, family, location_id, lang, band_id=""):
+    """Inject the giready analytics + survey embed snippets before </head>.
 
-    Idempotent: if the snippet is already present, returns html unchanged.
+    Idempotent: if the snippets are already present, returns html unchanged.
     Skips silently for unknown family/location combos (no analytics hookup).
     """
+    import json
     site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
     if not site:
         return html
-    snippet = _ANALYTICS_SNIPPET.format(site=site)
-    if snippet in html:
+    ctx = json.dumps({
+        "procedure": _PROCEDURE_BY_FAMILY.get(family, family),
+        "band": band_id,
+        "location": location_id,
+        "lang": lang,
+        "source": "web",
+    }, separators=(",", ":"))
+    snippet = _ANALYTICS_SNIPPET.format(site=site, ctx=ctx)
+    if 'giready:context' in html and f'data-site="{site}"' in html and 'survey.js' in html:
         return html
     return html.replace("</head>", f"  {snippet}\n</head>", 1)
 
@@ -463,7 +498,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=landing_title_en,
     )
     p = repo_dir / "index.html"
-    p.write_text(_inject_analytics(en_landing_html, family, location_id), encoding="utf-8")
+    p.write_text(_inject_analytics(en_landing_html, family, location_id, "en"), encoding="utf-8")
     written.append(p)
 
     # --- ES landing (es/index.html) ----------------------------------------
@@ -474,7 +509,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=landing_title_es,
     )
     p = repo_dir / "es" / "index.html"
-    p.write_text(_inject_analytics(es_landing_html, family, location_id), encoding="utf-8")
+    p.write_text(_inject_analytics(es_landing_html, family, location_id, "es"), encoding="utf-8")
     written.append(p)
 
     # --- Per-band pages ----------------------------------------------------
@@ -507,7 +542,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             handout_pdf_download_name=pdf_download_name(family, band, location_id),
         )
         p = en_dir / "index.html"
-        p.write_text(_inject_analytics(en_html, family, location_id), encoding="utf-8")
+        p.write_text(_inject_analytics(en_html, family, location_id, "en", bid), encoding="utf-8")
         written.append(p)
 
         # ES: <repo>/es/<path>/index.html
@@ -531,7 +566,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             handout_pdf_download_name=pdf_download_name(family, band, location_id),
         )
         p = es_dir / "index.html"
-        p.write_text(_inject_analytics(es_html, family, location_id), encoding="utf-8")
+        p.write_text(_inject_analytics(es_html, family, location_id, "es", bid), encoding="utf-8")
         written.append(p)
 
     # Logo

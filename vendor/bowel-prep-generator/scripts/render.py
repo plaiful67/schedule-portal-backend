@@ -46,6 +46,24 @@ TEMPLATES = SKILL_DIR / "templates"
 DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 PRACTICE_PATH = SKILL_DIR / "practice.yaml"
 
+# Shared design tokens + feedback-cell layout. Auto-prepended to every
+# template's <head> so future cross-skill style changes (color tokens,
+# font stack, feedback CTA layout) live in ONE file. Templates' own
+# <style> blocks still load AFTER and win on override. See
+# ~/peds-gi-prep-system/shared/print-base.css for the source.
+_SHARED_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "print-base.css"
+try:
+    _SHARED_PRINT_CSS = _SHARED_PRINT_CSS_PATH.read_text(encoding="utf-8") if _SHARED_PRINT_CSS_PATH.exists() else ""
+except OSError:
+    _SHARED_PRINT_CSS = ""
+
+
+def _inject_shared_print_css(html: str) -> str:
+    """Splice the shared print-base.css in as the first <style> after <head>."""
+    if not _SHARED_PRINT_CSS:
+        return html
+    return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
+
 
 # ---------------------------------------------------------------------------
 # Phrasing — how structured dosing numbers become prose in each language.
@@ -902,7 +920,12 @@ MOBILE_QR_FILENAME = "word/media/mobile-qr.png"
 
 def _generate_mobile_qr(mobile_path, lang="en", subdomain="prep"):
     """Generate a band-specific mobile-link QR PNG (~150x150 px) for swap-in at render time.
-    Spanish renders point at the /es/ subpath; subdomain depends on location ('prep' for SCC, 'prep86' for PMCH)."""
+    Spanish renders point at the /es/ subpath; subdomain depends on location ('prep' for SCC, 'prep86' for PMCH).
+
+    The encoded URL includes ?feedback=1&source=print so the family who
+    scans the cover QR lands on the mobile page AND the survey modal
+    auto-opens with the print-vs-phone q3 variant. source=print tags the
+    D1 row so PDF-origin feedback can be analyzed separately from web."""
     try:
         import qrcode
         from PIL import Image
@@ -912,9 +935,33 @@ def _generate_mobile_qr(mobile_path, lang="en", subdomain="prep"):
     url = f"https://{subdomain}.giready.com/{mobile_path}/"
     if lang == "es":
         url = url + "es/"
+    url = url + "?feedback=1&source=print"
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=1)
     qr.add_data(url); qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white").convert("RGB").resize((150, 150), Image.NEAREST)
+    buf = _io.BytesIO()
+    img.save(buf, format="PNG", optimize=True)
+    return buf.getvalue()
+
+
+def _generate_feedback_qr(mobile_path, lang="en", subdomain="prep"):
+    """Feedback QR — same target as the mobile QR (?feedback=1&source=print)
+    so survey.js auto-opens with the print-vs-phone q3 variant. Slightly
+    smaller (120x120 px) since it ships next to a caption in a narrow
+    print cell."""
+    try:
+        import qrcode
+        from PIL import Image
+        import io as _io
+    except ImportError:
+        return None
+    url = f"https://{subdomain}.giready.com/{mobile_path}/"
+    if lang == "es":
+        url = url + "es/"
+    url = url + "?feedback=1&source=print"
+    qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=8, border=1)
+    qr.add_data(url); qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white").convert("RGB").resize((120, 120), Image.NEAREST)
     buf = _io.BytesIO()
     img.save(buf, format="PNG", optimize=True)
     return buf.getvalue()
@@ -1210,28 +1257,37 @@ def render_pdf_print(template_path, replacements, out_path,
 
     # Generate QR PNGs as data URIs.
     mobile_qr_bytes = _generate_mobile_qr(mobile_path, lang=lang, subdomain=subdomain) if mobile_path else None
+    feedback_qr_bytes = _generate_feedback_qr(mobile_path, lang=lang, subdomain=subdomain) if mobile_path else None
     maps_qr_bytes = _generate_maps_qr(maps_url) if maps_url else None
     youtube_qr_bytes = _generate_maps_qr(youtube_url)
     portal_qr_bytes = _generate_maps_qr(portal_url)
     gikids_qr_bytes = _generate_maps_qr(gikids_url)
     qr_uris = {
-        "qr-mobile":  _png_to_data_uri(mobile_qr_bytes),
-        "qr-maps":    _png_to_data_uri(maps_qr_bytes),
-        "qr-youtube": _png_to_data_uri(youtube_qr_bytes),
-        "qr-portal":  _png_to_data_uri(portal_qr_bytes),
-        "qr-gikids":  _png_to_data_uri(gikids_qr_bytes),
+        "qr-mobile":   _png_to_data_uri(mobile_qr_bytes),
+        "qr-feedback": _png_to_data_uri(feedback_qr_bytes),
+        "qr-maps":     _png_to_data_uri(maps_qr_bytes),
+        "qr-youtube":  _png_to_data_uri(youtube_qr_bytes),
+        "qr-portal":   _png_to_data_uri(portal_qr_bytes),
+        "qr-gikids":   _png_to_data_uri(gikids_qr_bytes),
     }
+
+    feedback_url = (mobile_url + "?feedback=1&source=print") if mobile_url else ""
 
     # Token-based substitution (stub templates + URL placeholders for clickable links).
     qr_replacements = {
-        "{{MOBILE_QR_DATA_URI}}": qr_uris["qr-mobile"],
-        "{{MAPS_QR_DATA_URI}}":   qr_uris["qr-maps"],
-        "{{MOBILE_URL}}":         mobile_url,
-        "{{MAPS_URL}}":            maps_url,
-        "{{YOUTUBE_URL}}":         youtube_url,
-        "{{PORTAL_URL}}":          portal_url,
-        "{{GIKIDS_URL}}":          gikids_url,
-        "{{LOCATION_PHONE_TEL}}":  location_phone_tel,
+        "{{MOBILE_QR_DATA_URI}}":   qr_uris["qr-mobile"],
+        "{{FEEDBACK_QR_DATA_URI}}": qr_uris["qr-feedback"],
+        "{{MAPS_QR_DATA_URI}}":     qr_uris["qr-maps"],
+        # MOBILE_URL is the clickable href on the cover-QR anchor; keep it
+        # in lockstep with the QR PNG so click and scan land in the same
+        # place (mobile page + auto-opened survey, tagged source=print).
+        "{{MOBILE_URL}}":           feedback_url or mobile_url,
+        "{{FEEDBACK_URL}}":         feedback_url,
+        "{{MAPS_URL}}":             maps_url,
+        "{{YOUTUBE_URL}}":          youtube_url,
+        "{{PORTAL_URL}}":           portal_url,
+        "{{GIKIDS_URL}}":           gikids_url,
+        "{{LOCATION_PHONE_TEL}}":   location_phone_tel,
     }
     practice_replacements = build_practice_placeholders(lang)
     # Partials must be merged FIRST so any per-band/QR/practice placeholders that
@@ -1257,6 +1313,11 @@ def render_pdf_print(template_path, replacements, out_path,
     if unreplaced:
         raise RuntimeError(f"Unreplaced placeholders in {out_path}: {sorted(set(unreplaced))}")
 
+    # Splice shared print-base.css in front of the template's own <style>
+    # block. Template rules still win on override; the shared file adds
+    # design tokens + feedback-cell fallbacks for future migration.
+    html = _inject_shared_print_css(html)
+
     # Resolve relative URLs (e.g. local stub images) against the template directory.
     HTML(string=html, base_url=str(Path(template_path).parent)).write_pdf(str(out_path))
 
@@ -1274,17 +1335,19 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     """
     protocol = band["protocol"]
     stem = band["filename_stem"]
-    # Lactulose, CLENPIQ, and SUPREP protocols are scheduler-only and live
-    # entirely in the mobile pipeline (build_lactulose_websites.py /
-    # build_clenpiq_websites.py / build_suprep_websites.py). render.py is
-    # for the legacy SCC-printed flow (DOCX + non-mobile HTML/PDF), so skip
-    # all hidden-variant protocol families here.
-    if protocol.startswith(("lactulose", "clenpiq", "suprep")):
-        return None
+    # SUPREP, lactulose, and CLENPIQ render into static print PDFs
+    # (handled below) when the caller explicitly selects those bands.
+    # Bypassed via the main() filter for the default `--band all` pass.
     if protocol == "standard":
         replacements = build_strings(band, lang, location=location)
     elif protocol in ("infant", "infant-enema"):
         replacements = build_infant_strings(band, lang)
+    elif protocol == "suprep-standard":
+        replacements = build_suprep_strings(band, lang, location=location)
+    elif protocol in ("lactulose-infant", "lactulose-standard"):
+        replacements = build_lactulose_strings(band, lang, location=location)
+    elif protocol == "clenpiq-standard":
+        replacements = build_clenpiq_strings(band, lang, location=location)
     else:
         raise ValueError(f"Unknown protocol: {protocol}")
 
@@ -1316,7 +1379,9 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
         # templates: combined-print (standard bands), combined-infant-print (oral
         # MiraLAX infants), and combined-infant-enema-print (clear-liquids + saline-
         # enema infants). The standard variant uses the protocol-specific print
-        # template.
+        # template — except for SUPREP, which reuses its mobile template (the
+        # @media print rules in that template handle the letter-paper layout,
+        # so we don't maintain a separate suprep-print template).
         if variant == "combined":
             if protocol == "standard":
                 template = TEMPLATES / f"combined-print.{lang}.html"
@@ -1326,6 +1391,14 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
                 template = TEMPLATES / f"combined-infant-enema-print.{lang}.html"
             else:
                 raise ValueError(f"Unknown protocol for combined variant: {protocol!r}")
+        elif protocol == "suprep-standard":
+            template = TEMPLATES / f"suprep-standard-print.{lang}.html"
+        elif protocol == "lactulose-infant":
+            template = TEMPLATES / f"lactulose-infant-print.{lang}.html"
+        elif protocol == "lactulose-standard":
+            template = TEMPLATES / f"lactulose-standard-print.{lang}.html"
+        elif protocol == "clenpiq-standard":
+            template = TEMPLATES / f"clenpiq-standard-print.{lang}.html"
         else:
             template = TEMPLATES / f"{protocol}-print.{lang}.html"
         theme_suffix = "" if theme == "color" else f"-{theme}"
@@ -1339,6 +1412,284 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     return out
 
 
+# ---------------------------------------------------------------------------
+# Internal-staff cheat-sheet renderer (doses.giready.com + staff PDF).
+#
+# Single template at templates/cheatsheet.html with both @media screen rules
+# (for the public mobile page) and @page print rules (for the staff PDF).
+# All dosing numbers come from dosing.yaml so the cheat-sheet never drifts
+# from the patient handouts that read the same file.
+# ---------------------------------------------------------------------------
+
+def _cs_strip_paren(s):
+    """Strip a trailing parenthetical: '3 oz (~90 mL)' -> '3 oz'."""
+    return re.sub(r"\s*\([^)]*\)\s*$", "", s).strip()
+
+
+def _cs_shorten_window(s):
+    """'5:00 PM to 9:00 PM' -> '5:00–9:00 PM'. Keeps both AM/PM if they differ."""
+    m = re.match(r"^\s*(\d{1,2}:\d{2})\s*(AM|PM)\s+to\s+(\d{1,2}:\d{2})\s*(AM|PM)\s*$", s)
+    if not m:
+        return s
+    s1, p1, s2, p2 = m.groups()
+    if p1 == p2:
+        return f"{s1}–{s2} {p2}"
+    return f"{s1} {p1}–{s2} {p2}"
+
+
+def _cs_short_band_label(label_en):
+    """'Under 5 kg (under 11 lb)' -> '<5 kg' for the lactulose-infant cheat-sheet rows."""
+    base = label_en.split(" (")[0]
+    return {"Under 5 kg": "&lt;5 kg"}.get(base, base)
+
+
+def _cs_spoon_short(s):
+    """'5 mL (one teaspoon)' -> '5 mL (1 tsp)' — staff-cheat-sheet compact form."""
+    return (s.replace("one teaspoon", "1 tsp")
+              .replace("two teaspoons", "2 tsp")
+              .replace("one tablespoon", "1 tbsp"))
+
+
+def render_cheatsheet(dosing_data, out_dir):
+    """Render doses.giready.com cheat-sheet (index.html + bowel-prep-cheatsheet.pdf).
+
+    One template (templates/cheatsheet.html) → both outputs, so the print PDF
+    and the on-screen page can never drift.
+    """
+    from datetime import date
+
+    template_path = TEMPLATES / "cheatsheet.html"
+    with open(template_path, encoding="utf-8") as f:
+        html = f.read()
+
+    bands_by_id = {b["id"]: b for b in dosing_data["bands"]}
+    locations = dosing_data["locations"]
+    scc, pmch = locations["scc"], locations["pmch"]
+
+    practice = _practice()
+    office_phone = practice["practice"]["phone"]
+
+    today_str = date.today().strftime("%B %-d, %Y")
+
+    std_ids = ["15-20", "21-30", "31-40", "41-50", "over-50"]
+
+    # MiraLAX standard table — 5 rows.
+    std_rows = []
+    for bid in std_ids:
+        b = bands_by_id[bid]
+        cup = _cs_strip_paren(b["drink_cup_en"])
+        std_rows.append(
+            f'          <tr>'
+            f'<td class="band">{b["label_en"]}</td>'
+            f'<td class="num">{b["dulcolax_bedtime_tablets"]} + {b["dulcolax_dayof_tablets"]}</td>'
+            f'<td class="num">{b["dulcolax_mg_total"]} mg</td>'
+            f'<td class="num">{b["miralax_capfuls"]}</td>'
+            f'<td class="num">{b["miralax_grams"]} g</td>'
+            f'<td class="num">{b["gatorade_oz"]} oz</td>'
+            f'<td class="muted">{cup}</td>'
+            f'<td class="num">{b["miralax_time"]}</td>'
+            f'</tr>'
+        )
+    std_rows_html = "\n".join(std_rows)
+
+    # Infant MiraLAX sub-band rows — 3 tiers + saline-enema row (10 mL/kg is
+    # a clinical norm for pediatric enemas, so it's left static here).
+    infant = bands_by_id["under-15"]
+    infant_rows = []
+    for t in infant.get("miralax_infant_tiers", []):
+        infant_rows.append(
+            f'          <tr>'
+            f'<td class="band">{t["label_en"]}</td>'
+            f'<td class="num">{t["capfuls_label_en"]}</td>'
+            f'<td class="num">{t["grams_label_en"]}</td>'
+            f'<td class="muted">{t["mix_in_en"]}</td>'
+            f'</tr>'
+        )
+    infant_rows.append(
+        '          <tr>'
+        '<td class="band">Saline enema</td>'
+        '<td class="muted" colspan="3">10 mL/kg — evening at home if directed, otherwise by staff at facility</td>'
+        '</tr>'
+    )
+    infant_rows_html = "\n".join(infant_rows)
+
+    # Contingency rescue rows — 5 rows.
+    cont_rows = []
+    for bid in std_ids:
+        b = bands_by_id[bid]
+        cont_rows.append(
+            f'          <tr>'
+            f'<td class="band">{b["label_en"]}</td>'
+            f'<td class="num">{b["contingency_evening_caps"]} cap / {b["contingency_evening_oz"]} oz</td>'
+            f'<td class="num">{b["contingency_morning_caps"]} cap / {b["contingency_morning_oz"]} oz</td>'
+            f'<td class="num hi">{b["contingency_total_caps"]} caps ({b["contingency_total_grams"]} g)</td>'
+            f'<td class="muted">{b["cheatsheet_contingency_backup"]}</td>'
+            f'</tr>'
+        )
+    cont_rows_html = "\n".join(cont_rows)
+
+    # Pre-cleanout rows — 5 rows.
+    prec_rows = []
+    for bid in std_ids:
+        b = bands_by_id[bid]
+        prec_rows.append(
+            f'          <tr>'
+            f'<td class="band">{b["label_en"]}</td>'
+            f'<td>{b["cheatsheet_disimpaction"]}</td>'
+            f'<td class="num">weekend</td>'
+            f'<td>{b["cheatsheet_maintenance"]}</td>'
+            f'</tr>'
+        )
+    prec_rows_html = "\n".join(prec_rows)
+
+    # GLP-1 hold band list — driven by include_glp1_warning across standard bands.
+    glp1_bands = [bands_by_id[bid]["label_en"] for bid in std_ids
+                  if bands_by_id[bid].get("include_glp1_warning")]
+    glp1_hold_str = ", ".join(glp1_bands) if glp1_bands else "none"
+
+    # CLENPIQ rows — 2 doses.
+    cl = bands_by_id["clenpiq"]
+    cl_cup = _cs_strip_paren(cl["drink_cup_en"])
+    cl_window = _cs_shorten_window(cl["dose1_window_en"])
+    clenpiq_rows_html = "\n".join([
+        f'          <tr>'
+        f'<td class="band">Evening</td>'
+        f'<td class="num-wrap">1 &times; {cl["clenpiq_bottle_oz"]} oz ({cl["clenpiq_bottle_ml"]} mL)</td>'
+        f'<td class="num">{cl_window}</td>'
+        f'<td class="num-wrap">{cl["dose1_clears_cups"]} &times; 8 oz cup over {cl["dose1_clears_hours"]} h ({cl["dose1_clears_oz"]} oz)</td>'
+        f'<td class="muted">{cl_cup}</td>'
+        f'</tr>',
+        f'          <tr>'
+        f'<td class="band">Morning</td>'
+        f'<td class="num-wrap">1 &times; {cl["clenpiq_bottle_oz"]} oz ({cl["clenpiq_bottle_ml"]} mL)</td>'
+        f'<td class="num-wrap">{cl["dose2_hours_before_min"]}–{cl["dose2_hours_before_max"]} h before proc.</td>'
+        f'<td class="num-wrap">{cl["dose2_clears_cups"]} &times; 8 oz cup ({cl["dose2_clears_oz"]} oz)</td>'
+        f'<td class="muted">{cl_cup}</td>'
+        f'</tr>',
+    ])
+    clenpiq_eligibility = cl["summary_label_en"].split(" — ")[0]
+
+    # SUPREP rows — 2 doses.
+    sp = bands_by_id["suprep"]
+    sp_cup = _cs_strip_paren(sp["drink_cup_en"])
+    sp_window = _cs_shorten_window(sp["dose1_window_en"])
+    suprep_rows_html = "\n".join([
+        f'          <tr>'
+        f'<td class="band">Evening</td>'
+        f'<td class="num-wrap">1 bottle ({sp["suprep_bottle_oz"]} oz) + water to {sp["suprep_fill_line_oz"]}-oz fill line</td>'
+        f'<td class="num">{sp_window}</td>'
+        f'<td class="num-wrap">{sp["dose1_chaser_fills"]} &times; {sp["suprep_fill_line_oz"]} oz fills ({sp["dose1_chasers_oz"]} oz) over {sp["dose1_chasers_hours"]} h</td>'
+        f'<td class="muted">{sp_cup}</td>'
+        f'</tr>',
+        f'          <tr>'
+        f'<td class="band">Morning</td>'
+        f'<td class="num-wrap">1 bottle ({sp["suprep_bottle_oz"]} oz) + water to {sp["suprep_fill_line_oz"]}-oz fill line</td>'
+        f'<td class="num-wrap">{sp["dose_separation_hours_min"]}–{sp["dose_separation_hours_max"]} h after Dose 1 &middot; ≥ {sp["dose2_hours_before_min"]} h before proc.</td>'
+        f'<td class="num-wrap">{sp["dose2_chaser_fills"]} &times; {sp["suprep_fill_line_oz"]} oz fills ({sp["dose2_chasers_oz"]} oz) over {sp["dose2_chasers_hours"]} h</td>'
+        f'<td class="muted">{sp_cup}</td>'
+        f'</tr>',
+    ])
+    suprep_eligibility = sp["summary_label_en"].split(" — ")[0]
+
+    # Lactulose big-prep rows — 15-17, 18-20 (from 15-20-lact tiers), then 21-30 (single tier).
+    l1520 = bands_by_id["15-20-lact"]
+    l2130 = bands_by_id["21-30-lact"]
+    lact_std_rows = []
+    for src_band in (l1520, l2130):
+        for tier in src_band["lactulose_big_prep_tiers"]:
+            lact_std_rows.append(
+                f'          <tr>'
+                f'<td class="band">{tier["label_en"]}</td>'
+                f'<td class="num">{src_band["dulcolax_bedtime_tablets"]} + {src_band["dulcolax_dayof_tablets"]}</td>'
+                f'<td class="num">{tier["lactulose_ml"]} mL</td>'
+                f'<td class="num">{tier["gatorade_oz"]} oz</td>'
+                f'<td class="muted">{src_band["drink_cup_oz"]} oz</td>'
+                f'<td class="num">{src_band["lactulose_time"]}</td>'
+                f'</tr>'
+            )
+    lact_std_rows_html = "\n".join(lact_std_rows)
+
+    # Lactulose infant rows — 3 weight tiers from under-15-lact.
+    li = bands_by_id["under-15-lact"]
+    lact_inf_rows = []
+    for tier in li["lactulose_daily_tiers"]:
+        lact_inf_rows.append(
+            f'          <tr>'
+            f'<td class="band">{_cs_short_band_label(tier["label_en"])}</td>'
+            f'<td class="num">{_cs_spoon_short(tier["dose_label_en"])}</td>'
+            f'<td class="muted">{tier["cheatsheet_mix_in_en"]}</td>'
+            f'</tr>'
+        )
+    lact_inf_rows_html = "\n".join(lact_inf_rows)
+
+    # Lactulose footnote — rescue volumes per band + pre-cleanout pattern.
+    lact_footnote = (
+        f'<strong>Rescue (15–20 kg):</strong> '
+        f'{l1520["rescue_evening_lactulose_ml"]} mL / {l1520["rescue_evening_gatorade_oz"]} oz evening, '
+        f'{l1520["rescue_morning_lactulose_ml"]} mL / {l1520["rescue_morning_gatorade_oz"]} oz morning. '
+        f'<strong>Rescue (21–30 kg):</strong> '
+        f'{l2130["rescue_evening_lactulose_ml"]} mL / {l2130["rescue_evening_gatorade_oz"]} oz evening, '
+        f'{l2130["rescue_morning_lactulose_ml"]} mL / {l2130["rescue_morning_gatorade_oz"]} oz morning. '
+        f'<strong>Pre-cleanout:</strong> 15 mL &times; 2/day (15–20 kg) or &times; 3/day (21–30 kg) &times; 3 d.'
+    )
+
+    scc_mobile_lines = f'{scc["mobile_subdomain"]}.giready.com<br>{scc["mobile_subdomain_combined"]}.giready.com'
+    pmch_mobile_lines = f'{pmch["mobile_subdomain"]}.giready.com<br>{pmch["mobile_subdomain_combined"]}.giready.com'
+
+    replacements = {
+        "{{LAST_UPDATED}}": today_str,
+        "{{OFFICE_PHONE}}": office_phone,
+        "{{STANDARD_BAND_ROWS}}": std_rows_html,
+        "{{INFANT_SUB_ROWS}}": infant_rows_html,
+        "{{CONTINGENCY_ROWS}}": cont_rows_html,
+        "{{CONTINGENCY_TRIGGER_HOURS}}": str(bands_by_id["15-20"]["contingency_trigger_hours"]),
+        "{{PRECLEANOUT_ROWS}}": prec_rows_html,
+        "{{NPO_SCC_HOURS}}": str(scc["clears_npo_hours"]),
+        "{{NPO_PMCH_HOURS}}": str(pmch["clears_npo_hours"]),
+        "{{LOC_SCC_NAME}}": scc["cheatsheet_name"],
+        "{{LOC_SCC_ADDRESS}}": scc["address"],
+        "{{LOC_SCC_PHONE}}": scc["phone"],
+        "{{LOC_SCC_ARRIVAL_MIN}}": str(scc["arrival_minutes_before"]),
+        "{{LOC_SCC_MOBILE_LINES}}": scc_mobile_lines,
+        "{{LOC_PMCH_NAME}}": pmch["cheatsheet_name"],
+        "{{LOC_PMCH_ADDRESS}}": pmch["address"],
+        "{{LOC_PMCH_PHONE}}": pmch["phone"],
+        "{{LOC_PMCH_ARRIVAL_MIN}}": str(pmch["arrival_minutes_before"]),
+        "{{LOC_PMCH_MOBILE_LINES}}": pmch_mobile_lines,
+        "{{GLP1_HOLD_BANDS}}": glp1_hold_str,
+        "{{CLENPIQ_ROWS}}": clenpiq_rows_html,
+        "{{CLENPIQ_ELIGIBILITY}}": clenpiq_eligibility,
+        "{{CLENPIQ_BOTTLES}}": str(cl["clenpiq_total_bottles"]),
+        "{{SUPREP_ROWS}}": suprep_rows_html,
+        "{{SUPREP_ELIGIBILITY}}": suprep_eligibility,
+        "{{SUPREP_AGE_FLOOR}}": str(sp["suprep_age_floor"]),
+        "{{LACTULOSE_STANDARD_ROWS}}": lact_std_rows_html,
+        "{{LACTULOSE_INFANT_ROWS}}": lact_inf_rows_html,
+        "{{LACTULOSE_FOOTNOTE}}": lact_footnote,
+    }
+    for token, value in replacements.items():
+        html = html.replace(token, value)
+
+    unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
+    if unreplaced:
+        raise RuntimeError(f"Unreplaced placeholders in cheatsheet: {sorted(set(unreplaced))}")
+
+    html = _inject_shared_print_css(html)
+
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    index_path = out_dir / "index.html"
+    pdf_path = out_dir / "bowel-prep-cheatsheet.pdf"
+
+    index_path.write_text(html, encoding="utf-8")
+
+    _ensure_weasyprint_libpath()
+    from weasyprint import HTML  # type: ignore
+    HTML(string=html, base_url=str(TEMPLATES)).write_pdf(str(pdf_path))
+
+    return [index_path, pdf_path]
+
+
 def load_dosing():
     with open(DOSING_PATH, encoding="utf-8") as f:
         data = yaml.safe_load(f)
@@ -1350,7 +1701,11 @@ def main():
     ap.add_argument("--out", required=True, help="Output directory")
     ap.add_argument("--band", default="all", help="Band id (default: all)")
     ap.add_argument("--lang", default="both", choices=["en", "es", "both"])
-    ap.add_argument("--format", default="both", choices=["html", "docx", "both", "pdf-print"])
+    ap.add_argument("--format", default="both",
+                    choices=["html", "docx", "both", "pdf-print", "cheatsheet"],
+                    help="'cheatsheet' renders the doses.giready.com index.html + "
+                         "bowel-prep-cheatsheet.pdf (internal staff reference) and "
+                         "ignores --band/--lang/--theme/--variant.")
     ap.add_argument("--location", default="scc", help="Location id (scc or pmch). Default: scc")
     ap.add_argument("--theme", default="color", choices=["color", "print-light"],
                     help="Color theme for pdf-print: 'color' (default) or 'print-light' (toner-friendly).")
@@ -1369,6 +1724,17 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
 
     dosing_data = load_dosing()
+
+    # The cheat-sheet is a single, all-bands document that renders the public
+    # doses.giready.com page + an internal staff PDF in one pass. It skips the
+    # per-band/per-language loop below.
+    if args.format == "cheatsheet":
+        written = render_cheatsheet(dosing_data, out_dir)
+        for path in written:
+            print(f"  wrote {path}")
+        print(f"\n{len(written)} file(s) written to {out_dir} (format=cheatsheet)")
+        return
+
     bands = dosing_data["bands"]
     locations = dosing_data.get("locations", {})
     if args.location not in locations:
@@ -1379,6 +1745,14 @@ def main():
         bands = [b for b in bands if b["id"] == args.band]
         if not bands:
             sys.exit(f"ERROR: band id {args.band!r} not found in dosing.yaml")
+    else:
+        # SUPREP, lactulose, and CLENPIQ are scheduler-only alternative
+        # preps — exclude them from the default --band all pass so they
+        # don't end up mixed in with the standard MiraLAX colonoscopy
+        # folder. The Makefile's render-pdf-{suprep,lactulose,clenpiq}
+        # targets opt in explicitly by passing each band id.
+        bands = [b for b in bands
+                 if not b["protocol"].startswith(("suprep", "lactulose", "clenpiq"))]
 
     # Combined variant renders all protocols (standard + both infant variants);
     # the per-protocol template is picked inside render_band.

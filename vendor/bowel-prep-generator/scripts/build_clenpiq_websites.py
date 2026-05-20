@@ -42,6 +42,7 @@ from build_colonoscopy_websites import (  # noqa: E402
     build_practice_placeholders,
     build_location_placeholders,
     _do_replace,
+    _inject_analytics,
     PRACTICE_PATH,
     DOSING_PATH,
 )
@@ -174,7 +175,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id):
         html_title=HTML_TITLE_BAND_EN,
     )
     p = en_dir / "index.html"
-    p.write_text(en_html, encoding="utf-8")
+    p.write_text(_inject_analytics(en_html, "clenpiq", location_id, "en", "clenpiq"), encoding="utf-8")
     written.append(p)
 
     # ES page at /es/clenpiq/index.html
@@ -188,7 +189,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id):
         html_title=HTML_TITLE_BAND_ES,
     )
     p = es_dir / "index.html"
-    p.write_text(es_html, encoding="utf-8")
+    p.write_text(_inject_analytics(es_html, "clenpiq", location_id, "es", "clenpiq"), encoding="utf-8")
     written.append(p)
 
     # Logo

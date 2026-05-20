@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{{HTML_TITLE}}</title>
+<style>
+  /* Personalized variant of egdph-print.en.html (EGD + pH-MII handout).
+     Adds the appointment callout, follow-up block, and performing-physician
+     line — same overlays as the EGD personalized template. */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.65in 0.5in 0.65in;
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+      font-family: "Inter", sans-serif; font-size: 8.5pt; color: #666;
+    }
+    @bottom-left {
+      content: "{{PRACTICE_FOOTER}}";
+      font-family: "Inter", sans-serif; font-size: 8.5pt; color: #666;
+    }
+  }
+  @page :first { @top-center { content: ""; } }
+  @page {
+    @top-center {
+      content: string(band-label);
+      font-family: "Inter", sans-serif; font-size: 9pt; color: #555; letter-spacing: 0.02em;
+    }
+  }
+
+  html { font-size: 10.5pt; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.36;
+  }
+
+  h1, h2, h3, h4, .ui {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #0e2233;
+  }
+  h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 12.5pt; margin: 10pt 0 3pt 0; font-weight: 600; }
+  h3 { font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600; }
+  p { margin: 4pt 0; orphans: 3; widows: 3; }
+  ul, ol { margin: 4pt 0 4pt 16pt; padding: 0; }
+  li { margin: 1.5pt 0; }
+  strong { font-weight: 700; }
+  a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  a.qr-caption { color: inherit; text-decoration: none; }
+  .qr-block { display: block; color: inherit; text-decoration: none; }
+  a.resource-card { color: inherit; text-decoration: none; }
+  .location-text a { color: inherit; text-decoration: none; }
+
+  .cover {
+    string-set: band-label "{{PROCEDURE_LABEL}}";
+    border-bottom: 2pt solid #0e2233;
+    padding-bottom: 8pt;
+    margin-bottom: 10pt;
+  }
+  .cover-row {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 14pt; margin-bottom: 4pt;
+  }
+  .practice-logo { height: 0.65in; width: auto; flex: 0 0 auto; }
+  .practice-stack {
+    flex: 1 1 auto; text-align: center;
+    font-family: "Inter", sans-serif; font-size: 11pt; font-weight: 600;
+    color: #0e2233; line-height: 1.2;
+  }
+  .practice-stack .phone { margin-top: 1pt; font-size: 10pt; font-weight: 500; color: #555; }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .cover-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+  .cover-title-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 12pt; margin-top: 2pt;
+  }
+  .doc-title { font-size: 15pt; font-weight: 600; color: #0e2233; margin: 1pt 0; white-space: normal; }
+  .band-label {
+    font-family: "Inter", sans-serif; font-size: 12pt; font-weight: 600;
+    color: #b03a00; margin-top: 2pt;
+  }
+  .performing-physician {
+    font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 500;
+    color: #555; margin-top: 3pt;
+  }
+
+  .location {
+    display: flex; gap: 12pt; align-items: flex-start;
+    border: 1pt solid #c9d3dd; background: #f4f7fa;
+    border-radius: 4pt; padding: 8pt 10pt; margin-bottom: 10pt;
+    break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; font-size: 10pt; }
+  .location-text .label {
+    font-family: "Inter", sans-serif; font-size: 8.5pt;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    color: #555; margin-bottom: 1pt;
+  }
+  .location-text .name { font-weight: 700; font-size: 11pt; color: #0e2233; }
+  .location-text .addr { margin-top: 1pt; }
+  .location-text .arrival {
+    margin-top: 3pt; font-family: "Inter", sans-serif;
+    font-weight: 600; color: #b03a00;
+  }
+  .location-qr { flex: 0 0 auto; }
+  .location-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .location-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.78in; height: 0.78in;
+  }
+  .location-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.95in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+
+  h2.step {
+    background: #0e2233; color: #ffffff;
+    padding: 4pt 8pt; border-radius: 3pt;
+    margin: 9pt 0 4pt 0; font-size: 11.5pt;
+    break-after: avoid; font-family: "Inter", sans-serif;
+  }
+  h2.step .icon { display: inline-block; margin-right: 4pt; }
+
+  p.note { font-size: 9.5pt; color: #555; font-style: italic; margin: 3pt 0 0 0; }
+
+  table.npo,
+  table.med-stops,
+  table.trouble-table {
+    width: 100%; border-collapse: collapse;
+    margin: 4pt 0 8pt 0;
+    border: 1pt solid #c9d3dd; border-radius: 4pt; overflow: hidden;
+    break-inside: avoid;
+  }
+  table.npo thead,
+  table.med-stops thead,
+  table.trouble-table thead { display: table-header-group; }
+  table.npo th,
+  table.med-stops th,
+  table.trouble-table th {
+    background: #e3eaf1; color: #0e2233;
+    font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 600;
+    text-align: left; padding: 5pt 8pt;
+    border-bottom: 1pt solid #c9d3dd;
+  }
+  table.npo td,
+  table.med-stops td,
+  table.trouble-table td {
+    padding: 5pt 8pt;
+    border-bottom: 0.5pt solid #d8dee5;
+    vertical-align: top;
+    font-size: 10pt;
+  }
+  table.npo tr:last-child td,
+  table.med-stops tr:last-child td,
+  table.trouble-table tr:last-child td { border-bottom: none; }
+  table.npo .col-item { width: 60%; }
+  table.npo .col-stop { width: 40%; font-family: "Inter", sans-serif; font-weight: 600; color: #0d3a6b; }
+  table.npo .stop-hours { font-size: 11pt; }
+  table.npo .row-thickener td { background: #fffdf6; }
+
+  table.med-stops .col-item { width: 65%; }
+  table.med-stops .col-stop { width: 35%; font-family: "Inter", sans-serif; font-weight: 600; color: #0d3a6b; }
+  table.med-stops .stop-hours { font-size: 10.5pt; }
+  table.med-stops .med-examples {
+    font-size: 9pt; color: #555; font-style: italic;
+    margin-top: 1pt;
+  }
+  /* Calendar date stamped under each "X days before" cell on the personalized
+     handout (only when appt_dt is in scope — public handout omits it). */
+  table.med-stops .med-stop-date {
+    font-family: "Inter", sans-serif;
+    font-weight: 400; font-size: 9pt;
+    color: #555; margin-top: 1pt;
+  }
+
+  table.trouble-table .col-problem { width: 38%; font-weight: 600; color: #0e2233; }
+
+  .callout, .warning {
+    border-radius: 4pt; padding: 6pt 9pt; margin: 6pt 0;
+    break-inside: avoid;
+  }
+  .callout { background: #fffaeb; border: 1pt solid #d4a017; }
+  .callout-title {
+    font-family: "Inter", sans-serif; font-weight: 700;
+    color: #7a4f00; margin-bottom: 3pt;
+  }
+  .warning {
+    background: #fdecea; border: 1pt solid #c0392b;
+    font-weight: 600; color: #7a1f00;
+  }
+
+  .two-col {
+    display: flex; gap: 14pt; align-items: flex-start;
+    margin: 6pt 0;
+  }
+  .two-col > * { flex: 1 1 0; }
+  .resource-card {
+    display: flex; align-items: center; gap: 8pt;
+    border: 1pt solid #c9d3dd; border-radius: 4pt;
+    padding: 5pt 8pt; background: #f8fafc;
+    break-inside: avoid;
+  }
+  .resource-card img { width: 0.7in; height: 0.7in; flex: 0 0 auto; }
+  .resource-card .label {
+    font-family: "Inter", sans-serif; font-size: 9pt; color: #333;
+    line-height: 1.2; flex: 1 1 auto;
+  }
+
+  body.theme-print-light h2.step {
+    background: #ffffff; color: #0e2233;
+    border: 1pt solid #0e2233; border-left: 4pt solid #0e2233;
+  }
+  body.theme-print-light table.npo th,
+  body.theme-print-light table.med-stops th,
+  body.theme-print-light table.trouble-table th {
+    background: #ffffff; color: #0e2233;
+    border-bottom: 1.5pt solid #0e2233;
+  }
+  body.theme-print-light table.npo .row-thickener td { background: #ffffff; }
+  body.theme-print-light .callout {
+    background: #ffffff; border: 1pt solid #d4a017; border-left: 3pt solid #d4a017;
+  }
+  body.theme-print-light .warning {
+    background: #ffffff; border: 1pt solid #c0392b; border-left: 3pt solid #c0392b;
+  }
+  body.theme-print-light .location { background: #ffffff; }
+  body.theme-print-light .resource-card { background: #ffffff; }
+
+  /* --- Personalized appointment callout --- */
+  .appt-callout {
+    margin: 6pt 0; padding: 5pt 14pt;
+    border: 2pt solid #0e2233; border-radius: 6pt;
+    background: #f7f8fa; page-break-inside: avoid;
+  }
+  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+  .appt-block { flex: 1 1 0; min-width: 0; }
+  .appt-block.appt-block-date { flex: 2 1 0; }
+  .appt-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; margin-bottom: 1pt;
+  }
+  .appt-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13pt; font-weight: 700; color: #0e2233;
+    white-space: nowrap;
+  }
+  .followup-callout {
+    margin: 8pt 0; padding: 6pt 12pt;
+    border-left: 3pt solid #0e4a82;
+    background: #f5f8fb;
+    display: flex; align-items: baseline; gap: 8pt;
+    page-break-inside: avoid;
+  }
+  .followup-callout .followup-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; font-weight: 600;
+  }
+  .followup-callout .followup-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11pt; font-weight: 600; color: #0e2233;
+  }
+  .followup-callout.fallback .followup-value {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;
+  }
+</style>
+</head>
+<body>
+
+<!-- COVER -->
+<section class="cover">
+  <div class="cover-row">
+    <img class="practice-logo" src="{{PRACTICE_LOGO_FILE}}" alt="{{PRACTICE_LOGO_ALT}}">
+    <div class="practice-stack">
+      <div>{{PRACTICE_STACK_LINE_1}}</div>
+      <div>{{PRACTICE_STACK_LINE_2}}</div>
+      <div class="phone">{{PRACTICE_STACK_LINE_3}}</div>
+    </div>
+    <div class="cover-qr">
+    <a class="qr-block" href="{{MOBILE_URL}}">
+      <span class="qr-caption">Scan or visit<br>egdph.giready.com</span>
+      <img id="qr-mobile" src="qr-placeholder.png" alt="Mobile-friendly version QR">
+    </a>
+  </div>
+  </div>
+  <div class="cover-title-row">
+    <h1 class="doc-title">{{PROCEDURE_LABEL}}</h1>
+    <div class="band-label">What to Expect</div>
+    <div class="performing-physician">Performing physician: {{PERFORMING_PHYSICIAN}}</div>
+  </div>
+</section>
+
+<!-- APPOINTMENT CALLOUT -->
+<section class="appt-callout">
+  <div class="appt-row">
+    <div class="appt-block appt-block-date">
+      <div class="appt-label">Procedure date</div>
+      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Arrival</div>
+      <div class="appt-value">{{ARRIVAL_TIME}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Procedure time</div>
+      <div class="appt-value">{{APPT_TIME}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section class="location">
+  <div class="location-text">
+    <div class="label">Procedure Location</div>
+    <div class="name">{{LOCATION_NAME}}</div>
+    <div class="addr"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">{{LOCATION_ADDRESS}}</a></div>
+    <div class="addr">{{LOCATION_PHONE_LABEL}}: <a href="tel:{{LOCATION_PHONE_TEL}}"><strong>{{LOCATION_PHONE}}</strong></a></div>
+    <div class="arrival">{{LOCATION_ARRIVAL}}</div>
+  </div>
+  <div class="location-qr">
+    <a class="qr-block" href="{{MAPS_URL}}" target="_blank" rel="noopener">
+      <span class="qr-caption">Scan for Google Maps</span>
+      <img id="qr-maps" src="qr-placeholder.png" alt="Google Maps directions QR">
+    </a>
+  </div>
+</section>
+
+<!-- Follow-up appointment -->
+{{FOLLOWUP_BLOCK_HTML}}
+
+<!-- ABOUT -->
+<h2 class="step"><span class="icon">&#128214;</span> About the Procedures</h2>
+<p>Your child is scheduled for an <strong>upper endoscopy (EGD)</strong> combined with <strong>pH impedance monitoring (pH-MII)</strong>.</p>
+<ul>
+  <li><strong>EGD:</strong> While your child is under anesthesia, the doctor passes a thin, flexible camera through the mouth to examine the esophagus, stomach, and first part of the small intestine. Small biopsies are usually taken. This part takes about <strong>{{DURATION_MIN}} minutes</strong>.</li>
+  <li><strong>pH impedance probe:</strong> While your child is still under anesthesia, a thin, flexible tube is placed through the nose into the esophagus. Your child will not feel this. The tube is taped to the cheek and connected to a small recorder worn on a strap. The tube stays in place for <strong>24 hours</strong> and records both acidic and non-acidic reflux episodes, helping the doctor understand whether reflux is related to your child's symptoms.</li>
+</ul>
+<p>Plan to be at the facility for several hours on the day of the procedure, and to <strong>return the next day</strong> to have the probe removed.</p>
+
+<!-- NPO -->
+<h2 class="step"><span class="icon">&#9201;&#65039;</span> Eating &amp; Drinking — Before the Procedure (NPO)</h2>
+<p>For your child's safety, anesthesia requires an empty stomach. Stop each food or liquid below by the time listed, counting back from your child's <strong>scheduled arrival time</strong>:</p>
+
+<table class="npo">
+  <thead>
+    <tr>
+      <th class="col-item">Food or liquid</th>
+      <th class="col-stop">Stop this many hours before arrival</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Solid foods <span class="note">(includes soup)</span></td>
+      <td class="col-stop"><span class="stop-hours">{{NPO_SOLID}} hours</span></td>
+    </tr>
+    <tr>
+      <td>Formula or milk feedings <span class="note">(bottle or tube)</span></td>
+      <td class="col-stop"><span class="stop-hours">{{NPO_FORMULA}} hours</span></td>
+    </tr>
+    <tr>
+      <td>Breast milk</td>
+      <td class="col-stop"><span class="stop-hours">{{NPO_BREASTMILK}} hours</span></td>
+    </tr>
+    <tr>
+      <td>Clear liquids <span class="note">(water, juice without pulp, clear soda, clear tea, black coffee)</span></td>
+      <td class="col-stop"><span class="stop-hours">{{NPO_CLEAR}} hours</span></td>
+    </tr>
+    <tr class="row-thickener">
+      <td>Thickening agents added to any liquid above</td>
+      <td class="col-stop"><span class="stop-hours">{{NPO_THICKENER}} hours</span></td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="warning">&#9888;&#65039; If these times are not followed exactly, the anesthesia team will cancel the procedure for your child's safety.</div>
+
+<p class="note">If you don't think your child can meet these times (for example, a feeding-tube schedule or a child who won't tolerate going without a bottle), call the office before the day of the procedure so we can plan with you.</p>
+
+<!-- MEDICATIONS TO STOP -->
+<h2 class="step"><span class="icon">&#128138;</span> Medications to Stop Before the Procedures</h2>
+<p>For the pH impedance study to give accurate results, certain medications must be stopped ahead of time. Unless your doctor tells you otherwise:</p>
+
+<table class="med-stops">
+  <thead>
+    <tr>
+      <th class="col-item">Medication</th>
+      <th class="col-stop">When to stop</th>
+    </tr>
+  </thead>
+  <tbody>
+{{MED_STOPS_TBODY}}
+  </tbody>
+</table>
+
+<div class="warning">&#9888;&#65039; Do not stop any medication without checking with your child's doctor first. In some cases, the doctor may want the study done while your child is still taking a PPI — they will tell you if that applies.</div>
+
+<div class="callout">
+  <div class="callout-title">&#128138; Other medications</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0 0 1pt;">Continue all other daily medications. Most can be taken with a small sip of water on the morning of the procedure.</p>
+      <p style="margin: 0;">You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+<!-- DAY BEFORE / DAY OF -->
+<h2 class="step"><span class="icon">&#128197;</span> Day Before<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span> &amp; Day of<span class="pz-only" data-pz-day="0" data-pz-template=" ({date})"></span> the Procedure</h2>
+<ul>
+  <li><strong>Bathing</strong>: a normal bath or shower the night before is fine.</li>
+  <li><strong>What to wear</strong>: comfortable clothes; no nail polish on at least one finger so the oxygen sensor can read.</li>
+  <li><strong>Bring</strong>: a comfort item (small toy, blanket, tablet), a change of clothes, your insurance card and photo ID, any current medication list, and <strong>a bag or small backpack to carry the recorder home</strong>.</li>
+  <li><strong>Who comes</strong>: a parent or legal guardian must accompany the child. Plan for one adult to stay through recovery.</li>
+  <li><strong>Sick day rule</strong>: if your child develops a fever, new cough, vomiting, or significant cold symptoms in the 48 hours before, call the office — anesthesia may need to reschedule.</li>
+</ul>
+
+<!-- AFTER EGD / GOING HOME WITH PROBE -->
+<h2 class="step"><span class="icon">&#127973;</span> After the EGD — Going Home with the Probe</h2>
+<ul>
+  <li>Your child will wake up in the recovery area. Some grogginess, mild sore throat, and gas/bloating are normal for several hours.</li>
+  <li><strong>An adult must stay with your child for 24 hours</strong> after anesthesia.</li>
+  <li>Start with clear liquids, then advance to a regular diet as tolerated.</li>
+  <li>No school, daycare, or sports for the rest of the procedure day.</li>
+  <li>The doctor will discuss what was seen during the EGD before you go home. Biopsy results take about <strong>1–2 weeks</strong>; we'll send them through the patient portal or call.</li>
+  <li>Before you leave, the nurse will review how to use the recorder and diary and make sure the probe is secure.</li>
+</ul>
+
+<!-- DURING 24H MONITORING -->
+<h2 class="step"><span class="icon">&#127968;</span> During the 24-Hour Monitoring Period<span class="pz-only" data-pz-day="0" data-pz-template=" ({date}"></span><span class="pz-only" data-pz-day="1" data-pz-template=" &rarr; {date})"></span></h2>
+<p>The goal is to capture a <strong>normal day</strong> so the results reflect your child's real-life reflux patterns.</p>
+
+<h3>Eating &amp; drinking</h3>
+<ul>
+  <li>Feed your child their <strong>normal diet</strong> — regular meals and snacks at their usual times.</li>
+  <li>Avoid foods your child does not normally eat.</li>
+  <li>No chewing gum.</li>
+</ul>
+
+<h3>Activity</h3>
+<ul>
+  <li>Encourage <strong>normal activity</strong> — play, school, and usual routines are fine (starting the day after the procedure).</li>
+  <li>Avoid swimming, baths, or showers (the recorder cannot get wet). A sponge bath is okay.</li>
+  <li>Avoid rough play or contact sports that could pull on the tube.</li>
+</ul>
+
+<h3>Sleep</h3>
+<ul>
+  <li>Your child should sleep in their usual position (crib, bed, etc.).</li>
+</ul>
+
+<div class="callout">
+  <div class="callout-title">&#128221; Keeping the diary — this is very important</div>
+  <p style="margin:0 0 2pt;">You will be given a diary sheet (or the recorder has buttons). Please record:</p>
+  <ul style="margin:2pt 0 0 16pt;">
+    <li><strong>Meal start and end times</strong> — every time your child eats or drinks anything other than water</li>
+    <li><strong>When your child lies down and gets up</strong> — naps and bedtime</li>
+    <li><strong>Any symptoms</strong> — press the event button on the recorder AND write down the time and symptom (for example: cough, pain, spit-up, heartburn)</li>
+  </ul>
+  <p style="margin:3pt 0 0;font-size:9.5pt;font-style:italic;">Accurate diary entries help the doctor match symptoms to reflux episodes. Without them, the study is much less useful.</p>
+</div>
+
+<!-- RETURNING THE DEVICE -->
+<h2 class="step"><span class="icon">&#128205;</span> Returning the Device — Next Day<span class="pz-only" data-pz-day="1" data-pz-template=" ({date})"></span></h2>
+<ul>
+  <li>Return the recorder and probe <strong>the next day</strong> to the <strong>Pediatric Preop area</strong> at St. Vincent Hospital (same location as the procedure) at the time given to you by the nurse.</li>
+  <li>A nurse will gently remove the tube — this takes only a few seconds.</li>
+  <li><strong>Bring the completed diary sheet with you.</strong></li>
+  <li>Your child can return to all normal activities immediately after the tube is removed.</li>
+</ul>
+
+<!-- TROUBLESHOOTING -->
+<h2 class="step"><span class="icon">&#9888;&#65039;</span> Troubleshooting During the Study</h2>
+<table class="trouble-table">
+  <thead>
+    <tr>
+      <th class="col-problem">Problem</th>
+      <th>What to do</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-problem">The tube comes out</td>
+      <td>Do <strong>not</strong> try to reinsert it. Call the office.</td>
+    </tr>
+    <tr>
+      <td class="col-problem">Your child vomits</td>
+      <td>Note the time in the diary. If the tube comes out with vomiting, call the office.</td>
+    </tr>
+    <tr>
+      <td class="col-problem">Nosebleed around the tube</td>
+      <td>A small amount of blood is normal. Apply gentle pressure. If bleeding is heavy or won't stop, call the office.</td>
+    </tr>
+    <tr>
+      <td class="col-problem">Recorder beeps or shows an error</td>
+      <td>Check that the cable is still connected. Call the office if the problem continues.</td>
+    </tr>
+    <tr>
+      <td class="col-problem">Significant nasal discomfort</td>
+      <td>Saline nasal spray may help. Call the office if your child is very distressed.</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- WHEN TO CALL -->
+<h2 class="step"><span class="icon">&#128222;</span> When to Call the Office</h2>
+<p>Call <a href="tel:3173389450"><strong>(317) 338-9450</strong></a> if your child has any of the following:</p>
+
+<h3>Related to the EGD</h3>
+<ul>
+  <li>A temperature over 101&deg;F (38.3&deg;C)</li>
+  <li>Vomiting blood, or stool that is black or bloody</li>
+  <li>Severe or worsening abdominal pain</li>
+  <li>Severe or persistent sore throat, drooling, or trouble swallowing</li>
+</ul>
+
+<h3>Related to the pH impedance probe</h3>
+<ul>
+  <li>The tube comes out or you think it has moved</li>
+  <li>A nosebleed that won't stop</li>
+  <li>The recorder stops working</li>
+</ul>
+
+<div class="warning">For difficulty breathing, chest pain, or any emergency — call 911.</div>
+
+<!-- AFTER THE STUDY -->
+<h2 class="step"><span class="icon">&#128229;</span> After the Study</h2>
+<ul>
+  <li>pH impedance results typically take <strong>1–2 weeks</strong>. The doctor will review the data and contact you through the patient portal or by phone.</li>
+</ul>
+
+<!-- RESOURCES -->
+<h2 class="step">Helpful Resources &amp; Questions</h2>
+<div class="two-col">
+  <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
+    <img id="qr-youtube" src="qr-placeholder.png" alt="Prep video QR">
+    <div class="label"><strong>Procedure video</strong><br>Example only &mdash; follow this handout, not the video.</div>
+  </a>
+  <a class="resource-card" href="{{PORTAL_URL}}" target="_blank" rel="noopener">
+    <img id="qr-portal" src="qr-placeholder.png" alt="Patient portal QR">
+    <div class="label"><strong>Patient portal</strong><br>Message us<br>Urgent: (317) 338-9450</div>
+  </a>
+  <a class="resource-card" href="{{GIKIDS_URL}}" target="_blank" rel="noopener">
+    <img id="qr-gikids" src="qr-placeholder.png" alt="GIKids resource QR">
+    <div class="label"><strong>GIKids.org</strong><br>General info on reflux testing.</div>
+  </a>
+</div>
+
+<!-- FEEDBACK BAR -->
+<table class="feedback-bar" style="width:100%;border-collapse:collapse;margin:6pt 0 4pt;page-break-inside:avoid;"><tr><td class="feedback-cell" data-cta-v2="1" style="vertical-align:middle;padding:0;border:0;"><a href="{{FEEDBACK_URL}}" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:6pt;"><img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR" style="width:36pt;height:36pt;flex:0 0 auto;"><span style="font-size:9pt;line-height:1.25;color:#333;flex:1 1 auto;"><strong>Tell us what you think of these instructions</strong> — scan to share quick feedback (takes about a minute).</span></a></td></tr></table>
+
+</body>
+</html>

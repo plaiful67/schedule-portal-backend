@@ -112,6 +112,14 @@ class EGDRequest(_Base):
     procedure_type: Literal["egd"]
 
 
+class EGDPhMiiRequest(_Base):
+    """EGD + 24-hr pH impedance monitoring. PMCH only (motility nurses staff
+    only St. Vincent 86th St — see project_pmch_only_procedures memory).
+    location_id is narrowed at the schema layer so SCC submissions 422 cleanly."""
+    procedure_type: Literal["egd_phmii"]
+    location_id: Literal["pmch"] = "pmch"  # type: ignore[assignment]
+
+
 class CombinedRequest(_BowelPrepBase):
     procedure_type: Literal["combined"]
 
@@ -122,6 +130,6 @@ class FlexSigRequest(_Base):
 
 
 RenderRequest = Annotated[
-    BowelPrepRequest | EGDRequest | CombinedRequest | FlexSigRequest,
+    BowelPrepRequest | EGDRequest | EGDPhMiiRequest | CombinedRequest | FlexSigRequest,
     Field(discriminator="procedure_type"),
 ]

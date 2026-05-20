@@ -115,11 +115,15 @@ def render_pdf(
 
     # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
     # destination page personalizes itself via its built-in _personalize JS.
+    # FEEDBACK_URL = same URL with ?feedback=1&source=print spliced in
+    # before the hash so survey.js auto-opens with the print-vs-phone q3
+    # variant. Query string must come BEFORE the URL fragment.
     proc_data = _load_procedure_data()
     sub = location.get("mobile_subdomain", "") or proc_data.get("mobile_site", {}).get("subdomain", "egd")
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
+    feedback_url = f"https://{sub}.giready.com/{lang_seg}?feedback=1&source=print{hash_params}"
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
     youtube_url = skill._qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
     portal_url = skill._qr_target("portal_url")
@@ -127,7 +131,10 @@ def render_pdf(
     location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
 
     qr_replacements = {
-        "{{MOBILE_URL}}":          mobile_url,
+        # Cover-QR href: matches the cover QR PNG so click and scan both
+        # land on the survey-enabled mobile page.
+        "{{MOBILE_URL}}":          feedback_url,
+        "{{FEEDBACK_URL}}":        feedback_url,
         "{{MAPS_URL}}":            maps_url,
         "{{YOUTUBE_URL}}":         youtube_url,
         "{{PORTAL_URL}}":          portal_url,
@@ -150,13 +157,16 @@ def render_pdf(
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))
 
-    # Swap the QR <img id> srcs to data URIs (mobile QR encodes the personalized URL).
+    # Swap the QR <img id> srcs to data URIs. qr-mobile (cover) and
+    # qr-feedback (mid-doc) both encode the survey-enabled URL so either
+    # scan path opens the modal tagged source=print.
     qr_uris = {
-        "qr-mobile":  skill._png_to_data_uri(skill._generate_qr(mobile_url)),
-        "qr-maps":    skill._png_to_data_uri(skill._generate_qr(maps_url)) if maps_url else "",
-        "qr-youtube": skill._png_to_data_uri(skill._generate_qr(youtube_url)) if youtube_url else "",
-        "qr-portal":  skill._png_to_data_uri(skill._generate_qr(portal_url)) if portal_url else "",
-        "qr-gikids":  skill._png_to_data_uri(skill._generate_qr(gikids_url)) if gikids_url else "",
+        "qr-mobile":   skill._png_to_data_uri(skill._generate_qr(feedback_url)),
+        "qr-feedback": skill._png_to_data_uri(skill._generate_qr(feedback_url)),
+        "qr-maps":     skill._png_to_data_uri(skill._generate_qr(maps_url)) if maps_url else "",
+        "qr-youtube":  skill._png_to_data_uri(skill._generate_qr(youtube_url)) if youtube_url else "",
+        "qr-portal":   skill._png_to_data_uri(skill._generate_qr(portal_url)) if portal_url else "",
+        "qr-gikids":   skill._png_to_data_uri(skill._generate_qr(gikids_url)) if gikids_url else "",
     }
     html = skill._inject_qr_into_imgs(html, qr_uris)
 
@@ -166,6 +176,11 @@ def render_pdf(
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
         raise RuntimeError(f"Unreplaced placeholders: {sorted(set(unreplaced))}")
+
+    # Splice shared print-base.css in front of the template's own <style>
+    # block so design-token + feedback-cell changes propagate without
+    # editing every template. Template-local CSS still overrides.
+    html = skill._inject_shared_print_css(html)
 
     base_url = (SKILL_ROOT / "templates").as_uri() + "/"
     return HTML(string=html, base_url=base_url).write_pdf()

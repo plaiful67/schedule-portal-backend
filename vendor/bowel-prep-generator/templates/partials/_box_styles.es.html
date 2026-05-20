@@ -1,0 +1,55 @@
+  /* ----- Rescue tip — amber accent, badge label (mirrors print) ---------- */
+  .tip.rescue {
+    background: #fff8ee;
+    border-color: #e6c397;
+    border-left-color: #d4900b;
+  }
+  .tip.rescue .contingency-lead { margin: 0 0 4px 0; }
+  .tip.rescue .rescue-heading {
+    display: inline-block;
+    background: #d4900b;
+    color: #ffffff;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+  .tip.rescue ul { margin: 4px 0 0; padding-left: 18px; }
+  .tip.rescue li { margin: 2px 0; }
+
+  /* ----- Time-box .when — solid blue pill (mirrors print) ---------------- */
+  .time-box .when {
+    display: inline-block;
+    background: #1565c0;
+    color: #ffffff;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.01em;
+    padding: 3px 9px;
+    border-radius: 4px;
+    margin-right: 8px;
+    margin-bottom: 0;
+  }
+
+  /* ----- Dark-mode overrides --------------------------------------------- */
+  @media (prefers-color-scheme: dark) {
+    .tip.rescue {
+      background: #2a2010;
+      border-color: #4a3a1a;
+      border-left-color: #d4900b;
+      color: #e0e0e0;
+    }
+    .tip.rescue .rescue-heading {
+      background: #d4900b;
+      color: #1a1a1a;
+    }
+    .time-box .when {
+      background: #1e4a8a;
+      color: #ffffff;
+    }
+  }

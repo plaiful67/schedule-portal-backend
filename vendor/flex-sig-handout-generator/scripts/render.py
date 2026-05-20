@@ -38,6 +38,22 @@ TEMPLATES      = SKILL_DIR / "templates"
 PROCEDURE_PATH = SKILL_DIR / "data" / "procedure.yaml"
 PRACTICE_PATH  = SKILL_DIR / "practice.yaml"
 
+# Shared design tokens + feedback-cell layout. Auto-prepended to every
+# template's <head> so future cross-skill style changes (color tokens,
+# font stack, feedback CTA layout) live in ONE file. Templates' own
+# <style> blocks still load AFTER and win on override.
+_SHARED_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "print-base.css"
+try:
+    _SHARED_PRINT_CSS = _SHARED_PRINT_CSS_PATH.read_text(encoding="utf-8") if _SHARED_PRINT_CSS_PATH.exists() else ""
+except OSError:
+    _SHARED_PRINT_CSS = ""
+
+
+def _inject_shared_print_css(html: str) -> str:
+    if not _SHARED_PRINT_CSS:
+        return html
+    return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
+
 
 # ---------------------------------------------------------------------------
 # Config loading
@@ -249,25 +265,35 @@ def render_pdf(procedure_id, procedure, band, location, location_id, lang, theme
     # mobile_url empty and relying on the template's :empty styling).
     sub = (location or {}).get("mobile_subdomain", "") or ""
     mobile_url = (f"https://{sub}.giready.com/" + ("es/" if lang == "es" else "")) if sub else ""
+    # ?feedback=1 auto-opens survey.js; &source=print swaps q3 to the
+    # print-vs-phone question and tags the D1 row.
+    feedback_url = (mobile_url + "?feedback=1&source=print") if mobile_url else ""
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
     youtube_url = _qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
     portal_url = _qr_target("portal_url")
     gikids_url = _qr_target("gikids_url")
     location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
 
+    # The cover (`qr-mobile`) and mid-doc (`qr-feedback`) both encode the
+    # ?feedback=1 URL so families who scan either get the survey modal.
     qr_uris = {
-        "qr-mobile":  _png_to_data_uri(_generate_qr(mobile_url, size_px=150)) if mobile_url else "",
-        "qr-maps":    _png_to_data_uri(_generate_qr(maps_url)) if maps_url else "",
-        "qr-youtube": _png_to_data_uri(_generate_qr(youtube_url)) if youtube_url else "",
-        "qr-portal":  _png_to_data_uri(_generate_qr(portal_url)) if portal_url else "",
-        "qr-gikids":  _png_to_data_uri(_generate_qr(gikids_url)) if gikids_url else "",
+        "qr-mobile":   _png_to_data_uri(_generate_qr(feedback_url, size_px=150)) if feedback_url else "",
+        "qr-feedback": _png_to_data_uri(_generate_qr(feedback_url, size_px=120)) if feedback_url else "",
+        "qr-maps":     _png_to_data_uri(_generate_qr(maps_url)) if maps_url else "",
+        "qr-youtube":  _png_to_data_uri(_generate_qr(youtube_url)) if youtube_url else "",
+        "qr-portal":   _png_to_data_uri(_generate_qr(portal_url)) if portal_url else "",
+        "qr-gikids":   _png_to_data_uri(_generate_qr(gikids_url)) if gikids_url else "",
     }
 
     replacements = {
         **build_practice_placeholders(lang),
         **build_location_placeholders(location, lang),
         **build_band_placeholders(procedure, band, lang, location=location),
-        "{{MOBILE_URL}}":         mobile_url,
+        # MOBILE_URL is the clickable href on the cover-QR anchor; keep it
+        # in lockstep with the QR PNG so click and scan land in the same
+        # place (mobile page + auto-opened survey, tagged source=print).
+        "{{MOBILE_URL}}":         feedback_url or mobile_url,
+        "{{FEEDBACK_URL}}":       feedback_url,
         "{{MAPS_URL}}":            maps_url,
         "{{YOUTUBE_URL}}":         youtube_url,
         "{{PORTAL_URL}}":          portal_url,
@@ -285,6 +311,8 @@ def render_pdf(procedure_id, procedure, band, location, location_id, lang, theme
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
         raise RuntimeError(f"Unreplaced placeholders in {out_path.name}: {sorted(set(unreplaced))}")
+
+    html = _inject_shared_print_css(html)
 
     _ensure_weasyprint_libpath()
     try:

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Bowel-prep cheat sheet — Pediatric Gastroenterology</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  @page {
+    size: letter landscape;
+    margin: 0.4in 0.5in 0.45in 0.5in;
+    @bottom-left {
+      content: "Last updated {{LAST_UPDATED}}  ·  Source: data/dosing.yaml in bowel-prep-generator  ·  Internal staff reference — not for patient distribution";
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #666;
+    }
+    @bottom-right {
+      content: "p. " counter(page);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 7.5pt;
+      color: #666;
+    }
+  }
+
+  html { font-size: 9pt; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.28;
+  }
+
+  h1, h2, h3, .ui {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #0e2233;
+  }
+
+  header.cs-header {
+    border-bottom: 1.5pt solid #0e2233;
+    padding-bottom: 4pt;
+    margin-bottom: 8pt;
+  }
+  header.cs-header .title {
+    font-family: "Inter", sans-serif;
+    font-size: 15pt;
+    font-weight: 700;
+    color: #0e2233;
+    letter-spacing: -0.01em;
+  }
+  header.cs-header .subtitle {
+    font-family: "Inter", sans-serif;
+    font-size: 8.5pt;
+    color: #7a4a00;
+    font-weight: 600;
+    margin-top: 1pt;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .cs-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 14pt;
+  }
+
+  section.cs-section {
+    margin: 0 0 9pt 0;
+    break-inside: avoid;
+  }
+  section.cs-section h2 {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt;
+    font-weight: 700;
+    color: #ffffff;
+    background: #0e2233;
+    margin: 0 0 3pt 0;
+    padding: 2pt 6pt;
+    border-radius: 2pt;
+    letter-spacing: 0.01em;
+  }
+  section.cs-section h2 .badge {
+    font-size: 7.5pt;
+    color: #d0d0d0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-left: 6pt;
+  }
+
+  table.cs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    line-height: 1.25;
+  }
+  table.cs-table thead th {
+    background: #e3eaf1;
+    color: #0e2233;
+    font-family: "Inter", sans-serif;
+    font-size: 7pt;
+    font-weight: 700;
+    text-align: left;
+    padding: 1.5pt 3pt;
+    border-bottom: 0.5pt solid #c9d3dd;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    line-height: 1.15;
+  }
+  table.cs-table tbody td {
+    padding: 1.5pt 3pt;
+    border-bottom: 0.4pt solid #e6ebf0;
+    vertical-align: top;
+  }
+  table.cs-table tbody tr:nth-child(even) td { background: #f8fafc; }
+  table.cs-table .band { font-family: "Inter", sans-serif; font-weight: 700; color: #0e2233; white-space: nowrap; font-size: 8pt; }
+  table.cs-table .num { font-family: "Inter", sans-serif; font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  table.cs-table .num-wrap { font-family: "Inter", sans-serif; font-variant-numeric: tabular-nums; font-weight: 600; }
+  table.cs-table .muted { color: #555; font-size: 7.5pt; }
+  table.cs-table .hi { color: #7a1f00; font-weight: 700; }
+
+  table.cs-locations {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 8pt;
+    line-height: 1.3;
+  }
+  table.cs-locations thead th {
+    background: #e3eaf1;
+    color: #0e2233;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt;
+    font-weight: 700;
+    text-align: left;
+    padding: 2pt 4pt;
+    border-bottom: 0.5pt solid #c9d3dd;
+  }
+  table.cs-locations tbody th {
+    width: 22%;
+    text-align: left;
+    padding: 2pt 4pt;
+    font-family: "Inter", sans-serif;
+    font-size: 7.5pt;
+    font-weight: 600;
+    color: #555;
+    background: #f8fafc;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 0.4pt solid #e6ebf0;
+  }
+  table.cs-locations tbody td {
+    padding: 2pt 4pt;
+    border-bottom: 0.4pt solid #e6ebf0;
+    vertical-align: top;
+    width: 39%;
+  }
+  table.cs-locations .num { font-family: "Inter", sans-serif; font-weight: 700; color: #0e2233; }
+
+  ul.cs-list { margin: 2pt 0 0 14pt; padding: 0; font-size: 8.5pt; line-height: 1.35; }
+  ul.cs-list li { margin: 1pt 0; }
+  ul.cs-list li strong { color: #1a1a1a; }
+  ul.cs-list .emergency { color: #7a1f00; font-weight: 700; }
+  ul.cs-list .scope { color: #555; font-style: italic; font-size: 7.5pt; }
+
+  .footnote { font-size: 7.5pt; color: #555; margin-top: 2pt; }
+  .footnote strong { color: #0e2233; }
+
+  .cs-alt-break { break-before: page; page-break-before: always; height: 0; }
+  header.cs-alt-header {
+    margin-top: 0;
+    margin-bottom: 8pt;
+  }
+
+  /* -----------------------------------------------------------------
+     ON-SCREEN VIEW (doses.giready.com)
+     ----------------------------------------------------------------- */
+  @media screen {
+    html { font-size: 11pt; }
+    body {
+      background: #f4f6f9;
+      padding: 22px 0;
+    }
+    .cs-page {
+      background: #ffffff;
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 26px 32px 22px;
+      box-shadow: 0 1px 4px rgba(14,34,51,0.06);
+      border-radius: 6px;
+    }
+    header.cs-header .title { font-size: 22px; }
+    header.cs-header .subtitle { font-size: 11px; }
+    section.cs-section h2 { font-size: 12px; padding: 4px 9px; }
+    table.cs-table { font-size: 11px; }
+    table.cs-table thead th { font-size: 10px; padding: 5px 7px; }
+    table.cs-table tbody td { padding: 5px 7px; }
+    table.cs-locations { font-size: 11px; }
+    table.cs-locations thead th { font-size: 11px; padding: 5px 7px; }
+    table.cs-locations tbody th, table.cs-locations tbody td { padding: 5px 7px; font-size: 11px; }
+    ul.cs-list { font-size: 12px; line-height: 1.5; }
+    .cs-footer-screen {
+      max-width: 1180px;
+      margin: 14px auto 0;
+      padding: 0 32px;
+      font-size: 11px;
+      color: #7a7a7a;
+      text-align: center;
+    }
+    .cs-alt-break { display: none; }
+    header.cs-alt-header {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px dashed #c9d3dd;
+    }
+    @media (max-width: 700px) {
+      .cs-grid { grid-template-columns: 1fr; }
+      .cs-page { padding: 18px; border-radius: 0; }
+    }
+  }
+
+  @media print {
+    .cs-footer-screen { display: none; }
+    .cs-page { background: transparent; box-shadow: none; padding: 0; margin: 0; max-width: none; }
+  }
+</style>
+<script defer src="https://analytics.giready.com/gi.js" data-site="doses"></script>
+</head>
+<body>
+<div class="cs-page">
+
+<header class="cs-header">
+  <div class="title">Bowel-prep cheat sheet · Pediatric Gastroenterology</div>
+  <div class="subtitle">Internal staff reference · Not for patient distribution</div>
+</header>
+
+<div class="cs-grid">
+
+  <!-- ============ LEFT COLUMN ============ -->
+  <div class="cs-col">
+
+    <section class="cs-section">
+      <h2>BIG PREP — MiraLAX <span class="badge">standard · per weight band</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Band</th>
+            <th>Dulcolax (bed+day)</th>
+            <th>Tot. mg</th>
+            <th>MiraLAX caps</th>
+            <th>Tot. g</th>
+            <th>Gatorade</th>
+            <th>Cup</th>
+            <th>Start</th>
+          </tr>
+        </thead>
+        <tbody>
+{{STANDARD_BAND_ROWS}}
+        </tbody>
+      </table>
+
+      <h3 style="font-family: 'Inter', sans-serif; font-size: 8pt; font-weight: 700; color: #0e2233; margin: 4pt 0 1pt 0;">Infants &lt;15 kg <span style="font-weight: 500; color: #555; font-size: 7pt;">— two options (clinician choice)</span></h3>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th style="width: 22%;">Sub-band</th>
+            <th style="width: 18%;">MiraLAX caps</th>
+            <th style="width: 14%;">Tot. g</th>
+            <th>Mix in (Pedialyte or clear apple juice)</th>
+          </tr>
+        </thead>
+        <tbody>
+{{INFANT_SUB_ROWS}}
+        </tbody>
+      </table>
+      <p class="footnote"><strong>MiraLAX schedule:</strong> 1 dose/day × 2 days (days &minus;3 and &minus;2). Patient handouts: <strong>u15kgPEG</strong> / <strong>u15kgEnema</strong>.</p>
+    </section>
+
+    <section class="cs-section">
+      <h2>Contingency rescue plan <span class="badge">if stools not clear/pale yellow after {{CONTINGENCY_TRIGGER_HOURS}} h</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Band</th>
+            <th>Evening rescue</th>
+            <th>Morning rescue<br><span class="muted">finish &ge; NPO before procedure</span></th>
+            <th>Hard stop<br><span class="muted">incl. BIG PREP</span></th>
+            <th>If still not clear</th>
+          </tr>
+        </thead>
+        <tbody>
+{{CONTINGENCY_ROWS}}
+        </tbody>
+      </table>
+      <p class="footnote"><strong>Trigger:</strong> {{CONTINGENCY_TRIGGER_HOURS}} h after starting BIG PREP without clear/pale-yellow watery stool. <strong>NPO clears:</strong> {{NPO_SCC_HOURS}} h SCC / {{NPO_PMCH_HOURS}} h PMCH — morning rescue must finish &ge; that window before procedure time. <strong>If still not clear after rescue:</strong> call office {{OFFICE_PHONE}}. <em>Infants &lt;15 kg: not applicable — see &lt;15 kg block.</em></p>
+    </section>
+
+  </div>
+
+  <!-- ============ RIGHT COLUMN ============ -->
+  <div class="cs-col">
+
+    <section class="cs-section">
+      <h2>Pre-cleanout (suspected constipation) <span class="badge">disimpaction + maintenance</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Band</th>
+            <th>Disimpaction</th>
+            <th>Start</th>
+            <th>Daily maintenance</th>
+          </tr>
+        </thead>
+        <tbody>
+{{PRECLEANOUT_ROWS}}
+        </tbody>
+      </table>
+    </section>
+
+    <section class="cs-section">
+      <h2>Locations</h2>
+      <table class="cs-locations">
+        <thead><tr><th></th><th>{{LOC_SCC_NAME}}</th><th>{{LOC_PMCH_NAME}}</th></tr></thead>
+        <tbody>
+          <tr><th>Address</th><td>{{LOC_SCC_ADDRESS}}</td><td>{{LOC_PMCH_ADDRESS}}</td></tr>
+          <tr><th>Facility phone</th><td class="num">{{LOC_SCC_PHONE}}</td><td class="num">{{LOC_PMCH_PHONE}}</td></tr>
+          <tr><th>NPO clears</th><td class="num">{{NPO_SCC_HOURS}} h before procedure</td><td class="num">{{NPO_PMCH_HOURS}} h before procedure</td></tr>
+          <tr><th>Arrival</th><td class="num">{{LOC_SCC_ARRIVAL_MIN}} min before</td><td class="num">{{LOC_PMCH_ARRIVAL_MIN}} min before</td></tr>
+          <tr><th>Mobile sites</th><td class="muted">{{LOC_SCC_MOBILE_LINES}}</td><td class="muted">{{LOC_PMCH_MOBILE_LINES}}</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="cs-section">
+      <h2>When to call — post-procedure red flags <span class="badge">office {{OFFICE_PHONE}}</span></h2>
+      <ul class="cs-list">
+        <li><strong>Fever &gt;101&deg;F (38.3&deg;C)</strong></li>
+        <li>Stool that is <strong>black</strong> or has more than a small streak of <strong>blood</strong></li>
+        <li><strong>Severe or worsening abdominal pain</strong>, or hard / swollen belly</li>
+        <li><strong>Persistent vomiting</strong>, or refusal to drink</li>
+        <li class="emergency">Difficulty breathing or chest pain — emergency, call <strong>911</strong></li>
+      </ul>
+      <p class="footnote">Small blood with the first stool can be normal (especially if biopsies taken). Adult must stay 24 h after anesthesia. Most kids back to normal next day.</p>
+    </section>
+
+    <section class="cs-section">
+      <h2>Medications to hold (7 days before)</h2>
+      <ul class="cs-list">
+        <li><strong>Iron supplements</strong> — all bands</li>
+        <li><strong>Anti-diarrhea medicine</strong> — all bands</li>
+        <li><strong>GLP-1 agonists</strong> (Ozempic, Wegovy, Mounjaro) — <span class="hi">{{GLP1_HOLD_BANDS}} only</span></li>
+      </ul>
+      <p class="footnote"><strong>Unusual or unlisted meds:</strong> ask the family to prepare a list and call the office.</p>
+    </section>
+
+  </div>
+
+</div>
+
+<!-- ===================================================================
+     ALTERNATIVE PROTOCOLS — page 2 (CLENPIQ + SUPREP + Lactulose)
+     =================================================================== -->
+<div class="cs-alt-break"></div>
+
+<header class="cs-header cs-alt-header">
+  <div class="title">Alternative protocols</div>
+  <div class="subtitle">CLENPIQ + SUPREP + Lactulose · for MiraLAX intolerance or physician preference</div>
+</header>
+
+<div class="cs-grid">
+
+  <div class="cs-col">
+
+    <section class="cs-section">
+      <h2>BIG PREP — CLENPIQ <span class="badge">{{CLENPIQ_ELIGIBILITY}} · {{CLENPIQ_BOTTLES}} bottles</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Dose</th>
+            <th>Bottle</th>
+            <th>Window</th>
+            <th>Clears after</th>
+            <th>Cup</th>
+          </tr>
+        </thead>
+        <tbody>
+{{CLENPIQ_ROWS}}
+        </tbody>
+      </table>
+      <p class="footnote"><strong>No mixing · no Dulcolax · no pre-cleanout.</strong> Bottles ready-to-drink (pack ships as 2). Morning-dose clears must finish &ge; <strong>SCC {{NPO_SCC_HOURS}} h / PMCH {{NPO_PMCH_HOURS}} h</strong> before procedure. <strong>GLP-1 hold</strong> applies (eligible band includes adolescents). Hidden patient sites: <strong>prepclenpiq{,86}.giready.com</strong> · <strong>egdcolonclenpiq{,86}.giready.com</strong>.</p>
+    </section>
+
+    <section class="cs-section">
+      <h2>BIG PREP — SUPREP <span class="badge">{{SUPREP_ELIGIBILITY}} · FDA age {{SUPREP_AGE_FLOOR}}+ · Rx</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Dose</th>
+            <th>Solution (mixed)</th>
+            <th>Window</th>
+            <th>Water chasers</th>
+            <th>Cup</th>
+          </tr>
+        </thead>
+        <tbody>
+{{SUPREP_ROWS}}
+        </tbody>
+      </table>
+      <p class="footnote"><strong>Must be diluted</strong> in mixing container (do NOT drink straight). <strong>No Dulcolax · no pre-cleanout</strong> (sulfate stimulant built in; concurrent stimulants forbidden by label). All solution + water finish &ge; <strong>SCC {{NPO_SCC_HOURS}} h / PMCH {{NPO_PMCH_HOURS}} h</strong> before procedure. <strong>Drug-interaction window:</strong> tetracyclines / fluoroquinolones / iron / digoxin / chlorpromazine / penicillamine — 2 h before + 6 h after each dose. All other oral meds &ge; 1 h before. <strong>GLP-1 hold</strong> applies. Hidden patient sites: <strong>prepsuprep{,86}.giready.com</strong> · <strong>egdcolonsuprep{,86}.giready.com</strong>.</p>
+    </section>
+
+  </div>
+
+  <div class="cs-col">
+
+    <section class="cs-section">
+      <h2>BIG PREP — Lactulose <span class="badge">for MiraLAX-intolerant</span></h2>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th>Band</th>
+            <th>Dulcolax (bed+day)</th>
+            <th>Lactulose</th>
+            <th>Gatorade</th>
+            <th>Cup</th>
+            <th>Start</th>
+          </tr>
+        </thead>
+        <tbody>
+{{LACTULOSE_STANDARD_ROWS}}
+        </tbody>
+      </table>
+
+      <h3 style="font-family: 'Inter', sans-serif; font-size: 8pt; font-weight: 700; color: #0e2233; margin: 4pt 0 1pt 0;">Infants &lt;15 kg <span style="font-weight: 500; color: #555; font-size: 7pt;">— daily lactulose × 3 days (no big-prep day, no Dulcolax)</span></h3>
+      <table class="cs-table">
+        <thead>
+          <tr>
+            <th style="width: 26%;">Sub-band</th>
+            <th>Daily lactulose dose</th>
+            <th>Mix in (juice or Pedialyte)</th>
+          </tr>
+        </thead>
+        <tbody>
+{{LACTULOSE_INFANT_ROWS}}
+        </tbody>
+      </table>
+      <p class="footnote">{{LACTULOSE_FOOTNOTE}} Hidden patient sites: <strong>preplact{,86}.giready.com</strong>.</p>
+    </section>
+
+  </div>
+
+</div>
+
+</div><!-- /.cs-page -->
+
+<div class="cs-footer-screen">
+  Last updated {{LAST_UPDATED}} · Source: data/dosing.yaml in bowel-prep-generator skill · <strong>Not for patient distribution</strong> · <a href="bowel-prep-cheatsheet.pdf" download>Download PDF</a>
+</div>
+
+</body>
+</html>

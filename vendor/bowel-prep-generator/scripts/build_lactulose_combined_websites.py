@@ -43,6 +43,7 @@ from build_colonoscopy_websites import (  # noqa: E402
     build_practice_placeholders,
     build_location_placeholders,
     _do_replace,
+    _inject_analytics,
     PRACTICE_PATH,
     DOSING_PATH,
 )
@@ -222,7 +223,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=HTML_TITLE_LANDING_EN,
     )
     p = repo_dir / "index.html"
-    p.write_text(en_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(en_landing_html, "lactulose-combined", location_id, "en"), encoding="utf-8")
     written.append(p)
 
     es_landing_html = render_landing_page(
@@ -232,7 +233,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
         html_title=HTML_TITLE_LANDING_ES,
     )
     p = repo_dir / "es" / "index.html"
-    p.write_text(es_landing_html, encoding="utf-8")
+    p.write_text(_inject_analytics(es_landing_html, "lactulose-combined", location_id, "es"), encoding="utf-8")
     written.append(p)
 
     for bid in band_ids:
@@ -252,7 +253,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             html_title=HTML_TITLE_BAND_EN.format(label=label_en),
         )
         p = en_dir / "index.html"
-        p.write_text(en_html, encoding="utf-8")
+        p.write_text(_inject_analytics(en_html, "lactulose-combined", location_id, "en", bid), encoding="utf-8")
         written.append(p)
 
         es_dir = repo_dir / "es" / path
@@ -266,7 +267,7 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
             html_title=HTML_TITLE_BAND_ES.format(label=label_es),
         )
         p = es_dir / "index.html"
-        p.write_text(es_html, encoding="utf-8")
+        p.write_text(_inject_analytics(es_html, "lactulose-combined", location_id, "es", bid), encoding="utf-8")
         written.append(p)
 
     if LOGO_PATH.exists():

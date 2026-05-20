@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>{{HTML_TITLE}}</title>
+<link rel="alternate" hreflang="en" href="../">
+<link rel="alternate" hreflang="es" href="/es/">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.6;
+    background: #f7f8fa;
+    font-size: 17px;
+  }
+  .container { max-width: 680px; margin: 0 auto; padding: 0 14px 32px; }
+
+  .topbar {
+    position: sticky; top: 0; z-index: 10;
+    background: #ffffff; border-bottom: 1px solid #e3e6eb;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .topbar-inner {
+    max-width: 680px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px; padding: 8px 14px;
+    font-family: "Inter", sans-serif; font-size: 13px;
+  }
+  .topbar-logo { height: 32px; width: auto; flex: 0 0 auto; }
+  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #0e2233; font-weight: 600; }
+  .topbar-practice a { color: #0e4a82; text-decoration: none; }
+  .topbar-practice .phone { font-weight: 500; color: #3a3a3a; }
+  .lang-toggle {
+    flex: 0 0 auto;
+    font-family: "Inter", sans-serif; font-size: 12px; font-weight: 600;
+    color: #0e4a82; text-decoration: none;
+    border: 1px solid #c9d3dd; border-radius: 4px; padding: 4px 8px;
+    background: #fff;
+  }
+
+  h1 {
+    font-family: "Inter", sans-serif;
+    font-size: 24px; color: #0e2233;
+    margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-family: "Inter", sans-serif;
+    font-size: 14px; color: #b03a00; font-weight: 600;
+    margin: 0 0 14px;
+  }
+
+  .location {
+    background: #f4f7fa; border: 1px solid #c9d3dd;
+    border-radius: 8px; padding: 14px 16px; margin: 0 0 16px;
+    box-shadow: 0 1px 2px rgba(14,34,51,0.08);
+  }
+  .location .label {
+    font-family: "Inter", sans-serif;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: #3a3a3a; margin-bottom: 2px;
+  }
+  .location .name { font-weight: 700; font-size: 16px; color: #0e2233; }
+  .location .addr { margin-top: 3px; font-size: 14px; }
+  .location .addr a { color: #0e4a82; text-decoration: none; }
+  .location .arrival {
+    margin-top: 6px; font-family: "Inter", sans-serif;
+    font-weight: 600; color: #b03a00; font-size: 14px;
+  }
+
+  h2.step {
+    background: #ffffff; color: #0e2233;
+    border-left: 5px solid #0e2233; border-radius: 0;
+    font-family: "Inter", sans-serif; font-size: 16px; font-weight: 600;
+    padding: 6px 0 6px 12px;
+    margin: 26px 0 10px;
+  }
+  h2.step .icon { margin-right: 8px; font-size: 1.1em; }
+
+  h3 {
+    font-family: "Inter", sans-serif;
+    font-size: 15px; color: #0e2233; margin: 14px 0 4px; font-weight: 600;
+  }
+
+  p { margin: 6px 0; font-size: 16px; line-height: 1.6; }
+  p.note { font-size: 13px; color: #3a3a3a; font-style: italic; margin: 6px 0 0; }
+  ul { padding-left: 20px; margin: 6px 0; }
+  li { margin: 4px 0; font-size: 16px; line-height: 1.6; }
+
+  table.npo, table.med-stops, table.trouble-table {
+    width: 100%; border-collapse: collapse;
+    margin: 8px 0 12px; background: #fff;
+    border: 1px solid #c9d3dd; border-radius: 8px; overflow: hidden;
+  }
+  table.npo th, table.med-stops th, table.trouble-table th {
+    background: #e3eaf1; color: #0e2233;
+    font-family: "Inter", sans-serif; font-size: 13px; font-weight: 600;
+    text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid #c9d3dd;
+  }
+  table.npo td, table.med-stops td, table.trouble-table td {
+    padding: 9px 10px; border-bottom: 1px solid #e3e6eb;
+    vertical-align: top; font-size: 14px;
+  }
+  table.npo tr:last-child td,
+  table.med-stops tr:last-child td,
+  table.trouble-table tr:last-child td { border-bottom: none; }
+  table.npo .col-stop, table.med-stops .col-stop {
+    font-family: "Inter", sans-serif; font-weight: 600; color: #0d3a6b;
+    white-space: nowrap;
+  }
+  table.npo .col-item .sub {
+    display: block; font-size: 12px; color: #3a3a3a; font-style: italic; margin-top: 2px;
+  }
+  table.npo .row-thickener td { background: #fffdf6; }
+  table.med-stops .med-examples {
+    display: block; font-size: 12px; color: #3a3a3a; font-style: italic; margin-top: 3px;
+  }
+  table.trouble-table td:first-child { font-weight: 600; color: #0e2233; width: 38%; }
+
+  .warning {
+    background: #ffedea; border: 1px solid #f5cdc6; border-left: 4px solid #c0392b;
+    border-radius: 6px; padding: 12px 14px; margin: 12px 0 16px;
+    color: #7a1f00; font-weight: 600; font-size: 14px;
+    box-shadow: 0 1px 2px rgba(14,34,51,0.08);
+  }
+  .callout {
+    background: #fffbe6; border: 1px solid #f0dfa4; border-left: 4px solid #d4a017;
+    border-radius: 6px; padding: 12px 14px; margin: 12px 0 16px; font-size: 14px;
+    box-shadow: 0 1px 2px rgba(14,34,51,0.08);
+  }
+  .callout-title {
+    font-family: "Inter", sans-serif; font-weight: 700;
+    color: #7a4f00; margin-bottom: 4px;
+  }
+
+  .resources { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; }
+  .resource-card {
+    display: block; text-decoration: none;
+    background: #f4f7fa; border: 1px solid #c9d3dd;
+    border-radius: 8px; padding: 12px 14px;
+    color: #1a1a1a;
+  }
+  .resource-card .title {
+    font-family: "Inter", sans-serif; font-weight: 700; color: #0e4a82;
+    font-size: 15px;
+  }
+  .resource-card .sub { font-size: 13px; color: #3a3a3a; margin-top: 3px; }
+
+  .footer {
+    text-align: center; color: #555; font-size: 12px;
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
+    line-height: 1.6;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; color: #e0e0e0; }
+    .topbar { background: #262626; border-bottom-color: #3a3a3a; }
+    .topbar-practice { color: #e0e0e0; }
+    .topbar-practice .phone { color: #bbb; }
+    .topbar-practice a { color: #5eb3f6; }
+    .lang-toggle { background: #2a2a2a; border-color: #444; color: #5eb3f6; }
+    h1, h3 { color: #e0e0e0; }
+    h2.step {
+      background: transparent; color: #e0e0e0;
+      border-left-color: #5eb3f6;
+    }
+    p.note { color: #aaa; }
+    .location { background: #252525; border-color: #3a3a3a; box-shadow: none; }
+    .location .name { color: #e0e0e0; }
+    .location .addr a { color: #5eb3f6; }
+    table.npo, table.med-stops, table.trouble-table { background: #252525; border-color: #3a3a3a; }
+    table.npo th, table.med-stops th, table.trouble-table th { background: #2f3a48; color: #e0e0e0; border-color: #3a3a3a; }
+    table.npo td, table.med-stops td, table.trouble-table td { border-color: #3a3a3a; }
+    table.npo .col-stop, table.med-stops .col-stop { color: #9ec5fa; }
+    table.npo .row-thickener td { background: #2c2a1f; }
+    table.med-stops .med-examples { color: #aaa; }
+    table.trouble-table td:first-child { color: #e0e0e0; }
+    .warning { background: #2a1a1a; border-color: #5a2a22; border-left-color: #c0392b; color: #ff9b8a; box-shadow: none; }
+    .callout { background: #2a2516; border-color: #4a4124; border-left-color: #d4a017; color: #e9d39a; box-shadow: none; }
+    .callout-title { color: #f3d375; }
+    .resource-card { background: #252525; border-color: #3a3a3a; color: #e0e0e0; }
+    .resource-card .title { color: #5eb3f6; }
+    .resource-card .sub { color: #bbb; }
+    .footer { color: #888; border-top-color: #3a3a3a; }
+  }
+
+  .breadcrumb {
+    font-family: "Inter", sans-serif; font-size: 13px;
+    margin: 14px 0 6px; color: #3a3a3a;
+  }
+  .breadcrumb a { color: #0e4a82; text-decoration: none; padding: 6px 0; display: inline-block; }
+  .breadcrumb a:hover { text-decoration: underline; }
+  @media (prefers-color-scheme: dark) {
+    .breadcrumb { color: #bbb; }
+    .breadcrumb a { color: #5eb3f6; }
+  }
+  .pdf-download {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
+    text-decoration: none; color: #0e2233;
+    background: #fff7d6; border: 1px solid #d4a017;
+    border-radius: 8px; padding: 8px 14px;
+    line-height: 1.2; margin: 0 0 14px;
+  }
+  .pdf-download:active { background: #faecaa; }
+  @media (prefers-color-scheme: dark) {
+    .pdf-download { background: #2a2611; border-color: #6b5320; color: #f3d375; }
+    .pdf-download:active { background: #3a341a; }
+  }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a href="https://healthcare.ascension.org/locations/indiana/inasc/pmch/departments-and-services/departments/pediatric-gastroenterology" target="_blank" rel="noopener" aria-label="Pediatric GI at Peyton Manning Children's Hospital — sitio oficial"><img class="topbar-logo" src="../logo-pmch.png" alt="{{PRACTICE_LOGO_ALT}}"></a>
+    <div class="topbar-practice">
+      Gastroenterología Pediátrica<br>
+      <span class="phone"><a href="tel:3173389450">(317) 338-9450</a></span>
+    </div>
+    <a class="lang-toggle" href="../">English</a>
+  </div>
+</div>
+
+<div class="container">
+<div class="breadcrumb"><a href="https://giready.com/" target="_blank" rel="noopener">← Volver al inicio de giready.com</a></div>
+
+<h1>{{PROCEDURE_LABEL}}</h1>
+{{PDF_BUTTON_BLOCK}}
+<div class="subtitle">Qué Esperar</div>
+
+<div class="location">
+  <div class="label">Lugar del Procedimiento</div>
+  <div class="name">{{LOCATION_NAME}}</div>
+  <div class="addr"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">{{LOCATION_ADDRESS}}</a></div>
+  <div class="addr">{{LOCATION_PHONE_LABEL}}: <a href="tel:{{LOCATION_PHONE_TEL}}"><strong>{{LOCATION_PHONE}}</strong></a></div>
+  <div class="arrival">{{LOCATION_ARRIVAL}}</div>
+</div>
+
+<h2 class="step"><span class="icon">📖</span> Sobre los Procedimientos</h2>
+<p>Su hijo(a) está programado(a) para una <strong>endoscopia superior (EGD)</strong> combinada con <strong>monitoreo de impedancia-pH (pH-MII)</strong>.</p>
+<ul>
+  <li><strong>EGD:</strong> Mientras su hijo(a) está bajo anestesia, el médico pasa una cámara delgada y flexible por la boca para examinar el esófago, el estómago y la primera parte del intestino delgado. Generalmente se toman pequeñas biopsias. Esta parte dura aproximadamente <strong>{{DURATION_MIN}} minutos</strong>.</li>
+  <li><strong>Sonda de impedancia-pH:</strong> Mientras su hijo(a) sigue bajo anestesia, se coloca un tubo delgado y flexible por la nariz hasta el esófago. Su hijo(a) no lo sentirá. El tubo se sujeta con cinta a la mejilla y se conecta a una pequeña grabadora que se lleva con una correa. El tubo permanece colocado durante <strong>24 horas</strong> y registra tanto los episodios ácidos como los no ácidos de reflujo, lo que ayuda al médico a entender si el reflujo está relacionado con los síntomas de su hijo(a).</li>
+</ul>
+<p>Planee estar en el centro varias horas el día del procedimiento, y <strong>regresar al día siguiente</strong> para que le retiren la sonda.</p>
+
+<h2 class="step"><span class="icon">⏱️</span> Comer y Beber — Antes del Procedimiento (NPO)</h2>
+<p>Por la seguridad de su hijo(a), la anestesia requiere el estómago vacío. Detenga cada alimento o líquido a continuación según el tiempo indicado, contando hacia atrás desde la <strong>hora de llegada programada</strong>:</p>
+
+<table class="npo">
+  <thead>
+    <tr><th class="col-item">Alimento o líquido</th><th class="col-stop">Detener antes de llegar</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="col-item">Alimentos sólidos<span class="sub">incluye sopa</span></td><td class="col-stop">{{NPO_SOLID}} horas</td></tr>
+    <tr><td class="col-item">Fórmula o leche<span class="sub">biberón o sonda</span></td><td class="col-stop">{{NPO_FORMULA}} horas</td></tr>
+    <tr><td class="col-item">Leche materna</td><td class="col-stop">{{NPO_BREASTMILK}} horas</td></tr>
+    <tr><td class="col-item">Líquidos claros<span class="sub">agua, jugo sin pulpa, refresco transparente, té claro, café negro</span></td><td class="col-stop">{{NPO_CLEAR}} horas</td></tr>
+    <tr class="row-thickener"><td class="col-item">Agentes espesantes añadidos a cualquier líquido anterior</td><td class="col-stop">{{NPO_THICKENER}} horas</td></tr>
+  </tbody>
+</table>
+
+<div class="warning">⚠️ Si no se siguen estos tiempos exactamente, el equipo de anestesia cancelará el procedimiento por la seguridad de su hijo(a).</div>
+
+<p class="note">Si cree que su hijo(a) no podrá cumplir estos tiempos (por ejemplo, un horario de alimentación por sonda o un bebé que no tolera estar sin biberón), llame a la oficina antes del día del procedimiento para planificarlo juntos.</p>
+
+<h2 class="step"><span class="icon">💊</span> Medicamentos a Suspender Antes de los Procedimientos</h2>
+<p>Para que el estudio de impedancia-pH dé resultados precisos, ciertos medicamentos deben suspenderse con anticipación. Salvo que el médico le indique lo contrario:</p>
+
+<table class="med-stops">
+  <thead>
+    <tr><th class="col-item">Medicamento</th><th class="col-stop">Cuándo suspender</th></tr>
+  </thead>
+  <tbody>
+{{MED_STOPS_TBODY}}
+  </tbody>
+</table>
+
+<div class="warning">⚠️ No suspenda ningún medicamento sin consultar primero con el médico de su hijo(a). En algunos casos, el médico podría querer que el estudio se realice mientras su hijo(a) sigue tomando un IBP — le dirán si eso aplica.</div>
+
+<div class="callout">
+  <div class="callout-title">💊 Otros medicamentos</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0 0 1pt;">Continúe con todos los demás medicamentos diarios. La mayoría pueden tomarse con un sorbo pequeño de agua la mañana del procedimiento.</p>
+      <p style="margin: 0;">Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+<p class="feedback-cta" data-cta-v2="1" style="margin:18px 0 22px;text-align:center;"><button type="button" data-open-survey style="padding:10px 18px;background:#06c;color:#fff;border:0;border-radius:6px;font:600 13.5px/1.25 -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;cursor:pointer;min-height:38px;max-width:100%;white-space:normal;">Cuéntenos qué piensa de estas instrucciones</button><br><span style="font-size:11px;color:#888;display:inline-block;margin-top:4px;">Anónimo &middot; alrededor de 1 minuto</span></p>
+
+<h2 class="step"><span class="icon">📅</span> Día Antes y Día del Procedimiento</h2>
+<ul>
+  <li><strong>Baño</strong>: un baño o ducha normal la noche anterior está bien.</li>
+  <li><strong>Qué ponerse</strong>: ropa cómoda; sin esmalte de uñas en al menos un dedo para que el sensor de oxígeno pueda leer.</li>
+  <li><strong>Qué traer</strong>: un objeto reconfortante (juguete pequeño, manta, tableta), una muda de ropa, su tarjeta de seguro e identificación con foto, una lista actual de medicamentos, y <strong>una bolsa o mochila pequeña para cargar la grabadora a casa</strong>.</li>
+  <li><strong>Quién acompaña</strong>: un padre o tutor legal debe acompañar a su hijo(a). Planee que un adulto se quede durante toda la recuperación.</li>
+  <li><strong>Regla del día de enfermedad</strong>: si su hijo(a) presenta fiebre, tos nueva, vómito o síntomas significativos de resfriado en las 48 horas previas, llame a la oficina — anestesia podría necesitar reprogramar.</li>
+</ul>
+
+<h2 class="step"><span class="icon">🏥</span> Después del EGD — Ir a Casa con la Sonda</h2>
+<ul>
+  <li>Su hijo(a) despertará en el área de recuperación. Es normal tener algo de somnolencia, leve dolor de garganta y gases/distensión durante varias horas.</li>
+  <li><strong>Un adulto debe permanecer con su hijo(a) durante 24 horas</strong> después de la anestesia.</li>
+  <li>Comience con líquidos claros y avance a la dieta normal según se tolere.</li>
+  <li>No regrese a la escuela, guardería ni deportes el resto del día del procedimiento.</li>
+  <li>El médico le explicará lo que se vio durante el EGD antes de que se vayan a casa. Los resultados de las biopsias toman aproximadamente <strong>1–2 semanas</strong>; los enviaremos por el portal del paciente o llamaremos.</li>
+  <li>Antes de irse, la enfermera repasará cómo usar la grabadora y el diario y se asegurará de que la sonda esté segura.</li>
+</ul>
+
+<h2 class="step"><span class="icon">🏠</span> Durante el Período de Monitoreo de 24 Horas</h2>
+<p>El objetivo es capturar un <strong>día normal</strong> para que los resultados reflejen los patrones reales de reflujo de su hijo(a).</p>
+
+<h3>Comer y beber</h3>
+<ul>
+  <li>Dele a su hijo(a) su <strong>dieta normal</strong> — comidas y refrigerios regulares a sus horas habituales.</li>
+  <li>Evite comidas que su hijo(a) no come normalmente.</li>
+  <li>No mastique chicle.</li>
+</ul>
+
+<h3>Actividad</h3>
+<ul>
+  <li>Fomente la <strong>actividad normal</strong> — juego, escuela y rutinas habituales están bien (comenzando el día después del procedimiento).</li>
+  <li>Evite nadar, bañarse o ducharse (la grabadora no puede mojarse). Está bien un baño de esponja.</li>
+  <li>Evite juegos bruscos o deportes de contacto que puedan jalar la sonda.</li>
+</ul>
+
+<h3>Sueño</h3>
+<ul>
+  <li>Su hijo(a) debe dormir en su posición habitual (cuna, cama, etc.).</li>
+</ul>
+
+<div class="callout">
+  <div class="callout-title">📝 Llevar el diario — esto es muy importante</div>
+  <p style="margin:0 0 4px;">Le entregarán una hoja de diario (o la grabadora tiene botones). Por favor anote:</p>
+  <ul style="margin:4px 0 0 20px;">
+    <li><strong>Hora de inicio y fin de las comidas</strong> — cada vez que su hijo(a) come o bebe algo distinto del agua</li>
+    <li><strong>Cuando su hijo(a) se acuesta y se levanta</strong> — siestas y hora de dormir</li>
+    <li><strong>Cualquier síntoma</strong> — presione el botón de evento en la grabadora Y escriba la hora y el síntoma (por ejemplo: tos, dolor, regurgitación, ardor)</li>
+  </ul>
+  <p style="margin:6px 0 0;font-size:13px;font-style:italic;">Anotaciones precisas en el diario ayudan al médico a relacionar los síntomas con los episodios de reflujo. Sin ellas, el estudio es mucho menos útil.</p>
+</div>
+
+<h2 class="step"><span class="icon">📍</span> Devolver el Dispositivo — Al Día Siguiente</h2>
+<ul>
+  <li>Devuelva la grabadora y la sonda <strong>al día siguiente</strong> al <strong>área de Preop Pediátrico</strong> del Hospital St. Vincent (el mismo lugar del procedimiento) a la hora que le indicó la enfermera.</li>
+  <li>Una enfermera retirará suavemente la sonda — esto solo toma unos segundos.</li>
+  <li><strong>Lleve la hoja del diario completada.</strong></li>
+  <li>Su hijo(a) puede volver a todas sus actividades normales inmediatamente después de que se retire la sonda.</li>
+</ul>
+
+<h2 class="step"><span class="icon">⚠️</span> Solución de Problemas Durante el Estudio</h2>
+<table class="trouble-table">
+  <thead>
+    <tr><th>Problema</th><th>Qué hacer</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>La sonda se sale</td><td><strong>No</strong> trate de volver a colocarla. Llame a la oficina.</td></tr>
+    <tr><td>Su hijo(a) vomita</td><td>Anote la hora en el diario. Si la sonda se sale con el vómito, llame a la oficina.</td></tr>
+    <tr><td>Sangrado nasal alrededor de la sonda</td><td>Una pequeña cantidad de sangre es normal. Aplique presión suave. Si el sangrado es abundante o no para, llame a la oficina.</td></tr>
+    <tr><td>La grabadora pita o muestra un error</td><td>Verifique que el cable siga conectado. Llame a la oficina si el problema continúa.</td></tr>
+    <tr><td>Molestia nasal significativa</td><td>El aerosol nasal con solución salina puede ayudar. Llame a la oficina si su hijo(a) está muy molesto(a).</td></tr>
+  </tbody>
+</table>
+
+<h2 class="step"><span class="icon">📞</span> Cuándo Llamar a la Oficina</h2>
+<p>Llame al <a href="tel:3173389450"><strong>(317) 338-9450</strong></a> si su hijo(a) presenta cualquiera de lo siguiente:</p>
+
+<h3>Relacionado con el EGD</h3>
+<ul>
+  <li>Temperatura mayor de 101°F (38.3°C)</li>
+  <li>Vómito con sangre, o heces negras o con sangre</li>
+  <li>Dolor abdominal intenso o que empeora</li>
+  <li>Dolor de garganta intenso o persistente, babeo o dificultad para tragar</li>
+</ul>
+
+<h3>Relacionado con la sonda de impedancia-pH</h3>
+<ul>
+  <li>La sonda se sale o cree que se ha movido</li>
+  <li>Sangrado nasal que no para</li>
+  <li>La grabadora deja de funcionar</li>
+</ul>
+
+<div class="warning">Para dificultad para respirar, dolor en el pecho o cualquier emergencia — llame al <strong>911</strong>.</div>
+
+<h2 class="step"><span class="icon">📥</span> Después del Estudio</h2>
+<ul>
+  <li>Los resultados de la impedancia-pH típicamente toman <strong>1–2 semanas</strong>. El médico revisará los datos y se comunicará con usted por el portal del paciente o por teléfono.</li>
+</ul>
+
+<h2 class="step">Recursos</h2>
+<div class="resources">
+  <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
+    <span class="title">▶ Video del procedimiento</span>
+    <span class="sub">Solo como ejemplo — siga este folleto, no el video. <em>(Video solo en inglés.)</em></span>
+  </a>
+  <a class="resource-card" href="{{PORTAL_URL}}" target="_blank" rel="noopener">
+    <span class="title">📨 Portal del paciente</span>
+    <span class="sub">Envíenos un mensaje — método de contacto preferido</span>
+  </a>
+  <a class="resource-card" href="{{GIKIDS_URL}}" target="_blank" rel="noopener">
+    <span class="title">🔗 GIKids.org</span>
+    <span class="sub">Información general sobre pruebas de reflujo.</span>
+  </a>
+</div>
+
+<div class="footer">
+  Para pacientes de <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dra. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dra. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dra. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, y <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Gastroenterología Pediátrica en Peyton Manning Children's Hospital, Indianapolis. No sustituye el consejo médico.<br>
+  Oficina: <a href="tel:3173389450">(317) 338-9450</a>
+</div>
+
+</div>
+</body>
+</html>
