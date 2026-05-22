@@ -62,6 +62,67 @@ locations:
 # schedule-portal-backend/app/adapters/bowel_prep.py and the onboarding
 # recipe in docs/PLAYBOOK.md ("Adding a partner-specific MiraLAX variant").
 
+# =============================================================================
+# Drive-folder routing for consolidate_handouts.py.
+#
+# Each entry describes how one logical product (colonoscopy / combined / one
+# of the alternative-prep variants) is sourced from the per-skill review
+# folder and routed into the peds-gi-handouts Drive mirror.
+#
+# Adding a new prep variant (e.g. a hypothetical NaP-prep): append an entry
+# here and consolidate_handouts.py picks it up — no script edit needed.
+#
+# Fields:
+#   id              short slug (matches the [N/9] banner label).
+#   source_review   subfolder under bowel-prep-pdf-review/ (per-location);
+#                   "{LOC}" templates expand to "SCC" / "PMCH".
+#   drive_folder    appended to "{LOC} - " for the Drive subfolder.
+#   drive_filename  prefix before the band (if any) and "{LOC}[ ES].pdf".
+#   drive_has_bands true if the filename has a band suffix between
+#                   drive_filename and the LOC token.
+#   is_combined     true → only files where the classifier reports
+#                   is_combined=true land here; false → only standalone.
+#   classifier      one of "bowel_prep" / "lactulose" (selects the
+#                   per-prep filename classifier callback).
+# =============================================================================
+consolidate:
+  - id: bowel_prep
+    source_review: "{LOC}-color"
+    drive_folder: "Colonoscopy"
+    drive_filename: "Colonoscopy"
+    drive_has_bands: true
+    is_combined: false
+    classifier: bowel_prep
+
+  - id: combined
+    source_review: "{LOC}-combined-color"
+    drive_folder: "EGDcolon"
+    drive_filename: "EGDcolon"
+    drive_has_bands: true
+    is_combined: true
+    classifier: bowel_prep
+
+  - id: suprep
+    source_review: "{LOC}-suprep-color"
+    drive_folder: "Colonoscopy (SUPREP option)"
+    drive_filename: "Colonoscopy SUPREP"
+    drive_has_bands: false
+    classifier: bowel_prep
+
+  - id: lactulose
+    source_review: "{LOC}-lactulose-color"
+    drive_folder: "Colonoscopy (Lactulose option)"
+    drive_filename: "Colonoscopy Lactulose"
+    drive_has_bands: true
+    classifier: lactulose
+
+  - id: clenpiq
+    source_review: "{LOC}-clenpiq-color"
+    drive_folder: "Colonoscopy (CLENPIQ option)"
+    drive_filename: "Colonoscopy CLENPIQ"
+    drive_has_bands: false
+    classifier: bowel_prep
+
 bands:
 
   # =====================================================================

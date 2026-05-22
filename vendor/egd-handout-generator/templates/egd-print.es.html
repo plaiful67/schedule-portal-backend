@@ -210,7 +210,57 @@ h2.step {
   }
   body.theme-print-light .location { background: #ffffff; }
   body.theme-print-light .resource-card { background: #ffffff; }
+
+.medical-disclaimer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #d0d0d0;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: #555;
+}
+@media print {
+  .medical-disclaimer {
+    color: #333;
+    border-top: 1px solid #888;
+  }
+}
+
+.footer-policy-links {
+  margin: 12px 0 8px;
+  text-align: center;
+  font-size: 0.85em;
+}
+.footer-policy-links a {
+  color: #0e4a82;
+  text-decoration: none;
+}
+.footer-policy-links a:hover { text-decoration: underline; }
+.footer-policy-links .sep { color: #999; margin: 0 6px; }
+
+.footer-copyright {
+  margin: 6px 0 4px;
+  text-align: center;
+  font-size: 0.8em;
+  color: #888;
+}
+
+.topbar-logo {
+  height: 48px;
+  width: auto;
+  flex: 0 0 auto;
+  display: block;
+}
+.topbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
 </style>
+<link rel="icon" type="image/x-icon" href="https://giready.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="256x256" href="https://giready.com/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
 </head>
 <body>
 
@@ -356,7 +406,13 @@ h2.step {
     <img id="qr-gikids" src="qr-placeholder.png" alt="Recurso GIKids — código QR">
     <div class="label"><strong>GIKids.org</strong><br>Información general sobre la endoscopia digestiva alta.</div>
   </a>
-</div>
+</div><p class="footer-copyright">&copy; 2026</p>
+
+
+<!-- REVIEW: native ES review pending on disclaimer_es -->
+<nav class="footer-policy-links" aria-label="Políticas del sitio"><a href="https://giready.com/es/privacidad/">Política de Privacidad</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/es/terminos/">Términos de Uso</a></nav>
+<aside class="medical-disclaimer" role="note" aria-label="Aviso médico">{{DISCLAIMER}}</aside>
+
 
 </body>
 </html>

@@ -98,7 +98,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
     gikids_url = qr["gikids_url"]
 
     replacements = {
-        **build_practice_placeholders(practice_cfg),
+        **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
         "{{HTML_TITLE}}":         html_title,

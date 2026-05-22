@@ -150,10 +150,11 @@ def _load_yaml(path):
         return yaml.safe_load(f)
 
 
-def build_practice_placeholders(practice_cfg):
+def build_practice_placeholders(practice_cfg, lang="en"):
     p = practice_cfg["practice"]
     return {
         "{{PRACTICE_LOGO_ALT}}": p.get("logo_alt", ""),
+        "{{DISCLAIMER}}":        p.get(f"disclaimer_{lang}") or p.get("disclaimer_en") or "",
     }
 
 
@@ -324,7 +325,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         pdf_button_block = ""
 
     replacements = {
-        **build_practice_placeholders(practice_cfg),
+        **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
         # render.build_strings populates {{HTML_TITLE}} and {{BAND_LABEL}}
@@ -358,7 +359,7 @@ def render_landing_page(template_path, lang, practice_cfg, bands_by_id, band_ids
                         logo_src, lang_toggle_href, html_title):
     src = template_path.read_text(encoding="utf-8")
     replacements = {
-        **build_practice_placeholders(practice_cfg),
+        **build_practice_placeholders(practice_cfg, lang),
         "{{HTML_TITLE}}":       html_title,
         "{{LOGO_SRC}}":         logo_src,
         "{{LANG_TOGGLE_HREF}}": lang_toggle_href,

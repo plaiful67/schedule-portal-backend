@@ -32,7 +32,18 @@
     gap: 10px; padding: 8px 14px;
     font-family: "Inter", sans-serif; font-size: 14px;
   }
-  .topbar-logo { height: 32px; width: auto; flex: 0 0 auto; }
+  .topbar-logo {
+  height: 48px;
+  width: auto;
+  flex: 0 0 auto;
+  display: block;
+}
+.topbar-logo-link {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  text-decoration: none;
+}
   .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #0e2233; font-weight: 600; }
   .topbar-practice a { color: #0e4a82; text-decoration: none; }
   .topbar-practice .phone { font-weight: 500; color: #3a3a3a; }
@@ -284,12 +295,49 @@
     .breadcrumb a { color: #5eb3f6; }
   }
   {{PARTIAL_BOX_STYLES}}
+
+.medical-disclaimer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #d0d0d0;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: #555;
+}
+@media print {
+  .medical-disclaimer {
+    color: #333;
+    border-top: 1px solid #888;
+  }
+}
+
+.footer-policy-links {
+  margin: 12px 0 8px;
+  text-align: center;
+  font-size: 0.85em;
+}
+.footer-policy-links a {
+  color: #0e4a82;
+  text-decoration: none;
+}
+.footer-policy-links a:hover { text-decoration: underline; }
+.footer-policy-links .sep { color: #999; margin: 0 6px; }
+
+.footer-copyright {
+  margin: 6px 0 4px;
+  text-align: center;
+  font-size: 0.8em;
+  color: #888;
+}
 </style>
+<link rel="icon" type="image/x-icon" href="https://giready.com/favicon.ico">
+<link rel="icon" type="image/png" sizes="256x256" href="https://giready.com/favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
 </head>
 <body>
 <div class="topbar">
   <div class="topbar-inner">
-    <a href="https://healthcare.ascension.org/locations/indiana/inasc/pmch/departments-and-services/departments/pediatric-gastroenterology" target="_blank" rel="noopener" aria-label="Pediatric GI at Peyton Manning Children's Hospital — official site"><img class="topbar-logo" src="{{LOGO_SRC}}" alt="{{PRACTICE_LOGO_ALT}}"></a>
+    <a href="https://giready.com/" class="topbar-logo-link" aria-label="giready.com home"><img class="topbar-logo" src="https://giready.com/giready-logo.png" alt="GI Ready"></a>
     <div class="topbar-practice">
       Pediatric Gastroenterology<br>
       <span class="phone"><a href="tel:3173389450">(317) 338-9450</a></span>
@@ -527,9 +575,14 @@
 </details>
 
 <div class="footer">
-  For patients of <a href="https://healthcare.ascension.org/find-care/provider/1528187192/sheela-deivanayagam" target="_blank" rel="noopener">Dr. Deivanayagam</a>, <a href="https://healthcare.ascension.org/find-care/provider/1649569419/rachel-dunn" target="_blank" rel="noopener">Dr. Dunn</a>, <a href="https://healthcare.ascension.org/find-care/provider/1174652382/elizabeth-schaefer" target="_blank" rel="noopener">Dr. Schaefer</a>, <a href="https://healthcare.ascension.org/find-care/provider/1659527786/eric-tibesar" target="_blank" rel="noopener">Dr. Tibesar</a>, and <a href="https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian" target="_blank" rel="noopener">Dr. Zavoian</a> — Pediatric Gastroenterology at Peyton Manning Children's Hospital in Indianapolis. Not a substitute for medical advice.<br>
+  Pediatric Gastroenterology<br>
   Office: <a href="tel:3173389450">(317) 338-9450</a>
 </div>
+
+<p class="footer-copyright">&copy; 2026</p><nav class="footer-policy-links" aria-label="Site policies"><a href="https://giready.com/privacy/">Privacy Policy</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/terms/">Terms of Use</a></nav>
+<aside class="medical-disclaimer" role="note" aria-label="Medical disclaimer">{{DISCLAIMER}}</aside>
+
+
 
 </div>
 

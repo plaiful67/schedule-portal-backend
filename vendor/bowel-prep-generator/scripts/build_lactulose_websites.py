@@ -183,7 +183,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
     pdf_button_block = ""
 
     replacements = {
-        **build_practice_placeholders(practice_cfg),
+        **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
         "{{HTML_TITLE}}":         html_title,
@@ -215,7 +215,7 @@ def render_landing_page(template_path, lang, practice_cfg, bands_by_id, band_ids
     a lactulose-specific intro banner."""
     src = template_path.read_text(encoding="utf-8")
     replacements = {
-        **build_practice_placeholders(practice_cfg),
+        **build_practice_placeholders(practice_cfg, lang),
         "{{HTML_TITLE}}":       html_title,
         "{{LOGO_SRC}}":         logo_src,
         "{{LANG_TOGGLE_HREF}}": lang_toggle_href,

@@ -53,6 +53,21 @@ skill.PROCEDURE_PATH = SKILL_ROOT / "data" / "procedure.yaml"
 skill.PRACTICE_PATH = SKILL_ROOT / "practice.yaml"
 skill._PRACTICE_CACHE = None
 
+# Static-handout sites at *.giready.com use the GI Ready logo (the skill's
+# practice.yaml ships logo_filename: "giready-logo.png"). Scheduler-generated
+# personalized PDFs keep the PMCH logo per Sebastian's 2026-05-22 brand split.
+# The override has to live in code, not vendor/*.yaml, because `make vendor-sync`
+# re-copies the static skill on every deploy and would overwrite any YAML edit.
+# This patch also covers egd_phmii.py since it shares the same skill module.
+if not getattr(skill._practice, "_pmch_override_applied", False):
+    _original_practice = skill._practice
+    def _practice_with_pmch_override():
+        data = _original_practice()
+        data["practice"]["logo_filename"] = "logo-pmch.png"
+        return data
+    _practice_with_pmch_override._pmch_override_applied = True  # type: ignore[attr-defined]
+    skill._practice = _practice_with_pmch_override
+
 
 def _reset_caches_for_live_dev():
     """Reset practice.yaml cache at request time so live edits to the skill

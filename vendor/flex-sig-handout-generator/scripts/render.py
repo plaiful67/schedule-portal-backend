@@ -99,6 +99,7 @@ def build_practice_placeholders(lang):
         "{{PRACTICE_STACK_LINE_2}}": stack[1],
         "{{PRACTICE_STACK_LINE_3}}": stack[2],
         "{{PRACTICE_FOOTER}}":       p.get(f"footer_{lang}") or p.get("footer_en") or "",
+        "{{DISCLAIMER}}":            p.get(f"disclaimer_{lang}") or p.get("disclaimer_en") or "",
         "{{PRACTICE_LOGO_FILE}}":    p.get("logo_filename", ""),
         "{{PRACTICE_LOGO_ALT}}":     p.get("logo_alt", ""),
     }

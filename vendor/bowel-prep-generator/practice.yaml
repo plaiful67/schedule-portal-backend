@@ -28,8 +28,23 @@ practice:
     - "(317) 338-9450"
 
   # Running footer (left side) on every print page.
-  footer_en: "Pediatric Gastroenterology  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
-  footer_es: "Gastroenterología Pediátrica  ·  Dr. Deivanayagam, Dr. Dunn, Dr. Schaefer, Dr. Tibesar, Dr. Zavoian  ·  (317) 338-9450"
+  footer_en: "Pediatric Gastroenterology  ·  (317) 338-9450"
+  footer_es: "Gastroenterología Pediátrica  ·  (317) 338-9450"
+
+  # Medical disclaimer rendered as <aside class="medical-disclaimer"> below the
+  # practice footer on every mobile + print handout. disclaimer_es is a working
+  # draft pending native review — see REVIEW markers in templates.
+  disclaimer_en: >-
+    This information is general patient education and is not medical advice.
+    Always follow the specific instructions provided by your child's physician.
+    This content does not create a doctor-patient relationship. Consult your
+    healthcare provider before making any changes to your child's prep regimen.
+  disclaimer_es: >-
+    Esta información es educación general para pacientes y no constituye
+    asesoramiento médico. Siga siempre las instrucciones específicas
+    proporcionadas por el médico de su hijo. Este contenido no crea una
+    relación médico-paciente. Consulte a su proveedor de atención médica antes
+    de realizar cualquier cambio en el régimen de preparación de su hijo.
 
   # Clickable doctor footer rendered on every mobile handout page
   # (combined-mobile, colonoscopy-mobile, egd-mobile, flex-sig-mobile).
@@ -56,8 +71,8 @@ practice:
       profile_url: "https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian"
 
   # Practice/group logo. Path is RELATIVE to the templates/ directory.
-  logo_filename: "logo-pmch.png"
-  logo_alt: "Peyton Manning Children's Hospital — Ascension St. Vincent"
+  logo_filename: "giready-logo.png"
+  logo_alt: "Pediatric Gastroenterology"
 
 # Static QR targets — same target for both locations, may differ by language.
 qr_targets:

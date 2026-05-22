@@ -55,7 +55,10 @@ def lint_template_placeholders():
     set_keys = set()
     for script in SCRIPTS.glob("*.py"):
         text = script.read_text(encoding="utf-8")
-        set_keys.update(re.findall(r'"(\{\{[A-Z0-9_]+\}\})"\s*:', text))
+        # Match both dict-literal ("{{FOO}}": value) and subscript-assignment
+        # (some_dict["{{FOO}}"] = value) forms — render.py's variant builders
+        # mutate a dict via subscript rather than a single literal.
+        set_keys.update(re.findall(r'"(\{\{[A-Z0-9_]+\}\})"\s*[]:]', text))
 
     orphans = used - set_keys
     return used, set_keys, orphans, used_by_file

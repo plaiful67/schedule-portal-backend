@@ -51,6 +51,13 @@ procedures:
     html_title_en: "Flexible Sigmoidoscopy — Bowel Prep"
     html_title_es: "Sigmoidoscopia Flexible — Preparación Intestinal"
 
+    # Drive-folder routing for consolidate_handouts.py. The script auto-
+    # discovers procedures by scanning procedure.yaml; new variants only
+    # need these fields to be picked up.
+    drive_folder: "FlexSig"          # subfolder under "{LOC} - {drive_folder}"
+    drive_filename: "FlexSig"        # filename stem "{drive_filename} {Band} {LOC}[ ES].pdf"
+    drive_has_bands: true            # flex-sig has 3 weight bands
+
     # NPO timing — same as colonoscopy / EGD.
     npo:
       solid_hours:       8

@@ -67,6 +67,19 @@ procedures:
     # in v1; set to `true` when generating the impedance-probe variant later.
     impedance_probe_callout: false
 
+    # Drive-folder routing for consolidate_handouts.py. The script auto-
+    # discovers procedures by scanning procedure.yaml; new variants only
+    # need these two fields (+ locations: if scoped) to be picked up.
+    drive_folder: "EGD"            # subfolder under "{LOC} - {drive_folder}"
+    drive_filename: "EGD"          # filename stem "{drive_filename} {LOC}[ ES].pdf"
+
+    # affects_doses: set true when the procedure introduces new clinical
+    # dosing that staff need at doses.giready.com (e.g., a new prep agent).
+    # False for procedures that only change pre-procedure protocol (NPO, med
+    # stops, recovery). A Tier-2 validator (not yet implemented) will warn
+    # when this is true but doses-giready/ has no matching entry.
+    affects_doses: false
+
   # EGD + 24-hr pH impedance monitoring (pH-MII). Always at PMCH because the
   # motility nurses are part of the adult-GI department and only staff 86th St.
   # See ~/.claude/projects/.../memory/project_pmch_only_procedures.md.
@@ -107,6 +120,14 @@ procedures:
       thickener_hours:   6
 
     impedance_probe_callout: true
+
+    # Drive-folder routing — see comment on the egd block above.
+    drive_folder: "EGDph"
+    drive_filename: "EGDph"
+
+    # pH-MII introduces no new clinical dosing — just a med-STOP list. The
+    # dosing cheatsheet (doses.giready.com) doesn't need an egdph entry.
+    affects_doses: false
 
 # Medication-stop rules consumed by handouts that include a "Medications to
 # Stop" table (currently the pH-MII variant). Each entry has `consumed_by` so

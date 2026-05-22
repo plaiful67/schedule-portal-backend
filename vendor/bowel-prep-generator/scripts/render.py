@@ -1068,6 +1068,7 @@ def build_practice_placeholders(lang):
         "{{PRACTICE_STACK_LINE_2}}": stack[1],
         "{{PRACTICE_STACK_LINE_3}}": stack[2],
         "{{PRACTICE_FOOTER}}":       p.get(f"footer_{lang}") or p.get("footer_en") or "",
+        "{{DISCLAIMER}}":            p.get(f"disclaimer_{lang}") or p.get("disclaimer_en") or "",
         "{{PRACTICE_LOGO_FILE}}":    p.get("logo_filename", ""),
         "{{PRACTICE_LOGO_ALT}}":     p.get("logo_alt", ""),
     }
@@ -1351,8 +1352,13 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     else:
         raise ValueError(f"Unknown protocol: {protocol}")
 
-    # Add location placeholders
-    replacements = {**replacements, **build_location_placeholders(location, lang)}
+    # Add location placeholders + practice-level placeholders (PRACTICE_FOOTER,
+    # DISCLAIMER, logo metadata). render_pdf_print's own pipeline below also
+    # merges practice_replacements in for QR-bearing pages, but the band HTML +
+    # DOCX paths need them merged here so {{DISCLAIMER}} resolves in the band
+    # mobile pages and DOCX outputs.
+    replacements = {**replacements, **build_location_placeholders(location, lang),
+                    **build_practice_placeholders(lang)}
 
     lang_suffix = "" if lang == "en" else f"-{lang}"
     loc_suffix = "SCC" if location_id == "scc" else location_id.upper()
@@ -1666,6 +1672,8 @@ def render_cheatsheet(dosing_data, out_dir):
         "{{LACTULOSE_STANDARD_ROWS}}": lact_std_rows_html,
         "{{LACTULOSE_INFANT_ROWS}}": lact_inf_rows_html,
         "{{LACTULOSE_FOOTNOTE}}": lact_footnote,
+        # Cheatsheet is English-only (staff reference).
+        **build_practice_placeholders("en"),
     }
     for token, value in replacements.items():
         html = html.replace(token, value)
