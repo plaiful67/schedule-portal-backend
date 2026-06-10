@@ -136,7 +136,7 @@
   h2.step {
     background: #0e2233; color: #ffffff;
     padding: 4pt 8pt; border-radius: 3pt;
-    margin: 9pt 0 4pt 0; font-size: 11.5pt;
+    margin: 5pt 0 3pt 0; font-size: 11.5pt;
     break-after: avoid; font-family: "Inter", sans-serif;
   }
   h2.step .icon { display: inline-block; margin-right: 4pt; }
@@ -154,11 +154,11 @@
   table.npo th {
     background: #e3eaf1; color: #0e2233;
     font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 600;
-    text-align: left; padding: 5pt 8pt;
+    text-align: left; padding: 3pt 7pt;
     border-bottom: 1pt solid #c9d3dd;
   }
   table.npo td {
-    padding: 5pt 8pt;
+    padding: 3pt 7pt;
     border-bottom: 0.5pt solid #d8dee5;
     vertical-align: top;
     font-size: 10pt;
@@ -186,7 +186,7 @@
 
   /* Two-column resources */
   .two-col {
-    display: flex; gap: 14pt; align-items: flex-start;
+    display: flex; gap: 14pt; align-items: stretch;
     margin: 6pt 0;
   }
   .two-col > * { flex: 1 1 0; }
@@ -357,7 +357,7 @@
 
 <!-- NPO -->
 <h2 class="step"><span class="icon">&#9201;&#65039;</span> Eating &amp; Drinking — Before the Procedure (NPO)</h2>
-<p>For your child's safety, anesthesia requires an empty stomach. Stop each food or liquid below by the time listed, counting back from your child's <strong>scheduled arrival time</strong>:</p>
+<p>Stop each item below by the time listed before your child's <strong>scheduled arrival time</strong> (anesthesia requires an empty stomach):</p>
 
 <table class="npo">
   <thead>
@@ -398,9 +398,8 @@
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
     <div style="flex:1;">
-      <p style="margin: 0 0 1pt;">Prepare a list of medications and be ready to discuss them with the nurse or scheduler when they call. Most daily medicines can be taken with a small sip of water.</p>
-      <p style="margin: 0 0 1pt;"><strong>Stop GLP-1 medications (Ozempic, Wegovy, Mounjaro, Trulicity) 7 days before</strong> &mdash; these slow stomach emptying and increase anesthesia risk.</p>
-      <p style="margin: 0;">You can verify what medications may need to be stopped at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0 0 1pt;">Have your child's medication list ready for the call from our team. Most daily medicines can be taken with a small sip of water; verify which to hold at <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0;"><strong>Stop GLP-1 medications (Ozempic, Wegovy, Mounjaro, Trulicity) 7 days before</strong> &mdash; these slow stomach emptying and increase anesthesia risk.</p>
     </div>
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
@@ -454,6 +453,5 @@
   </a>
 </div>
 
-<table class="feedback-bar" style="width:100%;border-collapse:collapse;margin:6pt 0 4pt;page-break-inside:avoid;"><tr><td class="feedback-cell" data-cta-v2="1" style="vertical-align:middle;padding:0;border:0;"><a href="{{FEEDBACK_URL}}" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:6pt;"><img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR" style="width:36pt;height:36pt;flex:0 0 auto;"><span style="font-size:9pt;line-height:1.25;color:#333;flex:1 1 auto;"><strong>Tell us what you think of these instructions</strong> — scan to share quick feedback (takes about a minute).</span></a></td></tr></table>
 </body>
 </html>

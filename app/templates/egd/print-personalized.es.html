@@ -136,7 +136,7 @@
   h2.step {
     background: #0e2233; color: #ffffff;
     padding: 4pt 8pt; border-radius: 3pt;
-    margin: 9pt 0 4pt 0; font-size: 11.5pt;
+    margin: 5pt 0 3pt 0; font-size: 11.5pt;
     break-after: avoid; font-family: "Inter", sans-serif;
   }
   h2.step .icon { display: inline-block; margin-right: 4pt; }
@@ -154,11 +154,11 @@
   table.npo th {
     background: #e3eaf1; color: #0e2233;
     font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 600;
-    text-align: left; padding: 5pt 8pt;
+    text-align: left; padding: 3pt 7pt;
     border-bottom: 1pt solid #c9d3dd;
   }
   table.npo td {
-    padding: 5pt 8pt;
+    padding: 3pt 7pt;
     border-bottom: 0.5pt solid #d8dee5;
     vertical-align: top;
     font-size: 10pt;
@@ -186,7 +186,7 @@
 
   /* Two-column resources */
   .two-col {
-    display: flex; gap: 14pt; align-items: flex-start;
+    display: flex; gap: 14pt; align-items: stretch;
     margin: 6pt 0;
   }
   .two-col > * { flex: 1 1 0; }
@@ -357,7 +357,7 @@
 
 <!-- NPO -->
 <h2 class="step"><span class="icon">&#9201;&#65039;</span> Comer y Beber — Antes del Procedimiento (NPO)</h2>
-<p>Por la seguridad de su hijo(a), la anestesia requiere el estómago vacío. Detenga cada alimento o líquido a continuación según el tiempo indicado, contando hacia atrás desde la <strong>hora de llegada programada</strong> de su hijo(a):</p>
+<p>Detenga cada alimento o líquido a continuación por el tiempo indicado antes de la <strong>hora de llegada programada</strong> de su hijo(a) (la anestesia requiere el estómago vacío):</p>
 
 <table class="npo">
   <thead>
@@ -398,9 +398,8 @@
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
     <div style="flex:1;">
-      <p style="margin: 0 0 1pt;">Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen. La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua.</p>
-      <p style="margin: 0 0 1pt;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
-      <p style="margin: 0;">Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0 0 1pt;">Tenga lista la lista de medicamentos de su hijo(a) para la llamada de nuestro equipo. La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua; verifique cuáles suspender en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
     </div>
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
@@ -454,6 +453,5 @@
   </a>
 </div>
 
-<table class="feedback-bar" style="width:100%;border-collapse:collapse;margin:6pt 0 4pt;page-break-inside:avoid;"><tr><td class="feedback-cell" data-cta-v2="1" style="vertical-align:middle;padding:0;border:0;"><a href="{{FEEDBACK_URL}}" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:6pt;"><img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR" style="width:36pt;height:36pt;flex:0 0 auto;"><span style="font-size:9pt;line-height:1.25;color:#333;flex:1 1 auto;"><strong>Díganos qué opina sobre estas instrucciones</strong> — escanee para enviar comentarios (toma alrededor de un minuto).</span></a></td></tr></table>
 </body>
 </html>
