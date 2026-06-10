@@ -155,9 +155,83 @@ _APPT_CALLOUT_HTML_ES = """
 """
 
 
+# -----------------------------------------------------------------------------
+# Strip the privacy/terms/disclaimer footer from the personalized variants.
+# Personalized handouts are clinical print artifacts generated for a specific
+# patient appointment — they shouldn't carry the public-website footer (privacy
+# policy link, terms of use link, and the generic medical disclaimer aside).
+# Public static handouts built directly from the canonical skill templates by
+# `make sites` keep the block; only the portal-rendered personalized variants
+# strip it.
+# -----------------------------------------------------------------------------
+
+_LEGAL_FOOTER_CSS = """.medical-disclaimer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #d0d0d0;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: #555;
+}
+@media print {
+  .medical-disclaimer {
+    color: #333;
+    border-top: 1px solid #888;
+  }
+}
+
+.footer-policy-links {
+  margin: 12px 0 8px;
+  text-align: center;
+  font-size: 0.85em;
+}
+.footer-policy-links a {
+  color: #0e4a82;
+  text-decoration: none;
+}
+.footer-policy-links a:hover { text-decoration: underline; }
+.footer-policy-links .sep { color: #999; margin: 0 6px; }
+
+.footer-copyright {
+  margin: 6px 0 4px;
+  text-align: center;
+  font-size: 0.8em;
+  color: #888;
+}
+
+"""
+
+_LEGAL_FOOTER_HTML_EN = """
+
+<p class="footer-copyright">&copy; 2026</p>
+<nav class="footer-policy-links" aria-label="Site policies"><a href="https://giready.com/privacy/">Privacy Policy</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/terms/">Terms of Use</a></nav>
+<aside class="medical-disclaimer" role="note" aria-label="Medical disclaimer">{{DISCLAIMER}}</aside>
+
+"""
+
+_LEGAL_FOOTER_HTML_ES = """
+
+<!-- REVIEW: native ES review pending on disclaimer_es -->
+<p class="footer-copyright">&copy; 2026</p>
+<nav class="footer-policy-links" aria-label="Políticas del sitio"><a href="https://giready.com/es/privacidad/">Política de Privacidad</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/es/terminos/">Términos de Uso</a></nav>
+<aside class="medical-disclaimer" role="note" aria-label="Aviso médico">{{DISCLAIMER}}</aside>
+
+"""
+
+
+def _strip_legal_footer(text: str, *, lang: str) -> str:
+    text = _replace_unique(text, _LEGAL_FOOTER_CSS, "", where=f"strip legal-footer CSS ({lang})")
+    html = _LEGAL_FOOTER_HTML_EN if lang == "en" else _LEGAL_FOOTER_HTML_ES
+    text = _replace_unique(text, html, "", where=f"strip legal-footer HTML ({lang})")
+    return text
+
+
 def patch_combined_print_en(canonical: str) -> str:
     """Apply the personalization layer to the canonical combined-print.en.html."""
     out = canonical
+
+    # 0. Strip the privacy/terms/disclaimer footer (personalized-only).
+    out = _strip_legal_footer(out, lang="en")
 
     # 1. CSS for appt-callout + performing-physician + followup-callout
     #    (appended pre-</style>).
@@ -242,6 +316,8 @@ def patch_combined_print_en(canonical: str) -> str:
 def patch_combined_print_es(canonical: str) -> str:
     """Apply the personalization layer to the canonical combined-print.es.html."""
     out = canonical
+
+    out = _strip_legal_footer(out, lang="es")
 
     out = _inject_personalization_css(out)
 

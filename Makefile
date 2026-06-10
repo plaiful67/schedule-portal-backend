@@ -16,10 +16,13 @@ vendor-sync: sync-directions
 	$(PY) scripts/vendor_sync.py
 	$(PY) scripts/build_personalized_templates.py
 
-# Re-render the four directions PDFs from the live bowel-prep skill and
-# stash them under app/static/directions/ so the Cloud Run image carries
-# them. The skill's render_directions.py writes its outputs to
-# ~/Desktop/peds-gi-system/ — we copy from there.
+# Re-render the four directions PDFs that get stitched onto every prep
+# handout. Portal-local build_directions.py renders them with the public-
+# site footer (privacy/terms/disclaimer) stripped — those don't belong on
+# a clinical print artifact. The skill's render_directions.py is also
+# invoked so ~/Desktop/peds-gi-system/ stays current for the public-site
+# variants, but the PDFs baked into the Cloud Run image come from
+# build_directions.py.
 SKILL_DIR := $(HOME)/.claude/skills/bowel-prep-generator
 DESKTOP   := $(HOME)/Desktop/peds-gi-system
 DIR_OUT   := app/static/directions
@@ -27,10 +30,7 @@ DIR_OUT   := app/static/directions
 sync-directions:
 	mkdir -p $(DIR_OUT)
 	cd $(SKILL_DIR) && .venv/bin/python scripts/render_directions.py --location all --lang both
-	cp $(DESKTOP)/scc-directions.pdf      $(DIR_OUT)/
-	cp $(DESKTOP)/scc-directions-es.pdf   $(DIR_OUT)/
-	cp $(DESKTOP)/pmch-directions.pdf     $(DIR_OUT)/
-	cp $(DESKTOP)/pmch-directions-es.pdf  $(DIR_OUT)/
+	$(PY) scripts/build_directions.py
 	@ls -lh $(DIR_OUT)/*.pdf
 
 dev:
