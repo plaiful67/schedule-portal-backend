@@ -297,6 +297,45 @@ def audit_partner_variant_bands():
     return failures
 
 
+def audit_shopping_totals():
+    """The Plan-Ahead shopping row promises "enough for big prep with rescue",
+    so for every standard-protocol band with a rescue plan:
+      1. contingency_total_caps must equal miralax_capfuls + evening + morning
+         rescue caps (render.py sums the parts; the yaml total is the
+         cross-check that catches a half-edited band).
+      2. contingency_total_grams must equal contingency_total_caps * 17
+         (17 g per capful — the rescue/shopping convention; the big-prep
+         miralax_grams rounds differently per band and is NOT checked here).
+      3. miralax_shopping_note_{en,es} must be non-empty — the shopping row
+         prints the bottle hint unconditionally, so a missing hint renders a
+         dangling "rescue —" fragment.
+
+    Returns list of (band_id, reason) tuples for failures.
+    """
+    failures = []
+    for band in load_bands():
+        if band.get("protocol") != "standard":
+            continue
+        if "contingency_evening_caps" not in band:
+            continue
+        band_id = band["id"]
+        expected_caps = (band["miralax_capfuls"]
+                         + band["contingency_evening_caps"]
+                         + band["contingency_morning_caps"])
+        total_caps = band.get("contingency_total_caps")
+        if total_caps != expected_caps:
+            failures.append((band_id,
+                             f"contingency_total_caps={total_caps} but big prep + rescue = {expected_caps}"))
+        total_grams = band.get("contingency_total_grams")
+        if total_grams != (total_caps or 0) * 17:
+            failures.append((band_id,
+                             f"contingency_total_grams={total_grams} but {total_caps} caps x 17 g = {(total_caps or 0) * 17}"))
+        for lang in ("en", "es"):
+            if not (band.get(f"miralax_shopping_note_{lang}") or "").strip():
+                failures.append((band_id, f"missing miralax_shopping_note_{lang} (bottle-size hint)"))
+    return failures
+
+
 def audit_translation_gaps():
     """Scan *.es.html for English-residue markers. Returns list of
     (file, lineno, marker, line) tuples."""
@@ -407,6 +446,21 @@ def main():
         failures.append(f"partner-variant integrity: {len(partner_failures)} hit(s)")
     else:
         print("      ✅ no partner-variant integrity issues")
+
+    # ------------------------------------------------------------------
+    # 3d. Shopping totals cover big prep + rescue
+    # ------------------------------------------------------------------
+    print("\n[3d] Shopping totals (big prep + rescue) consistency")
+    shopping_failures = audit_shopping_totals()
+    if shopping_failures:
+        print(f"      ❌ {len(shopping_failures)} shopping-total issue(s):")
+        for band_id, reason in shopping_failures:
+            print(f"         {band_id}: {reason}")
+        print("      Hint: contingency_total_* must equal big prep + rescue; "
+              "every standard band needs miralax_shopping_note_{en,es}.")
+        failures.append(f"shopping totals: {len(shopping_failures)} hit(s)")
+    else:
+        print("      ✅ shopping totals = big prep + rescue on every standard band")
 
     # ------------------------------------------------------------------
     # 3b. meds.giready.com pairing audit (phase 2)

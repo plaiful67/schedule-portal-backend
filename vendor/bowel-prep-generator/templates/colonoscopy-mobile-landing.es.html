@@ -14,16 +14,22 @@
   body {
     margin: 0;
     font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
-    color: #1a1a1a;
+    color: #22303f;
     line-height: 1.5;
-    background: #f7f8fa;
+    background: #f4f7fa;
     font-size: 17px;
   }
   .container { max-width: 680px; margin: 0 auto; padding: 0 14px 32px; }
   .topbar {
     position: sticky; top: 0; z-index: 10;
-    background: #ffffff; border-bottom: 1px solid #e3e6eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(16,42,67,0.06);
+  }
+.topbar::after {
+    content: "";
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #14366e, #1f5fa8 45%, #1d9a8a);
   }
   .topbar-inner {
     max-width: 680px; margin: 0 auto;
@@ -43,24 +49,24 @@
   flex: 0 0 auto;
   text-decoration: none;
 }
-  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #0e2233; font-weight: 600; }
-  .topbar-practice a { color: #0e4a82; text-decoration: none; }
-  .topbar-practice .phone { font-weight: 500; color: #3a3a3a; }
+  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #14366e; font-weight: 600; }
+  .topbar-practice a { color: #1f5fa8; text-decoration: none; }
+  .topbar-practice .phone { font-weight: 500; color: #51606f; }
   .lang-toggle {
     flex: 0 0 auto;
     font-family: "Inter", sans-serif; font-size: 12px; font-weight: 600;
-    color: #0e4a82; text-decoration: none;
-    border: 1px solid #c9d3dd; border-radius: 4px; padding: 4px 8px;
+    color: #1f5fa8; text-decoration: none;
+    border: 1px solid #d7e0e8; border-radius: 999px; padding: 5px 12px;
     background: #fff;
   }
   h1 {
-    font-family: "Inter", sans-serif;
-    font-size: 26px; color: #0e2233;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 28px; color: #14366e;
     margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
   }
   .subtitle {
     font-family: "Inter", sans-serif;
-    font-size: 15px; color: #3a3a3a; font-weight: 500;
+    font-size: 15px; color: #51606f; font-weight: 500;
     margin: 0 0 18px;
   }
   .picker-grid {
@@ -76,16 +82,16 @@
     display: block;
     text-decoration: none;
     background: #ffffff;
-    border: 1px solid #c9d3dd;
+    border: 1px solid #d7e0e8;
     border-radius: 10px;
     padding: 14px 16px;
-    color: #1a1a1a;
+    color: #22303f;
     transition: background 0.1s ease;
   }
   .band-card:active { background: #f0f4f8; }
   .band-card .band-label {
     font-family: "Inter", sans-serif;
-    font-size: 18px; font-weight: 700; color: #0e2233;
+    font-size: 18px; font-weight: 700; color: #14366e;
     line-height: 1.2;
   }
   .band-card .band-lb-inline {
@@ -97,55 +103,56 @@
   }
   .band-card .band-note {
     font-family: "Inter", sans-serif;
-    font-size: 13px; color: #3a3a3a; font-weight: 500;
+    font-size: 13px; color: #51606f; font-weight: 500;
     margin-top: 3px;
   }
   .band-card .band-arrow {
     font-family: "Inter", sans-serif;
-    font-size: 13px; font-weight: 600; color: #0e4a82;
+    font-size: 13px; font-weight: 600; color: #1f5fa8;
     margin-top: 8px;
   }
   .footer {
-    text-align: center; color: #555; font-size: 12px;
-    margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
+    text-align: center; color: #51606f; font-size: 12px;
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid #d7e0e8;
     line-height: 1.6;
   }
   @media (prefers-color-scheme: dark) {
-    body { background: #1a1a1a; color: #e0e0e0; }
-    .topbar { background: #262626; border-bottom-color: #3a3a3a; }
+    .weight-subtitle, .subtitle, .location .arrival { color: #ff9b6b; }
+    body { background: #15181c; color: #e0e0e0; }
+    .topbar { background: #1e2329; border-bottom-color: #323a44; }
     .topbar-practice { color: #e0e0e0; }
     .topbar-practice .phone { color: #bbb; }
-    .topbar-practice a { color: #5eb3f6; }
-    .lang-toggle { background: #2a2a2a; border-color: #444; color: #5eb3f6; }
+    .topbar-practice a { color: #6db1f2; }
+    .lang-toggle { background: #232a31; border-color: #46525f; color: #6db1f2; }
     h1 { color: #e0e0e0; }
     .subtitle { color: #bbb; }
-    .band-card { background: #252525; border-color: #3a3a3a; color: #e0e0e0; }
+    .band-card { background: #1e2329; border-color: #323a44; color: #e0e0e0; }
     .band-card:active { background: #2f3a48; }
     .band-card .band-label { color: #e0e0e0; }
     .band-card .band-lb-inline { color: #ff9b6b; }
     .band-card .band-note { color: #bbb; }
-    .band-card .band-arrow { color: #5eb3f6; }
-    .footer { color: #888; border-top-color: #3a3a3a; }
+    .band-card .band-arrow { color: #6db1f2; }
+    .footer { color: #888; border-top-color: #323a44; }
   }
 
   .breadcrumb {
     font-family: "Inter", sans-serif; font-size: 13px;
-    margin: 14px 0 6px; color: #3a3a3a;
+    margin: 14px 0 6px; color: #51606f;
   }
-  .breadcrumb a { color: #0e4a82; text-decoration: none; padding: 6px 0; display: inline-block; }
+  .breadcrumb a { color: #1f5fa8; text-decoration: none; padding: 6px 0; display: inline-block; }
   .breadcrumb a:hover { text-decoration: underline; }
   @media (prefers-color-scheme: dark) {
     .breadcrumb { color: #bbb; }
-    .breadcrumb a { color: #5eb3f6; }
+    .breadcrumb a { color: #6db1f2; }
   }
 
 .medical-disclaimer {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid #d0d0d0;
+  border-top: 1px solid #d7e0e8;
   font-size: 0.85em;
   line-height: 1.45;
-  color: #555;
+  color: #51606f;
 }
 @media print {
   .medical-disclaimer {
@@ -160,7 +167,7 @@
   font-size: 0.85em;
 }
 .footer-policy-links a {
-  color: #0e4a82;
+  color: #1f5fa8;
   text-decoration: none;
 }
 .footer-policy-links a:hover { text-decoration: underline; }
@@ -173,9 +180,11 @@
   color: #888;
 }
 </style>
-<link rel="icon" type="image/x-icon" href="https://giready.com/favicon.ico">
-<link rel="icon" type="image/png" sizes="256x256" href="https://giready.com/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
+<link rel="manifest" href="https://giready.com/site.webmanifest">
+<meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
 <div class="topbar">

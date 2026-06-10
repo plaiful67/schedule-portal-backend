@@ -309,18 +309,32 @@ def build_strings(band, lang, location=None):
     miralax_time = band.get("miralax_time", "3:00 PM")
     drink_cup = band.get(f"drink_cup_{lang}", "1 cup (8 oz)" if lang == "en" else "1 taza (8 oz)")
 
-    # Round oz to nearest whole number (28.35 g/oz). Keeps shopping-row simple
-    # — patients freak out at decimal places. The plain form drops the "at
-    # least … of powder" hedging; the rescue sub-line under the dose row
-    # explains *why* the amount is what it is, so we don't need to in the dose.
-    miralax_oz = round(grams / 28.35)
+    # Shopping totals — the Plan-Ahead row promises "enough for big prep with
+    # rescue", so it must cover the BIG PREP dose PLUS the full rescue plan
+    # (see build_contingency_block), not just the big prep. Grams come from
+    # contingency_total_grams (17 g/cap) rather than caps*17 because the
+    # big-prep miralax_grams values round differently per band. Bands without
+    # contingency_* fields degrade to big-prep-only.
+    rescue_caps = band.get("contingency_evening_caps", 0) + band.get("contingency_morning_caps", 0)
+    shop_caps = capfuls + rescue_caps
+    shop_grams = band.get("contingency_total_grams", grams) if rescue_caps else grams
+    shop_gatorade_oz = oz + band.get("contingency_evening_oz", 0) + band.get("contingency_morning_oz", 0)
+    shop_gatorade_ml = oz_to_ml(shop_gatorade_oz)
+    shopping_note = band.get(f"miralax_shopping_note_{lang}", "") or ""
+
+    # Round powder oz to nearest whole number (28.35 g/oz). Keeps the
+    # shopping row simple — patients freak out at decimal places. The rescue
+    # sub-line under the shopping row explains *why* the amount exceeds the
+    # big-prep dose, so we don't need to in the quantity itself.
+    shop_miralax_oz = round(shop_grams / 28.35)
 
     if lang == "en":
         tablet_word = tablet_word_en(tabs)
         html_dulcolax_short = f"{tabs} {tablet_word} ({mg} mg)"
         html_miralax_short = f"{capfuls} capfuls (~{grams} g{note})"
-        html_miralax_short_plain = f"{capfuls} capfuls ({miralax_oz} oz or {grams} g{note})"
+        html_miralax_short_plain = f"{shop_caps} capfuls ({shop_miralax_oz} oz or {shop_grams} g)"
         html_gatorade_vol = f"{oz} oz (~{ml} mL)"
+        html_gatorade_shopping_vol = f"{shop_gatorade_oz} oz (~{shop_gatorade_ml} mL)"
 
         docx_dulcolax_long = f"{tabs} Dulcolax 5 mg {tablet_word} ({mg} mg total)"
         docx_dulcolax_bedtime_long = (
@@ -333,8 +347,10 @@ def build_strings(band, lang, location=None):
         )
 
         docx_miralax_shopping = (
-            f"{capfuls} capfuls (~{grams} g{note}) of MiraLAX mixed into "
-            f"{oz} oz (~{ml} mL) of clear Gatorade (no red or purple)"
+            f"At least {shop_caps} capfuls (~{shop_grams} g) of MiraLAX"
+            + (f" ({shopping_note})" if shopping_note else "")
+            + f" and {shop_gatorade_oz} oz (~{shop_gatorade_ml} mL) of clear Gatorade "
+            "(no red or purple) — enough for the big prep plus the rescue plan"
         )
         docx_miralax_5pm = (
             f"{capfuls} capfuls (~{grams} g{note}) of MiraLAX in "
@@ -346,8 +362,9 @@ def build_strings(band, lang, location=None):
         tab_word = tablet_word_es(tabs)
         html_dulcolax_short = f"{tabs} {tab_word} ({mg} mg)"
         html_miralax_short = f"{capfuls} tapas (~{grams} g{note})"
-        html_miralax_short_plain = f"{capfuls} tapas ({miralax_oz} oz o {grams} g{note})"
+        html_miralax_short_plain = f"{shop_caps} tapas ({shop_miralax_oz} oz o {shop_grams} g)"
         html_gatorade_vol = f"{oz} oz (~{ml} mL)"
+        html_gatorade_shopping_vol = f"{shop_gatorade_oz} oz (~{shop_gatorade_ml} mL)"
 
         docx_dulcolax_long = f"{tabs} {tab_word} de Dulcolax 5 mg ({mg} mg total)"
         docx_dulcolax_bedtime_long = (
@@ -360,8 +377,10 @@ def build_strings(band, lang, location=None):
         )
 
         docx_miralax_shopping = (
-            f"{capfuls} tapas (~{grams} g{note}) de MiraLAX mezcladas en "
-            f"{oz} oz (~{ml} mL) de Gatorade transparente (sin rojo ni morado)"
+            f"Al menos {shop_caps} tapas (~{shop_grams} g) de MiraLAX"
+            + (f" ({shopping_note})" if shopping_note else "")
+            + f" y {shop_gatorade_oz} oz (~{shop_gatorade_ml} mL) de Gatorade transparente "
+            "(sin rojo ni morado) — suficiente para la preparación grande más el plan de rescate"
         )
         docx_miralax_5pm = (
             f"{capfuls} tapas (~{grams} g{note}) de MiraLAX en "
@@ -512,8 +531,10 @@ def build_strings(band, lang, location=None):
         "{{HTML_TWO_DAYS_BEFORE_BLOCK}}": html_two_days_before,
         "{{HTML_PREP_MEDICINE_BLOCK}}": html_prep_medicine_block,
         "{{HTML_MIRALAX_SHORT}}": html_miralax_short,
-        "{{HTML_MIRALAX_SHORT_PLAIN}}": html_miralax_short_plain,
-        "{{HTML_GATORADE_VOL}}": html_gatorade_vol,
+        "{{HTML_MIRALAX_SHORT_PLAIN}}": html_miralax_short_plain,        # shopping total: big prep + rescue
+        "{{HTML_MIRALAX_SHOPPING_NOTE}}": shopping_note,                 # per-band bottle-size hint
+        "{{HTML_GATORADE_VOL}}": html_gatorade_vol,                      # big-prep mix volume (dose lines)
+        "{{HTML_GATORADE_SHOPPING_VOL}}": html_gatorade_shopping_vol,    # shopping total: big prep + rescue
         "{{HTML_PRECLEANOUT}}": html_precleanout,
         "{{HTML_PRECLEANOUT_BLOCK}}": build_precleanout_block(band, lang),
         "{{HTML_CONTINGENCY_BLOCK}}": build_contingency_block(band, lang, location),

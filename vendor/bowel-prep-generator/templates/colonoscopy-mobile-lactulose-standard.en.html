@@ -14,9 +14,9 @@
   body {
     margin: 0;
     font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
-    color: #1a1a1a;
+    color: #22303f;
     line-height: 1.6;
-    background: #f7f8fa;
+    background: #f4f7fa;
     font-size: 17px;
   }
   .container { max-width: 680px; margin: 0 auto; padding: 0 14px 32px; }
@@ -24,8 +24,14 @@
   /* Sticky top bar with logo + practice + EN/ES toggle */
   .topbar {
     position: sticky; top: 0; z-index: 10;
-    background: #ffffff; border-bottom: 1px solid #e3e6eb;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(16,42,67,0.06);
+  }
+.topbar::after {
+    content: "";
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, #14366e, #1f5fa8 45%, #1d9a8a);
   }
   .topbar-inner {
     max-width: 680px; margin: 0 auto;
@@ -45,21 +51,21 @@
   flex: 0 0 auto;
   text-decoration: none;
 }
-  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #0e2233; font-weight: 600; }
-  .topbar-practice a { color: #0e4a82; text-decoration: none; }
-  .topbar-practice .phone { font-weight: 500; color: #3a3a3a; }
+  .topbar-practice { flex: 1 1 auto; text-align: center; line-height: 1.15; color: #14366e; font-weight: 600; }
+  .topbar-practice a { color: #1f5fa8; text-decoration: none; }
+  .topbar-practice .phone { font-weight: 500; color: #51606f; }
   .lang-toggle {
     flex: 0 0 auto;
     font-family: "Inter", sans-serif; font-size: 13px; font-weight: 600;
-    color: #0e4a82; text-decoration: none;
-    border: 1px solid #c9d3dd; border-radius: 4px; padding: 4px 8px;
+    color: #1f5fa8; text-decoration: none;
+    border: 1px solid #d7e0e8; border-radius: 999px; padding: 5px 12px;
     background: #fff;
   }
 
   /* Hero / title */
   h1 {
-    font-family: "Inter", sans-serif;
-    font-size: 24px; color: #0e2233;
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 27px; color: #14366e;
     margin: 18px 0 4px; font-weight: 700; letter-spacing: -0.01em;
   }
   /* Weight band: own line under the title, kg + lb glued together with
@@ -84,20 +90,20 @@
   .other-bands {
     display: inline-block;
     font-family: "Inter", sans-serif; font-size: 14px; font-weight: 500;
-    text-decoration: none; color: #0e4a82;
-    background: #f4f7fa; border: 1px solid #c9d3dd;
+    text-decoration: none; color: #1f5fa8;
+    background: #ffffff; border: 1px solid #d7e0e8;
     border-radius: 999px; padding: 4px 10px;
     line-height: 1.2;
     margin: 0 0 14px;
   }
-  .other-bands:active { background: #e3eaf1; }
+  .other-bands:active { background: #e7eef6; }
 
   .pdf-download {
     display: inline-flex; align-items: center; gap: 6px;
     font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
-    text-decoration: none; color: #0e2233;
+    text-decoration: none; color: #14366e;
     background: #fff7d6; border: 1px solid #d4a017;
-    border-radius: 8px; padding: 8px 14px;
+    border-radius: 12px; padding: 8px 14px;
     line-height: 1.2; margin: 0 0 14px;
   }
   .pdf-download:active { background: #faecaa; }
@@ -105,18 +111,18 @@
 
   /* Location block */
   .location {
-    background: #f4f7fa; border: 1px solid #c9d3dd;
-    border-radius: 8px; padding: 14px 16px; margin: 0 0 16px;
+    background: #ffffff; border: 1px solid #d7e0e8;
+    border-radius: 12px; padding: 14px 16px; margin: 0 0 16px;
     box-shadow: 0 1px 2px rgba(14,34,51,0.08);
   }
   .location .label {
     font-family: "Inter", sans-serif;
     font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
-    color: #3a3a3a; margin-bottom: 2px;
+    color: #51606f; margin-bottom: 2px;
   }
-  .location .name { font-weight: 700; font-size: 16px; color: #0e2233; }
+  .location .name { font-weight: 700; font-size: 16px; color: #14366e; }
   .location .addr { margin-top: 3px; font-size: 15px; }
-  .location .addr a { color: #0e4a82; text-decoration: none; }
+  .location .addr a { color: #1f5fa8; text-decoration: none; }
   .location .arrival {
     margin-top: 6px; font-family: "Inter", sans-serif;
     font-weight: 600; color: #b03a00; font-size: 15px;
@@ -126,8 +132,8 @@
      not a solid full-width band, so the page doesn't feel like a
      stack of dark bars on mobile. */
   h2.step, h2.section-heading {
-    background: #ffffff; color: #0e2233;
-    border-left: 5px solid #0e2233; border-radius: 0;
+    background: #ffffff; color: #14366e;
+    border-left: 5px solid #14366e; border-radius: 0;
     font-family: "Inter", sans-serif; font-size: 16px; font-weight: 600;
     padding: 6px 0 6px 12px;
     margin: 26px 0 10px;
@@ -140,7 +146,7 @@
   h2.step .icon, h2.section-heading .icon { margin-right: 8px; font-size: 1.1em; }
   h3.sub {
     font-family: "Inter", sans-serif; font-size: 15px; font-weight: 600;
-    color: #0e2233; border-bottom: 1px solid #c9d3dd;
+    color: #14366e; border-bottom: 1px solid #d7e0e8;
     padding-bottom: 2px; margin: 14px 0 6px;
   }
 
@@ -153,13 +159,13 @@
   /* Time-boxed dose lines — used by 2-Days-Before block AND the
      1-Day-Before Dulcolax + MiraLAX schedule. */
   .time-box {
-    background: #e8f1fb; border-left: 4px solid #1565c0;
-    border-radius: 6px; padding: 12px 14px; margin: 10px 0 16px;
+    background: #edf4fb; border-left: 4px solid #1f5fa8;
+    border-radius: 8px; padding: 12px 14px; margin: 10px 0 16px;
     font-size: 16px;
     box-shadow: 0 1px 2px rgba(14,34,51,0.08);
   }
   .time-box .when {
-    font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b;
+    font-family: "Inter", sans-serif; font-weight: 700; color: #14366e;
     font-size: 15px; margin-bottom: 0; margin-right: 8px; letter-spacing: 0.01em;
   }
   .time-box .what { font-size: 16px; line-height: 1.42; display: inline; }
@@ -170,14 +176,14 @@
     margin: 6px 0 10px; font-size: 15px;
   }
   th {
-    background: #e3eaf1; color: #0e2233;
+    background: #e7eef6; color: #14366e;
     font-family: "Inter", sans-serif; font-size: 14px; font-weight: 600;
     text-align: left; padding: 6px 8px;
-    border-bottom: 1px solid #c9d3dd;
+    border-bottom: 1px solid #d7e0e8;
   }
   td {
     padding: 6px 8px;
-    border-bottom: 1px solid #d8dee5;
+    border-bottom: 1px solid #d7e0e8;
     vertical-align: top;
   }
   /* Supplies table — slightly larger text so the active-ingredient names
@@ -186,7 +192,7 @@
   table.supplies td, table.supplies th { padding: 8px 10px; }
   table.supplies td { line-height: 1.5; }
   table.avoid-allowed {
-    border: 1px solid #c9d3dd; border-radius: 6px; overflow: hidden;
+    border: 1px solid #d7e0e8; border-radius: 8px; overflow: hidden;
   }
   table.avoid-allowed td { width: 50%; background: #ffffff; }
   table.avoid-allowed td.col-avoid { border-right: 1px solid #e6d8d4; background: #fff7f5; }
@@ -195,11 +201,11 @@
     background: #fdecea; color: #9a2616; border-bottom: 2px solid #c0392b;
   }
   table.avoid-allowed th.col-allowed {
-    background: #e8f4ea; color: #1f5c33; border-bottom: 2px solid #2e7d32; border-left: 1px solid #c9d3dd;
+    background: #e8f4ea; color: #1f5c33; border-bottom: 2px solid #2e7d32; border-left: 1px solid #d7e0e8;
   }
 
   p { margin: 6px 0; font-size: 17px; line-height: 1.6; }
-  p.note { font-size: 14px; color: #3a3a3a; font-style: italic; margin: 6px 0 0; }
+  p.note { font-size: 14px; color: #51606f; font-style: italic; margin: 6px 0 0; }
   ul { padding-left: 20px; margin: 6px 0; }
   li { margin: 4px 0; font-size: 17px; line-height: 1.6; }
 
@@ -207,23 +213,23 @@
      subtle lift so they read as cards rather than embedded boxes. */
   .warning {
     background: #ffedea; border: 1px solid #f5cdc6; border-left: 4px solid #c0392b;
-    border-radius: 6px; padding: 10px 12px; margin: 8px 0 12px;
+    border-radius: 8px; padding: 10px 12px; margin: 8px 0 12px;
     color: #7a1f00; font-weight: 600; font-size: 14px;
     box-shadow: 0 1px 2px rgba(14,34,51,0.08);
   }
   .callout {
     background: #fffaeb; border: 1px solid #f0dfa4; border-left: 4px solid #d4a017;
-    border-radius: 6px; padding: 10px 12px; margin: 8px 0 12px; font-size: 14px;
+    border-radius: 8px; padding: 10px 12px; margin: 8px 0 12px; font-size: 14px;
     box-shadow: 0 1px 2px rgba(14,34,51,0.08);
   }
   /* Tip box — blue info card, less alarming than .callout (yellow). */
   .tip {
-    background: #f3f7fc; border: 1px solid #c4d4e6; border-left: 3px solid #5a8ec2;
-    border-radius: 5px; padding: 7px 10px; margin: 8px 0 12px;
+    background: #edf4fb; border: 1px solid #c9daea; border-left: 3px solid #1f5fa8;
+    border-radius: 8px; padding: 7px 10px; margin: 8px 0 12px;
     font-size: 14px; line-height: 1.45;
     break-inside: avoid;
   }
-  .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b; margin-bottom: 2px; font-size: 14px; }
+  .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #14366e; margin-bottom: 2px; font-size: 14px; }
   .tip p, .tip li { font-size: 14px; line-height: 1.45; margin: 0; }
   /* Keep callout body text at the callout's intended 14px, not the body 17px. */
   .callout p, .callout li { font-size: 14px; line-height: 1.4; }
@@ -237,22 +243,22 @@
      read this AFTER the procedure, so it's de-emphasized in the prep flow. */
   details.post-procedure {
     margin: 28px 0 12px;
-    border-top: 1px dashed #c9d3dd;
+    border-top: 1px dashed #d7e0e8;
     padding-top: 14px;
   }
   details.post-procedure summary {
     font-family: "Inter", sans-serif; font-size: 14px; font-weight: 600;
-    color: #3a3a3a; cursor: pointer; list-style: none;
+    color: #51606f; cursor: pointer; list-style: none;
     padding: 4px 0; user-select: none;
   }
   details.post-procedure summary::-webkit-details-marker { display: none; }
   details.post-procedure summary::before { content: "▶ "; font-size: 11px; color: #777; }
   details.post-procedure[open] summary::before { content: "▼ "; }
-  details.post-procedure ul, details.post-procedure p { font-size: 14px; color: #3a3a3a; line-height: 1.5; }
-  details.post-procedure strong { color: #1a1a1a; }
+  details.post-procedure ul, details.post-procedure p { font-size: 14px; color: #51606f; line-height: 1.5; }
+  details.post-procedure strong { color: #22303f; }
   /* Print: always show expanded so a saved-as-PDF version isn't missing the content. */
   @media print {
-    details.post-procedure { border-top: 1px solid #c9d3dd; }
+    details.post-procedure { border-top: 1px solid #d7e0e8; }
     details.post-procedure[open] summary::before, details.post-procedure summary::before { content: ""; }
     details.post-procedure > *:not(summary) { display: block !important; }
   }
@@ -262,7 +268,7 @@
   @media (min-width: 560px) { .meals { grid-template-columns: 1fr 1fr 1fr; } }
   .meal {
     background: #f6f4ee; border: 1px solid #d8d2c2;
-    border-radius: 8px; padding: 10px 12px; font-size: 15px;
+    border-radius: 12px; padding: 10px 12px; font-size: 15px;
   }
   .meal h4 {
     font-family: "Inter", sans-serif; font-size: 14px;
@@ -275,51 +281,52 @@
   .resources { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 0; }
   .resource-card {
     display: block; text-decoration: none;
-    background: #f4f7fa; border: 1px solid #c9d3dd;
-    border-radius: 8px; padding: 12px 14px;
-    color: #1a1a1a;
+    background: #ffffff; border: 1px solid #d7e0e8;
+    border-radius: 12px; padding: 12px 14px;
+    color: #22303f;
   }
   .resource-card .title {
-    font-family: "Inter", sans-serif; font-weight: 700; color: #0e4a82;
+    font-family: "Inter", sans-serif; font-weight: 700; color: #1f5fa8;
     font-size: 15px;
   }
-  .resource-card .sub { font-size: 14px; color: #3a3a3a; margin-top: 3px; }
+  .resource-card .sub { font-size: 14px; color: #51606f; margin-top: 3px; }
 
   /* Footer */
   .footer {
-    text-align: center; color: #555; font-size: 13px;
-    margin-top: 28px; padding-top: 14px; border-top: 1px solid #e3e6eb;
+    text-align: center; color: #51606f; font-size: 13px;
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid #d7e0e8;
     line-height: 1.6;
   }
 
   /* Dark mode */
   @media (prefers-color-scheme: dark) {
-    body { background: #1a1a1a; color: #e0e0e0; }
-    .topbar { background: #262626; border-bottom-color: #3a3a3a; }
+    .weight-subtitle, .subtitle, .location .arrival { color: #ff9b6b; }
+    body { background: #15181c; color: #e0e0e0; }
+    .topbar { background: #1e2329; border-bottom-color: #323a44; }
     .topbar-practice { color: #e0e0e0; }
     .topbar-practice .phone { color: #bbb; }
-    .topbar-practice a { color: #5eb3f6; }
-    .lang-toggle { background: #2a2a2a; border-color: #444; color: #5eb3f6; }
+    .topbar-practice a { color: #6db1f2; }
+    .lang-toggle { background: #232a31; border-color: #46525f; color: #6db1f2; }
     h1, h3 { color: #e0e0e0; }
     h2.step, h2.section-heading {
       background: transparent; color: #e0e0e0;
-      border-left-color: #5eb3f6;
+      border-left-color: #6db1f2;
     }
-    h3.sub { color: #e0e0e0; border-bottom-color: #3a3a3a; }
+    h3.sub { color: #e0e0e0; border-bottom-color: #323a44; }
     p.note { color: #aaa; }
-    .other-bands { background: #252525; border-color: #3a3a3a; color: #5eb3f6; }
+    .other-bands { background: #1e2329; border-color: #323a44; color: #6db1f2; }
     .other-bands:active { background: #2f3a48; }
     .pdf-download { background: #2a2611; border-color: #6b5320; color: #f3d375; }
     .pdf-download:active { background: #3a341a; }
-    .location { background: #252525; border-color: #3a3a3a; box-shadow: none; }
+    .location { background: #1e2329; border-color: #323a44; box-shadow: none; }
     .location .name { color: #e0e0e0; }
-    .location .addr a { color: #5eb3f6; }
-    .time-box { background: #1c2a3a; border-left-color: #5eb3f6; color: #e0e0e0; box-shadow: none; }
+    .location .addr a { color: #6db1f2; }
+    .time-box { background: #1c2a3a; border-left-color: #6db1f2; color: #e0e0e0; box-shadow: none; }
     .time-box .when { color: #9ec5fa; }
-    .tip { background: #1f2a3a; border-color: #3d5a8a; border-left-color: #5eb3f6; color: #e0e0e0; }
+    .tip { background: #1f2a3a; border-color: #3d5a8a; border-left-color: #6db1f2; color: #e0e0e0; }
     .tip-title { color: #9ec5fa; }
     .tip p, .tip li { color: #e0e0e0; }
-    th { background: #2a2f38; color: #e0e0e0; border-bottom-color: #3a3a3a; }
+    th { background: #2a2f38; color: #e0e0e0; border-bottom-color: #323a44; }
     td { border-bottom-color: #2a2f38; }
     table.avoid-allowed td { background: #1f1f1f; }
     table.avoid-allowed td.col-avoid { background: #2a1a1a; }
@@ -331,37 +338,37 @@
     .callout-title { color: #e9d39a; }
     .meal { background: #28251c; border-color: #4a4534; color: #e0d8c2; }
     .meal h4 { color: #e9d39a; }
-    .resource-card { background: #252525; border-color: #3a3a3a; color: #e0e0e0; }
-    .resource-card .title { color: #5eb3f6; }
+    .resource-card { background: #1e2329; border-color: #323a44; color: #e0e0e0; }
+    .resource-card .title { color: #6db1f2; }
     .resource-card .sub { color: #bbb; }
-    details.post-procedure { border-top-color: #3a3a3a; }
-    details.post-procedure summary { color: #d0d0d0; }
+    details.post-procedure { border-top-color: #323a44; }
+    details.post-procedure summary { color: #d7e0e8; }
     details.post-procedure summary::before { color: #aaa; }
-    details.post-procedure ul, details.post-procedure p { color: #d0d0d0; }
+    details.post-procedure ul, details.post-procedure p { color: #d7e0e8; }
     details.post-procedure strong { color: #f0f0f0; }
-    details.post-procedure a { color: #5eb3f6; }
-    .footer { color: #888; border-top-color: #3a3a3a; }
+    details.post-procedure a { color: #6db1f2; }
+    .footer { color: #888; border-top-color: #323a44; }
   }
 
   .breadcrumb {
     font-family: "Inter", sans-serif; font-size: 14px;
-    margin: 14px 0 6px; color: #3a3a3a;
+    margin: 14px 0 6px; color: #51606f;
   }
-  .breadcrumb a { color: #0e4a82; text-decoration: none; padding: 6px 0; display: inline-block; }
+  .breadcrumb a { color: #1f5fa8; text-decoration: none; padding: 6px 0; display: inline-block; }
   .breadcrumb a:hover { text-decoration: underline; }
   @media (prefers-color-scheme: dark) {
     .breadcrumb { color: #bbb; }
-    .breadcrumb a { color: #5eb3f6; }
+    .breadcrumb a { color: #6db1f2; }
   }
   {{PARTIAL_BOX_STYLES}}
 
 .medical-disclaimer {
   margin-top: 16px;
   padding-top: 12px;
-  border-top: 1px solid #d0d0d0;
+  border-top: 1px solid #d7e0e8;
   font-size: 0.85em;
   line-height: 1.45;
-  color: #555;
+  color: #51606f;
 }
 @media print {
   .medical-disclaimer {
@@ -376,7 +383,7 @@
   font-size: 0.85em;
 }
 .footer-policy-links a {
-  color: #0e4a82;
+  color: #1f5fa8;
   text-decoration: none;
 }
 .footer-policy-links a:hover { text-decoration: underline; }
@@ -389,9 +396,11 @@
   color: #888;
 }
 </style>
-<link rel="icon" type="image/x-icon" href="https://giready.com/favicon.ico">
-<link rel="icon" type="image/png" sizes="256x256" href="https://giready.com/favicon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
+<link rel="manifest" href="https://giready.com/site.webmanifest">
+<meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
 <div class="topbar">
@@ -526,7 +535,7 @@
   </tbody>
 </table>
 
-<h2 class="step big-prep"><span class="icon">🥤</span> THE BIG PREP<span class="pz-only" data-pz-day="0" data-pz-template=" ({date})"></span> — afternoon / evening</h2>
+<h2 class="step big-prep"><span class="icon">🥤</span> THE BIG PREP<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span> — afternoon / evening</h2>
 <p class="note"><em>Best to start right after school &mdash; don't delay too long, or your child may not finish before bedtime.</em></p>
 
 <div class="time-box">
