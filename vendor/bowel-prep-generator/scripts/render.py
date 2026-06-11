@@ -35,6 +35,11 @@ import sys
 import zipfile
 from pathlib import Path
 
+# Reproducible PDFs: fontTools stamps head.modified with the current time into
+# every font subset, so otherwise-identical renders differ inside a compressed
+# stream. SOURCE_DATE_EPOCH (honored by fontTools) pins it; external value wins.
+os.environ.setdefault("SOURCE_DATE_EPOCH", "0")
+
 try:
     import yaml
 except ImportError:
@@ -1483,7 +1488,7 @@ def render_cheatsheet(dosing_data, out_dir):
     One template (templates/cheatsheet.html) → both outputs, so the print PDF
     and the on-screen page can never drift.
     """
-    from datetime import date
+    from datetime import date, datetime
 
     template_path = TEMPLATES / "cheatsheet.html"
     with open(template_path, encoding="utf-8") as f:
@@ -1496,7 +1501,20 @@ def render_cheatsheet(dosing_data, out_dir):
     practice = _practice()
     office_phone = practice["practice"]["phone"]
 
-    today_str = date.today().strftime("%B %-d, %Y")
+    # "Last updated" = the last dosing.yaml change, not the build date.
+    # Using today's date made every cross-day rebuild dirty doses-giready
+    # (and claimed an update that never happened). Git commit date first;
+    # file mtime as the no-git fallback.
+    import subprocess
+    try:
+        iso = subprocess.run(
+            ["git", "log", "-1", "--format=%cs", "--", str(DOSING_PATH)],
+            cwd=SKILL_DIR, capture_output=True, text=True, timeout=10,
+        ).stdout.strip()
+        updated = date.fromisoformat(iso)
+    except (ValueError, OSError, subprocess.SubprocessError):
+        updated = datetime.fromtimestamp(DOSING_PATH.stat().st_mtime).date()
+    today_str = updated.strftime("%B %-d, %Y")
 
     std_ids = ["15-20", "21-30", "31-40", "41-50", "over-50"]
 

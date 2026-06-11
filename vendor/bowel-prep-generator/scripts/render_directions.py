@@ -12,9 +12,17 @@ Usage:
         --out ~/Desktop/pmch-directions.pdf
 """
 import argparse
+import os
 import re
 import sys
 from pathlib import Path
+
+# Reproducible PDFs: fontTools stamps head.modified with the current time into
+# every font subset, so otherwise-identical renders differ inside a compressed
+# stream. SOURCE_DATE_EPOCH (honored by fontTools) pins it; external value wins.
+# (Also set by the imported render module — kept explicit here so this script
+# stays deterministic even if that import goes away.)
+os.environ.setdefault("SOURCE_DATE_EPOCH", "0")
 
 import yaml
 

@@ -16,9 +16,15 @@ avoids any chance of the strip leaking into a public artifact.
 from __future__ import annotations
 
 import importlib.util
+import os
 import re
 import sys
 from pathlib import Path
+
+# Reproducible PDFs: fontTools stamps head.modified with the current time into
+# every font subset, so otherwise-identical renders differ inside a compressed
+# stream. SOURCE_DATE_EPOCH (honored by fontTools) pins it; external value wins.
+os.environ.setdefault("SOURCE_DATE_EPOCH", "0")
 
 import yaml
 
