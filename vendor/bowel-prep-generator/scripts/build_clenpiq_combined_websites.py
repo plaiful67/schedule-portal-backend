@@ -181,7 +181,8 @@ def write_repo_metadata(repo_dir, location, subdomain):
 
 
 def main():
-    practice_cfg = _load_yaml(PRACTICE_PATH)
+    import render  # merged practice: shared practice-core.yaml deep-merged under local
+    practice_cfg = render._practice()
     dosing_cfg = _load_yaml(DOSING_PATH)
     locations = dosing_cfg["locations"]
     bands_by_id = {b["id"]: b for b in dosing_cfg["bands"]}

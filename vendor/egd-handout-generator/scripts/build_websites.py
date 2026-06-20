@@ -104,80 +104,13 @@ def build_pdf_button_block(href: str, lang: str, download_name: str = "") -> str
         f'{PDF_BUTTON_LABEL[lang]}</a>'
     )
 
-# Canonical giready security-header block + per-page inline-script hashing.
-# Kept byte-identical with bowel-prep-generator/scripts/header_config.py and the
-# flex-sig skill; the giready-cross-skill-consistency agent verifies no drift.
-# script-src uses sha256 hashes of the inline scripts (no 'unsafe-inline');
-# style-src KEEPS 'unsafe-inline' deliberately (pervasive inline styles, accepted
-# low-severity risk). CSP must stay on one physical line.
-_CSP_TEMPLATE = (
-    "default-src 'self'; "
-    "script-src 'self'{script_hashes} https://analytics.giready.com; "
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    "font-src 'self' https://fonts.gstatic.com; "
-    "img-src 'self' data: https://giready.com https://analytics.giready.com; "
-    "connect-src 'self' https://analytics.giready.com https://api-schedule.giready.com; "
-    "manifest-src 'self' https://giready.com; "
-    "frame-src https://calendar.google.com; "
-    "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
-)
-
-_HEADERS_TEMPLATE = """/*
-  Content-Security-Policy: {csp}
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
-  Referrer-Policy: no-referrer
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
-"""
-
-_SCRIPT_BLOCK = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.DOTALL | re.IGNORECASE)
-_ATTR = re.compile(r'([\w-]+)\s*=\s*"([^"]*)"')
-_EXECUTABLE_TYPES = {"", "text/javascript", "application/javascript", "module"}
-
-
-def _hashes_in_html(html):
-    found = set()
-    for match in _SCRIPT_BLOCK.finditer(html):
-        attrs = {k.lower(): v for k, v in _ATTR.findall(match.group(1))}
-        if "src" in attrs:
-            continue  # external script — governed by the source list, not a hash
-        if attrs.get("type", "").lower().strip() not in _EXECUTABLE_TYPES:
-            continue  # e.g. <script type="application/json"> data — not executed
-        inner = match.group(2)
-        if not inner.strip():
-            continue
-        digest = hashlib.sha256(inner.encode("utf-8")).digest()
-        found.add("'sha256-" + base64.b64encode(digest).decode() + "'")
-    return found
-
-
-def csp_script_hashes(repo_dir):
-    repo_dir = Path(repo_dir)
-    found = set()
-    for html_file in repo_dir.rglob("*.html"):
-        found |= _hashes_in_html(html_file.read_text(encoding="utf-8"))
-    return sorted(found)
-
-
-def build_csp(script_hashes=()):
-    joined = "".join(" " + h for h in script_hashes)
-    return _CSP_TEMPLATE.format(script_hashes=joined)
-
-
-def build_headers_content(script_hashes=()):
-    return _HEADERS_TEMPLATE.format(csp=build_csp(script_hashes))
-
-
-def write_headers(repo_dir):
-    repo_dir = Path(repo_dir)
-    content = build_headers_content(csp_script_hashes(repo_dir))
-    path = repo_dir / "_headers"
-    current = path.read_text(encoding="utf-8") if path.exists() else None
-    if current != content:
-        path.write_text(content, encoding="utf-8")
-        return [path]
-    return []
+# Canonical giready security-header block — single source for all skills:
+# ~/peds-gi-prep-system/shared/gi_header_config.py (ends the former 3-way CSP mirror).
+for _cand in (Path.home() / "peds-gi-prep-system" / "shared",):
+    if (_cand / "gi_header_config.py").exists():
+        sys.path.insert(0, str(_cand))
+        break
+from gi_header_config import write_headers  # noqa: E402
 
 GITIGNORE_CONTENT = """.DS_Store
 *.swp

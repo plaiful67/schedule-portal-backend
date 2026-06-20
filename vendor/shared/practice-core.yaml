@@ -1,0 +1,57 @@
+# practice-core.yaml — CANONICAL practice-wide identity, shared by every skill.
+#
+# Single source of truth for the fields that are the SAME across all handout
+# skills (bowel-prep, egd, flex-sig, office-qrg): contact phone, the cover
+# stack, the running footer, the medical disclaimer, and the logo. Each skill's
+# own `practice.yaml` keeps only what is genuinely per-skill (procedure-specific
+# qr_targets, the doctor roster, template_defaults) and may OVERRIDE any key
+# here — local wins on merge (see `_practice()` in each skill's render.py).
+#
+# Loaded at render time and deep-merged UNDER each skill-local practice.yaml.
+# Resolved from the shared dir (vendored `vendor/shared/` in the backend image,
+# else `~/peds-gi-prep-system/shared/`). Edit HERE to change the value once for
+# every skill + the scheduler backend. After editing, run `make validate-coverage`
+# (asserts every skill's merged practice agrees) and `make sites`.
+#
+# NOTE on the disclaimer: it is a `>-` folded scalar — line breaks below fold to
+# single spaces on load, so the LOADED value is what matters, not the wrapping.
+
+practice:
+  # Office phone — used in the rescue-plan "call our office at …" sentence and
+  # any other body-text reference. (phone_tel, the digits-only tel: form, stays
+  # in bowel-prep's local practice.yaml — it is consumed only there.)
+  phone: "(317) 338-9450"
+
+  # 3-line stack displayed in the print PDF cover (between logo and mobile QR).
+  cover_stack_en:
+    - "Pediatric"
+    - "Gastroenterology"
+    - "(317) 338-9450"
+  cover_stack_es:
+    - "Gastroenterología"
+    - "Pediátrica"
+    - "(317) 338-9450"
+
+  # Running footer (left side) on every print page. (office-qrg overrides this
+  # locally with its staff-reference footer.)
+  footer_en: "Pediatric Gastroenterology  ·  (317) 338-9450"
+  footer_es: "Gastroenterología Pediátrica  ·  (317) 338-9450"
+
+  # Medical disclaimer rendered as <aside class="medical-disclaimer"> below the
+  # practice footer on every mobile + print handout. disclaimer_es is a working
+  # draft pending native review — see REVIEW markers in templates.
+  disclaimer_en: >-
+    This information is general patient education and is not medical advice.
+    Always follow the specific instructions provided by your child's physician.
+    This content does not create a doctor-patient relationship. Consult your
+    healthcare provider before making any changes to your child's prep regimen.
+  disclaimer_es: >-
+    Esta información es educación general para pacientes y no constituye
+    asesoramiento médico. Siga siempre las instrucciones específicas
+    proporcionadas por el médico de su hijo. Este contenido no crea una
+    relación médico-paciente. Consulte a su proveedor de atención médica antes
+    de realizar cualquier cambio en el régimen de preparación de su hijo.
+
+  # Practice/group logo. Path is RELATIVE to each skill's templates/ directory.
+  logo_filename: "giready-logo.png"
+  logo_alt: "Pediatric Gastroenterology"

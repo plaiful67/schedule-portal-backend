@@ -184,7 +184,7 @@ def render_band_cards(bands_by_id, lang, band_ids):
         wide = " wide" if (n % 2 == 1 and i == n - 1) else ""
         cards.append(
             f'  <a class="band{wide}" href="{path}/">\n'
-            f'    <div class="info"><h3>{lb}</h3><div class="kg">{label}</div>{tag_html}</div>\n'
+            f'    <div class="info"><h2>{lb}</h2><div class="kg">{label}</div>{tag_html}</div>\n'
             f'    <span class="arr">{arrow_svg}</span>\n'
             f'  </a>'
         )
@@ -611,7 +611,8 @@ def write_repo_metadata(repo_dir, location, subdomain):
 
 
 def main():
-    practice_cfg = _load_yaml(PRACTICE_PATH)
+    import render  # merged practice: shared practice-core.yaml deep-merged under local
+    practice_cfg = render._practice()
     dosing_cfg   = _load_yaml(DOSING_PATH)
     locations    = dosing_cfg["locations"]
     bands_by_id  = {b["id"]: b for b in dosing_cfg["bands"]}

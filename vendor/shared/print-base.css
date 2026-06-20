@@ -1,0 +1,53 @@
+/* giready print PDF design tokens — shared across the three handout
+ * skills (bowel-prep, egd-handout, flex-sig-handout) and the
+ * schedule-portal-backend personalized PDFs.
+ *
+ * This file is auto-injected by every render path at the top of each
+ * template's <head>. Per-template <style> blocks that follow can
+ * override anything here (last <style> wins for equal specificity).
+ *
+ * GOAL: future design changes that should propagate everywhere live in
+ * ONE file. Templates use these tokens (var(--token-name)) and inherit
+ * what's defined below.
+ *
+ * MIGRATION: templates today carry literal colors / inline styles. As
+ * each template is edited for other reasons, swap literals for tokens.
+ * Until a template is migrated, the rules below are inert — adding
+ * this file does NOT change the visual output of any existing PDF.
+ *
+ * HISTORY: an earlier version of this file also defined .feedback-bar
+ * / .feedback-cell class rules. Even though templates carry inline
+ * styles that should win on specificity, the class rules caused the
+ * EGD EN print-light render to drift from 2 → 3 pages (likely a
+ * WeasyPrint reflow side-effect). Layout rules were stripped out;
+ * keep this file design-token-only until each template is migrated
+ * to drop its inline styles deliberately.
+ */
+
+:root {
+  /* Ink + accents. */
+  --gi-color-ink:           #1a1a1a;
+  --gi-color-navy:          #0e2233;
+  --gi-color-orange:        #b03a00;
+  --gi-color-muted:         #555;
+  --gi-color-footer:        #666;
+
+  /* Links. */
+  --gi-color-link:          #0e4a82;
+  --gi-color-link-under:    #b9c7d8;
+
+  /* Cool surface — the location block and similar light-cool panels. */
+  --gi-color-cool-bg:       #f4f7fa;
+  --gi-color-cool-border:   #c9d3dd;
+
+  /* Yellow callouts (medications, tips). */
+  --gi-color-callout-bg:    #fff8dc;
+  --gi-color-callout-border:#e8d49a;
+
+  /* Warning / cancel-procedure rail. */
+  --gi-color-warning:       #b03a00;
+
+  /* Type. */
+  --gi-font-serif: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+  --gi-font-ui:    "Inter", "Helvetica Neue", Arial, sans-serif;
+}

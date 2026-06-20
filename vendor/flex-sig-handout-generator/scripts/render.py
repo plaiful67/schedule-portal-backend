@@ -187,13 +187,41 @@ _PRACTICE_CACHE = None
 _PROCEDURE_CACHE = None
 
 
+def _shared_dir():
+    """Resolve the shared/ dir: vendored (vendor/shared, backend image) first,
+    then the local meta-repo checkout."""
+    for c in (SKILL_DIR.parent / "shared",
+              Path.home() / "peds-gi-prep-system" / "shared"):
+        if c.is_dir():
+            return c
+    return None
+
+
+def _deep_merge_under(base, overlay):
+    """Return `overlay` merged on top of `base` (overlay wins); recurse dicts."""
+    out = dict(base)
+    for k, v in overlay.items():
+        if isinstance(out.get(k), dict) and isinstance(v, dict):
+            out[k] = _deep_merge_under(out[k], v)
+        else:
+            out[k] = v
+    return out
+
+
 def _practice():
     global _PRACTICE_CACHE
     if _PRACTICE_CACHE is None:
         if not PRACTICE_PATH.exists():
             raise RuntimeError(f"practice.yaml not found at {PRACTICE_PATH}")
         with open(PRACTICE_PATH, encoding="utf-8") as f:
-            _PRACTICE_CACHE = yaml.safe_load(f)
+            local = yaml.safe_load(f) or {}
+        sd = _shared_dir()
+        core_path = (sd / "practice-core.yaml") if sd else None
+        if core_path and core_path.exists():
+            with open(core_path, encoding="utf-8") as f:
+                core = yaml.safe_load(f) or {}
+            local = _deep_merge_under(core, local)
+        _PRACTICE_CACHE = local
     return _PRACTICE_CACHE
 
 

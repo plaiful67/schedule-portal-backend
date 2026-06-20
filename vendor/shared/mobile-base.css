@@ -1,0 +1,80 @@
+/* mobile-base.css — shared accessibility (WCAG 2.1 AA) base for every
+ * giready.com mobile handout page.
+ *
+ * Spliced in as the LAST <style> of each mobile render (see each skill's
+ * render script -> _inject_shared_mobile_a11y). It loads AFTER the template's
+ * own <style>, so these rules win on equal specificity. Sibling of
+ * shared/print-base.css (which does the same job for the PDF renders).
+ *
+ * Scope: focus visibility (2.4.7), skip-link / bypass-blocks (2.4.1), and a
+ * muted-text contrast bump (1.4.3). Markup/role fixes live in the companion
+ * shared/mobile-a11y.js. Nothing here is design-altering beyond a slightly
+ * darker muted grey and a focus ring that only shows for keyboard users.
+ */
+
+/* --- 1.4.3 contrast: darken the muted grey on light backgrounds ----------
+ * Template default --ink-faint #8A949C on --paper #FBF7F1 is ~4.0:1, which
+ * fails AA for the 12px medical-disclaimer + footer copyright. #5F6A73 is
+ * ~5.1:1. Dark mode keeps the template value (re-asserted below) since the
+ * original already passes on the dark surface. */
+:root {
+  --ink-faint: #5F6A73;
+  --coral-deep: #A8482A; /* was #B5512F: 4.29:1 on coral-soft / 4.3:1 on paper */
+  --green-deep: #2E6E47; /* was #347A4F: 4.49:1 on green-tint */
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink-faint: #97a0a8; --coral-deep: #f6ab84; --green-deep: #8fdcae; }
+}
+/* "Rescue plan" badge was white on --coral (3.35:1); the darker coral passes.
+ * Matches the template's .tip.rescue .rescue-heading specificity so it wins. */
+.tip.rescue .rescue-heading,
+.rescue-heading { background: var(--coral-deep); }
+
+/* Footer policy-link separators were --line-strong (~1.4:1) — near-invisible.
+ * --ink-faint is ~5:1 and keeps them subtle but perceivable. */
+.footer-policy-links .sep { color: var(--ink-faint); }
+
+/* --- 2.4.7 visible focus for keyboard users ------------------------------
+ * :focus-visible only paints for keyboard/AT navigation, never on mouse tap,
+ * so the calm visual design is untouched for touch users. The ring colour
+ * tracks the skill's accent token (flips light in the template's dark mode)
+ * with a dark-teal fallback for skills that don't define --teal-deep. */
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible,
+[role="checkbox"]:focus-visible {
+  outline: 3px solid var(--teal-deep, var(--teal, #1E5663));
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+/* --- 2.4.1 bypass blocks: skip link --------------------------------------
+ * Injected as the first child of body; visually hidden until focused, then
+ * lands focus on #gi-main (the page heading). */
+.a11y-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  padding: 10px 14px;
+  background: var(--card, #ffffff);
+  color: var(--teal-deep, #1E5663);
+  font: 700 14px/1.2 var(--sans, system-ui, sans-serif);
+  border: 2px solid var(--teal-deep, #1E5663);
+  border-radius: 0 0 8px 0;
+  text-decoration: none;
+}
+.a11y-skip:focus {
+  left: 0;
+}
+/* Don't paint a focus ring on the programmatic -1 target. */
+#gi-main:focus { outline: none; }
+
+/* Interactive checklist steps upgraded by mobile-a11y.js get a pointer +
+ * keep the tap target comfortably large for 2.5.5 (target size). */
+.time-box.ck[role="button"] { cursor: pointer; }

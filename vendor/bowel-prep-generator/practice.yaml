@@ -1,50 +1,21 @@
-# practice.yaml — per-practice branding, contact, and external resources.
+# practice.yaml — per-SKILL branding/contact extras for the bowel-prep handouts.
 #
-# This is the file you edit to point the handout system at a *different practice*.
-# `dosing.yaml` holds the clinical protocol (weight bands, dosing, locations);
-# `practice.yaml` holds everything that's specific to who you are.
+# Practice-WIDE identity (phone, cover stack, footer, disclaimer, logo) now
+# lives in ONE place: ~/peds-gi-prep-system/shared/practice-core.yaml, deep-
+# merged UNDER this file at render time (local keys win). Edit shared values
+# there so every skill + the scheduler backend stay in lock-step.
 #
-# A new practice should only need to edit:
-#   1. `practice:` block — name, phone, logo, footer
-#   2. `qr_targets:` block — YouTube + patient-portal links
-#   3. `template_defaults.scc_maps_url` — see comment there
-# …plus their own `dosing.yaml` and a logo PNG dropped in `templates/`.
+# This file keeps only what is genuinely bowel-prep-specific:
+#   - practice.phone_tel  — digits-only tel: form, consumed only here
+#   - practice.doctors[]  — the group roster (also read raw by the backend's
+#                           app/physicians.py, so it must stay local)
+#   - qr_targets          — colonoscopy-prep video / portal / GIKids links
+#   - template_defaults   — DOCX Maps-QR byte-match anchor
 
 practice:
-  # Office phone — used in the rescue-plan "call our office at …" sentence
-  # (build_contingency_block in render.py) and any other body-text reference.
-  # phone_tel is the digits-only form for tel: links.
-  phone: "(317) 338-9450"
+  # phone_tel is the digits-only form for tel: links (practice.phone, the
+  # display form, is in shared/practice-core.yaml).
   phone_tel: "3173389450"
-
-  # 3-line stack displayed in the print PDF cover (between logo and mobile QR).
-  cover_stack_en:
-    - "Pediatric"
-    - "Gastroenterology"
-    - "(317) 338-9450"
-  cover_stack_es:
-    - "Gastroenterología"
-    - "Pediátrica"
-    - "(317) 338-9450"
-
-  # Running footer (left side) on every print page.
-  footer_en: "Pediatric Gastroenterology  ·  (317) 338-9450"
-  footer_es: "Gastroenterología Pediátrica  ·  (317) 338-9450"
-
-  # Medical disclaimer rendered as <aside class="medical-disclaimer"> below the
-  # practice footer on every mobile + print handout. disclaimer_es is a working
-  # draft pending native review — see REVIEW markers in templates.
-  disclaimer_en: >-
-    This information is general patient education and is not medical advice.
-    Always follow the specific instructions provided by your child's physician.
-    This content does not create a doctor-patient relationship. Consult your
-    healthcare provider before making any changes to your child's prep regimen.
-  disclaimer_es: >-
-    Esta información es educación general para pacientes y no constituye
-    asesoramiento médico. Siga siempre las instrucciones específicas
-    proporcionadas por el médico de su hijo. Este contenido no crea una
-    relación médico-paciente. Consulte a su proveedor de atención médica antes
-    de realizar cualquier cambio en el régimen de preparación de su hijo.
 
   # Clickable doctor footer rendered on every mobile handout page
   # (combined-mobile, colonoscopy-mobile, egd-mobile, flex-sig-mobile).
@@ -52,7 +23,8 @@ practice:
   # provider profile URL the patient lands on when they tap.
   # `id` is the stable slug used by the scheduler portal's physician_id field
   # (mirrored in app/schemas.py PhysicianId Literal). Don't rename without
-  # coordinating that schema change.
+  # coordinating that schema change. The backend reads this list directly
+  # (app/physicians.py), so it stays in this skill's practice.yaml.
   doctors:
     - id: "deivanayagam"
       name_short: "Dr. Deivanayagam"
@@ -69,10 +41,6 @@ practice:
     - id: "zavoian"
       name_short: "Dr. Zavoian"
       profile_url: "https://healthcare.ascension.org/find-care/provider/1568850261/sebastian-zavoian"
-
-  # Practice/group logo. Path is RELATIVE to the templates/ directory.
-  logo_filename: "giready-logo.png"
-  logo_alt: "Pediatric Gastroenterology"
 
 # Static QR targets — same target for both locations, may differ by language.
 qr_targets:
