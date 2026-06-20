@@ -61,9 +61,17 @@ def _reader(location_id: str, lang: str) -> PdfReader:
 
 def append_directions(prep_pdf: bytes, location_id: str, lang: str) -> bytes:
     """Append the {location, lang} directions PDF to prep_pdf. Returns the
-    merged bytes. ~5 ms on warm cache; the WeasyPrint render dwarfs it."""
+    merged bytes. ~5 ms on warm cache; the WeasyPrint render dwarfs it.
+
+    The prep handout is rendered as a tagged PDF/UA-1 document (accessible
+    structure tree, headings, tables). pypdf's plain ``append`` discards that
+    structure tree, so we ``clone_document_from_reader`` the handout first —
+    that preserves its tags — then ``append`` the directions map as a trailing
+    appendix. The appendix pages themselves stay untagged (a pre-rendered map +
+    address image; the same address also appears in the handout's tagged
+    location section), which is a documented PDF/UA residual."""
     writer = PdfWriter()
-    writer.append(PdfReader(io.BytesIO(prep_pdf)))
+    writer.clone_document_from_reader(PdfReader(io.BytesIO(prep_pdf)))
     writer.append(_reader(location_id, lang))
     buf = io.BytesIO()
     writer.write(buf)

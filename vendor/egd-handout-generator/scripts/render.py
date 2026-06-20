@@ -56,6 +56,73 @@ def _inject_shared_print_css(html: str) -> str:
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
 
 
+# Shared WCAG 2.1 AA base for the MOBILE renders (focus, skip link, contrast,
+# keyboard/ARIA). One source for every current and future mobile site, sibling
+# to print-base.css above. See ~/peds-gi-prep-system/shared/mobile-base.css +
+# mobile-a11y.js. Kept byte-identical across the giready skills.
+_SHARED_DIR = Path.home() / "peds-gi-prep-system" / "shared"
+try:
+    _SHARED_MOBILE_CSS = (_SHARED_DIR / "mobile-base.css").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_CSS = ""
+try:
+    _SHARED_MOBILE_JS = (_SHARED_DIR / "mobile-a11y.js").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_JS = ""
+
+
+def _inject_landmarks(html: str) -> str:
+    """Promote the mobile page chrome to ARIA/HTML5 landmark regions.
+
+    Kept byte-identical with bowel-prep-generator/scripts/render.py. Idempotent;
+    anchors are uniform across every mobile template (one .topbar, .container,
+    .footer, .medical-disclaimer aside per page):
+      - <div class="topbar">…</div>  -> <header class="topbar">…</header>  (banner)
+      - the .container body content   -> wrapped in <main>                 (main)
+      - .footer + copyright + policy nav + disclaimer -> wrapped in <footer> (contentinfo)
+    The inner .topbar/.footer divs keep their class (hence their CSS), so only
+    the element semantics change — the render is visually inert.
+    """
+    if "<main" in html or 'class="site-footer"' in html:
+        return html  # idempotent: landmarks already present
+    html = re.sub(
+        r'<div class="topbar">(.*?)</div>(\s*)</div>',
+        r'<header class="topbar">\1</div>\2</header>',
+        html, count=1, flags=re.S,
+    )
+    html = html.replace(
+        '<div class="container">',
+        '<div class="container">\n<main>', 1,
+    )
+    html = html.replace(
+        '<div class="footer">',
+        '</main>\n<footer class="site-footer">\n<div class="footer">', 1,
+    )
+    html = re.sub(
+        r'(<aside class="medical-disclaimer".*?</aside>)',
+        r'\1\n</footer>',
+        html, count=1, flags=re.S,
+    )
+    return html
+
+
+def _inject_shared_mobile_a11y(html: str) -> str:
+    """Add the shared a11y base (CSS + skip link + enhancement JS) to a mobile
+    HTML render. Idempotent; each step no-ops if its anchor is absent."""
+    if "a11y-skip" in html or "mobile-a11y" in html:
+        return html
+    if "<body>" in html and re.search(r"<h1(?![^>]*\bid=)", html):
+        html = re.sub(r"<h1(?![^>]*\bid=)", '<h1 id="gi-main" tabindex="-1"', html, count=1)
+        skip = '<a class="a11y-skip" href="#gi-main">Skip to main content</a>'
+        html = html.replace("<body>", f"<body>\n{skip}", 1)
+    html = _inject_landmarks(html)
+    if _SHARED_MOBILE_CSS and "</head>" in html:
+        html = html.replace("</head>", f"<style>{_SHARED_MOBILE_CSS}</style>\n</head>", 1)
+    if _SHARED_MOBILE_JS and "</body>" in html:
+        html = html.replace("</body>", f"<script>{_SHARED_MOBILE_JS}</script>\n</body>", 1)
+    return html
+
+
 # ---------------------------------------------------------------------------
 # Config loading
 # ---------------------------------------------------------------------------
@@ -379,7 +446,8 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
             "WeasyPrint failed to import. On macOS this usually means Pango/Cairo "
             "are missing — install with `brew install pango`. Original: " + repr(e)
         )
-    HTML(string=html, base_url=str(template_path.parent)).write_pdf(str(out_path))
+    from pdf_tagging import write_pdf_tagged
+    write_pdf_tagged(HTML(string=html, base_url=str(template_path.parent)), str(out_path))
 
 
 def main():

@@ -74,6 +74,10 @@ procedures:
     bands:
       - id: under-15kg
         filename_stem: under-15kg
+        # Canonical half-open kg interval [kg_lo, kg_hi); lb labels derive from
+        # these via render.lb_phrase() so the three bands can't gap. (CR-1)
+        kg_lo: 0
+        kg_hi: 15
         # When true, the simpler diet variant is used in the print template
         # and the special-staff-administered enema callout is shown.
         simple_diet: true
@@ -124,14 +128,18 @@ procedures:
 
       - id: 20-40kg
         filename_stem: 20-40kg
-        simple_diet: false
-        infant_callout: false
-        label_en: "20–40 kg (44–88 lb)"
-        label_es: "20–40 kg (44–88 lb)"
-        html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (20–40 kg)"
-        html_title_es: "Sigmoidoscopia Flexible — Preparación (20–40 kg)"
-        folder_en: "20-40 kg"
-        folder_es: "20-40 kg"
+        # Oral-prep band extended down to 15 kg so the set is gapless (the old
+        # 20-kg floor left 15–20 kg uncovered). Clinical boundary = 15 kg, the
+        # same infant/oral line bowel-prep uses. id / filename_stem / mobile
+        # path stay "20-40kg" (live URL slug); only the display range changes.
+        kg_lo: 15
+        kg_hi: 41
+        label_en: "15–40 kg (33–89 lb)"
+        label_es: "15–40 kg (33–89 lb)"
+        html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (15–40 kg)"
+        html_title_es: "Sigmoidoscopia Flexible — Preparación (15–40 kg)"
+        folder_en: "15-40 kg"
+        folder_es: "15-40 kg"
 
         shopping_text_en: >-
           1 regular adult saline enema (~240 mL), such as Fleet Saline Enema
@@ -156,14 +164,17 @@ procedures:
 
       - id: over-40kg
         filename_stem: over-40kg
+        # Open-high band [41, null); "Over 40 kg" = >40 = >=41 for whole kg.
+        kg_lo: 41
+        kg_hi: null
         simple_diet: false
         infant_callout: false
         # GLP-1 receptor agonist stop-line shown only on the >=40 kg handout
         # (younger children are not on these meds; pediatric anesthesia
         # GLP-1 NPO guidance applies to adolescent/adult body weight).
         include_glp1_warning: true
-        label_en: "Over 40 kg (Over 88 lb)"
-        label_es: "Más de 40 kg (Más de 88 lb)"
+        label_en: "Over 40 kg (Over 89 lb)"
+        label_es: "Más de 40 kg (Más de 89 lb)"
         html_title_en: "Flexible Sigmoidoscopy — Bowel Prep (Over 40 kg)"
         html_title_es: "Sigmoidoscopia Flexible — Preparación (Más de 40 kg)"
         folder_en: "Over 40 kg"

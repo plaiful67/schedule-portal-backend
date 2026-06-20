@@ -25,6 +25,7 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     prep_type: Literal["miralax", "lactulose", "clenpiq"] = "miralax",
+    include_directions: bool = True,
 ) -> bytes:
     return bowel_prep.render_pdf(
         band_id=band_id,
@@ -38,4 +39,5 @@ def render_pdf(
         appt_dt=appt_dt,
         variant="combined",
         prep_type=prep_type,
+        include_directions=include_directions,
     )

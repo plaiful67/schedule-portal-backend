@@ -16,7 +16,7 @@ from datetime import datetime, time
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from . import medications, pdf_assembly
+from . import medications
 from .adapters import bowel_prep, combined, egd, egd_phmii
 from .adapters._paths import skill_source
 from .personalization import (
@@ -171,6 +171,9 @@ def _render_impl(req: RenderRequest):
         arrival_time_display=arrival_time,
         followup_block_html=followup_block_html,
         appt_dt=appt_dt,
+        # Directions are now inlined as a tagged section of the handout render
+        # (not appended as a separate untagged PDF) — the adapter handles it.
+        include_directions=req.include_directions,
     )
 
     if req.procedure_type == "bowel_prep":
@@ -191,11 +194,6 @@ def _render_impl(req: RenderRequest):
             detail=f"procedure_type={req.procedure_type!r} not yet implemented (Phase 2)",
         )
 
-    # Bake the driving-directions PDF onto the end so the scheduler hands
-    # the family a single document. Default-on; schedulers can opt out per
-    # /render via the include_directions flag for return patients.
-    if req.include_directions:
-        pdf_bytes = pdf_assembly.append_directions(pdf_bytes, req.location_id, req.language)
 
     # Patient-facing download filename — descriptive so a printed stack can be
     # sorted by date / physician / procedure without opening each PDF.

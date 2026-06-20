@@ -94,6 +94,7 @@ def render_pdf(
     arrival_time_display: str,
     followup_block_html: str,
     appt_dt: datetime,
+    include_directions: bool = True,
 ) -> bytes:
     """Produce a personalized EGD + pH-MII PDF as bytes."""
     from weasyprint import HTML
@@ -172,4 +173,8 @@ def render_pdf(
     html = skill._inject_shared_print_css(html)
 
     base_url = (SKILL_ROOT / "templates").as_uri() + "/"
-    return HTML(string=html, base_url=base_url).write_pdf()
+    if include_directions:
+        from ..directions_inline import inject_into_handout
+        html = inject_into_handout(html, location_id, lang)
+    from ..pdf_tagging import write_pdf_tagged
+    return write_pdf_tagged(HTML(string=html, base_url=base_url))

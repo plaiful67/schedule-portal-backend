@@ -41,6 +41,33 @@ locations:
     mobile_subdomain_combined: "egdcolon86"
     clears_npo_hours: 3
 
+# =============================================================================
+# Calendar-export timing constants — consumed only by render.py's
+# build_calendar_events() (the "add to calendar" feature on the mobile pages).
+# These are structured twins of timing values whose canonical home is template
+# prose; validate.py check [3e] cross-checks them against the prose so they
+# can never drift. Timing only — never doses (SaMD line: the calendar feature
+# computes WHEN, the handout text says HOW MUCH).
+# =============================================================================
+calendar:
+  low_residue_start_day: -3      # "3 Days Before — Low-Residue Diet" heading
+  buy_supplies_day: -2           # "Plan Ahead (buy at least 2 days before)"
+  clears_start_hhmm: "14:00"     # "After 2:00 PM — clear liquids only" (day -1)
+  meds_stop_day: -7              # "Stop {meds} 7 days before"
+  procedure_duration_min: 60     # display-only block length for the procedure event
+  # Infant feeding cutoffs (infant + lactulose-infant protocols) — mirror the
+  # "Fasting Rules" table: solids 6 PM / formula 10 PM day before, breast milk
+  # 2 AM day of procedure.
+  infant_cutoffs:
+    solids_stop:     { day: -1, hhmm: "18:00" }
+    formula_stop:    { day: -1, hhmm: "22:00" }
+    breastmilk_stop: { day: 0,  hhmm: "02:00" }
+  # Infant-enema variant — clear-liquids day: formula/milk until 12 PM,
+  # breast milk until 8 PM, both on the day before.
+  infant_enema_cutoffs:
+    formula_stop:    { day: -1, hhmm: "12:00" }
+    breastmilk_stop: { day: -1, hhmm: "20:00" }
+
 # Bowel prep dosing data — single source of truth for all handouts.
 # Edit values here, then run render.py to regenerate HTML + DOCX (English + Spanish).
 #
@@ -126,10 +153,32 @@ consolidate:
 bands:
 
   # =====================================================================
+  # Weight-band cutpoints (CR-1 — kg-canonical, half-open binning)
+  # =====================================================================
+  # kg_lo / kg_hi define each band as the half-open interval [kg_lo, kg_hi):
+  # a child of weight w kg is in the band where kg_lo <= w < kg_hi. kg_lo: 0
+  # means open-low (no lower bound); kg_hi: null means open-high (no upper
+  # bound). Cutpoints are contiguous by construction, so gaps/overlaps are
+  # impossible — validate.py's audit_weight_band_contiguity() enforces it.
+  #
+  # The pound (lb) figures inside label_*/docx_heading_*/folder_* are DERIVED
+  # from these cutpoints (lb_lo = round(kg_lo*2.20462); the band's top lb is
+  # round(kg_hi*2.20462) - 1, i.e. one below the next band's floor). They are
+  # authored here for readability but validate.py asserts they equal the
+  # derived values, and every other surface (mobile build scripts, apex,
+  # scheduler) generates its lb labels from these cutpoints via
+  # render.lb_phrase(). Never hand-edit an lb figure without changing the
+  # cutpoint it derives from. Variant bands (lact/clenpiq/suprep) carry the
+  # effective coverage they map to (e.g. suprep -> over-50 -> [51, null)).
+  # =====================================================================
+
+  # =====================================================================
   # INFANT PROTOCOL
   # =====================================================================
   - id: "under-15"
     protocol: infant
+    kg_lo: 0
+    kg_hi: 15
     label_en: "Infants and Children Under 15 kg (<33 lb)"
     label_es: "Bebés y Niños Menores de 15 kg (<33 lb)"
     html_title_en: "Colonoscopy Prep — MiraLAX Option — Infants and Children Under 15 kg"
@@ -166,6 +215,8 @@ bands:
 
   - id: "under-15-enema"
     protocol: infant-enema
+    kg_lo: 0
+    kg_hi: 15
     label_en: "Infants and Children Under 15 kg (<33 lb)"
     label_es: "Bebés y Niños Menores de 15 kg (<33 lb)"
     html_title_en: "Colonoscopy Prep — Clear Liquids + Saline Enema Option — Infants and Children Under 15 kg"
@@ -185,16 +236,18 @@ bands:
   # =====================================================================
   - id: "15-20"
     protocol: standard
-    label_en: "15-20 kg (33-44 lb)"
-    label_es: "15-20 kg (33-44 lb)"
+    kg_lo: 15
+    kg_hi: 21
+    label_en: "15-20 kg (33-45 lb)"
+    label_es: "15-20 kg (33-45 lb)"
     html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 15-20 kg"
     html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 15-20 kg"
-    docx_heading_en: "Children 15-20 kg (33-44 lb)"
-    docx_heading_es: "Niños de 15-20 kg (33-44 lb)"
+    docx_heading_en: "Children 15-20 kg (33-45 lb)"
+    docx_heading_es: "Niños de 15-20 kg (33-45 lb)"
     mobile_path: "u20kg"
     filename_stem: "15-20kg"
-    folder_en: "15-20 kg (33-44 Lb)"
-    folder_es: "15-20 kg (33-44 Lb)"
+    folder_en: "15-20 kg (33-45 Lb)"
+    folder_es: "15-20 kg (33-45 Lb)"
     include_glp1_warning: false
     dulcolax_tablets: 1
     dulcolax_bedtime_tablets: 0
@@ -243,16 +296,18 @@ bands:
     cheatsheet_contingency_backup: "NS enema (10 mL/kg) or reschedule"
   - id: "21-30"
     protocol: standard
-    label_en: "21-30 kg (46-66 lb)"
-    label_es: "21-30 kg (46-66 lb)"
+    kg_lo: 21
+    kg_hi: 31
+    label_en: "21-30 kg (46-67 lb)"
+    label_es: "21-30 kg (46-67 lb)"
     html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 21-30 kg"
     html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 21-30 kg"
-    docx_heading_en: "Children 21-30 kg (46-66 lb)"
-    docx_heading_es: "Niños de 21-30 kg (46-66 lb)"
+    docx_heading_en: "Children 21-30 kg (46-67 lb)"
+    docx_heading_es: "Niños de 21-30 kg (46-67 lb)"
     mobile_path: "u30kg"
     filename_stem: "21-30kg"
-    folder_en: "21-30 kg (46-66 Lb)"
-    folder_es: "21-30 kg (46-66 Lb)"
+    folder_en: "21-30 kg (46-67 Lb)"
+    folder_es: "21-30 kg (46-67 Lb)"
     include_glp1_warning: false
     dulcolax_tablets: 2
     dulcolax_bedtime_tablets: 1
@@ -298,16 +353,18 @@ bands:
     cheatsheet_contingency_backup: "NS enema (10 mL/kg) or reschedule"
   - id: "31-40"
     protocol: standard
-    label_en: "31-40 kg (68-88 lb)"
-    label_es: "31-40 kg (68-88 lb)"
+    kg_lo: 31
+    kg_hi: 41
+    label_en: "31-40 kg (68-89 lb)"
+    label_es: "31-40 kg (68-89 lb)"
     html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 31-40 kg"
     html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 31-40 kg"
-    docx_heading_en: "Children 31-40 kg (68-88 lb)"
-    docx_heading_es: "Niños de 31-40 kg (68-88 lb)"
+    docx_heading_en: "Children 31-40 kg (68-89 lb)"
+    docx_heading_es: "Niños de 31-40 kg (68-89 lb)"
     mobile_path: "u40kg"
     filename_stem: "31-40kg"
-    folder_en: "31-40 kg (68-88 Lb)"
-    folder_es: "31-40 kg (68-88 Lb)"
+    folder_en: "31-40 kg (68-89 Lb)"
+    folder_es: "31-40 kg (68-89 Lb)"
     include_glp1_warning: false
     dulcolax_tablets: 2
     dulcolax_bedtime_tablets: 1
@@ -356,16 +413,18 @@ bands:
     cheatsheet_contingency_backup: "NS enema or reschedule"
   - id: "41-50"
     protocol: standard
-    label_en: "41-50 kg (90-110 lb)"
-    label_es: "41-50 kg (90-110 lb)"
+    kg_lo: 41
+    kg_hi: 51
+    label_en: "41-50 kg (90-111 lb)"
+    label_es: "41-50 kg (90-111 lb)"
     html_title_en: "Colonoscopy Bowel Preparation Instructions - Children 41-50 kg"
     html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños de 41-50 kg"
-    docx_heading_en: "Children 41-50 kg (90-110 lb)"
-    docx_heading_es: "Niños de 41-50 kg (90-110 lb)"
+    docx_heading_en: "Children 41-50 kg (90-111 lb)"
+    docx_heading_es: "Niños de 41-50 kg (90-111 lb)"
     mobile_path: "u50kg"
     filename_stem: "41-50kg"
-    folder_en: "41-50 kg (90-110 Lb)"
-    folder_es: "41-50 kg (90-110 Lb)"
+    folder_en: "41-50 kg (90-111 Lb)"
+    folder_es: "41-50 kg (90-111 Lb)"
     include_glp1_warning: true
     dulcolax_tablets: 3
     dulcolax_bedtime_tablets: 2
@@ -416,16 +475,18 @@ bands:
     cheatsheet_contingency_backup: "Enema or reschedule"
   - id: "over-50"
     protocol: standard
-    label_en: "Over 50 kg (>110 lb)"
-    label_es: "Más de 50 kg (>110 lb)"
+    kg_lo: 51
+    kg_hi: null
+    label_en: "Over 50 kg (>111 lb)"
+    label_es: "Más de 50 kg (>111 lb)"
     html_title_en: "Colonoscopy Bowel Preparation Instructions - Children Over 50 kg"
     html_title_es: "Instrucciones de Preparación Intestinal para Colonoscopia - Niños Mayores de 50 kg"
-    docx_heading_en: "Children Over 50 kg (&gt;110 lb)"
-    docx_heading_es: "Niños Mayores de 50 kg (&gt;110 lb)"
+    docx_heading_en: "Children Over 50 kg (&gt;111 lb)"
+    docx_heading_es: "Niños Mayores de 50 kg (&gt;111 lb)"
     mobile_path: "o50kg"
     filename_stem: "over-50kg"
-    folder_en: "Over 50 kg (Over 110 Lb)"
-    folder_es: "Más de 50 kg (Más de 110 Lb)"
+    folder_en: "Over 50 kg (Over 111 Lb)"
+    folder_es: "Más de 50 kg (Más de 111 Lb)"
     include_glp1_warning: true
     dulcolax_tablets: 4
     dulcolax_bedtime_tablets: 2
@@ -495,6 +556,8 @@ bands:
   - id: "under-15-lact"
     protocol: lactulose-infant
     public: false
+    kg_lo: 0
+    kg_hi: 15
     label_en: "Infants and Children Under 15 kg (<33 lb) — Lactulose"
     label_es: "Bebés y Niños Menores de 15 kg (<33 lb) — Lactulosa"
     html_title_en: "Colonoscopy Prep — Lactulose Option — Infants and Children Under 15 kg"
@@ -548,16 +611,18 @@ bands:
   - id: "15-20-lact"
     protocol: lactulose-standard
     public: false
-    label_en: "15-20 kg (33-44 lb) — Lactulose"
-    label_es: "15-20 kg (33-44 lb) — Lactulosa"
+    kg_lo: 15
+    kg_hi: 21
+    label_en: "15-20 kg (33-45 lb) — Lactulose"
+    label_es: "15-20 kg (33-45 lb) — Lactulosa"
     html_title_en: "Colonoscopy Bowel Preparation — Lactulose Option — Children 15-20 kg"
     html_title_es: "Preparación Intestinal para Colonoscopia — Opción Lactulosa — Niños de 15-20 kg"
-    docx_heading_en: "Children 15-20 kg (33-44 lb) &mdash; Lactulose"
-    docx_heading_es: "Niños de 15-20 kg (33-44 lb) &mdash; Lactulosa"
+    docx_heading_en: "Children 15-20 kg (33-45 lb) &mdash; Lactulose"
+    docx_heading_es: "Niños de 15-20 kg (33-45 lb) &mdash; Lactulosa"
     mobile_path: "u20kgLact"
     filename_stem: "15-20kg-lact"
-    folder_en: "15-20 kg (33-44 Lb) — Lactulose"
-    folder_es: "15-20 kg (33-44 Lb) — Lactulosa"
+    folder_en: "15-20 kg (33-45 Lb) — Lactulose"
+    folder_es: "15-20 kg (33-45 Lb) — Lactulosa"
     include_glp1_warning: false
     # Dulcolax: 1 tablet at the start of prep (no bedtime dose for this band).
     dulcolax_tablets: 1
@@ -600,16 +665,18 @@ bands:
   - id: "21-30-lact"
     protocol: lactulose-standard
     public: false
-    label_en: "21-30 kg (46-66 lb) — Lactulose"
-    label_es: "21-30 kg (46-66 lb) — Lactulosa"
+    kg_lo: 21
+    kg_hi: 31
+    label_en: "21-30 kg (46-67 lb) — Lactulose"
+    label_es: "21-30 kg (46-67 lb) — Lactulosa"
     html_title_en: "Colonoscopy Bowel Preparation — Lactulose Option — Children 21-30 kg"
     html_title_es: "Preparación Intestinal para Colonoscopia — Opción Lactulosa — Niños de 21-30 kg"
-    docx_heading_en: "Children 21-30 kg (46-66 lb) &mdash; Lactulose"
-    docx_heading_es: "Niños de 21-30 kg (46-66 lb) &mdash; Lactulosa"
+    docx_heading_en: "Children 21-30 kg (46-67 lb) &mdash; Lactulose"
+    docx_heading_es: "Niños de 21-30 kg (46-67 lb) &mdash; Lactulosa"
     mobile_path: "u30kgLact"
     filename_stem: "21-30kg-lact"
-    folder_en: "21-30 kg (46-66 Lb) — Lactulose"
-    folder_es: "21-30 kg (46-66 Lb) — Lactulosa"
+    folder_en: "21-30 kg (46-67 Lb) — Lactulose"
+    folder_es: "21-30 kg (46-67 Lb) — Lactulosa"
     include_glp1_warning: false
     # Dulcolax: 1 tablet bedtime night-before + 1 tablet day-of (10 mg total).
     dulcolax_tablets: 2
@@ -653,6 +720,9 @@ bands:
   - id: "clenpiq"
     protocol: clenpiq-standard
     public: false
+    # CLENPIQ covers the three eligible bands 31-40, 41-50, over-50 = [31, null).
+    kg_lo: 31
+    kg_hi: null
     label_en: "31 kg and up (68+ lb) — CLENPIQ"
     label_es: "31 kg en adelante (68+ lb) — CLENPIQ"
     # summary_label_* prints on the handout cover so all three eligible
@@ -681,6 +751,10 @@ bands:
     # of clear liquids over the next 5 hours.
     dose1_window_en: "5:00 PM to 9:00 PM"
     dose1_window_es: "5:00 PM a 9:00 PM"
+    # Structured twins of dose1_window_en for the calendar export —
+    # validate.py check [3e] asserts these match the prose above.
+    dose1_window_start_hhmm: "17:00"
+    dose1_window_end_hhmm: "21:00"
     dose1_clears_cups: 5
     dose1_clears_oz: 40
     dose1_clears_hours: 5
@@ -712,24 +786,29 @@ bands:
   - id: "suprep"
     protocol: suprep-standard
     public: false
-    label_en: "50 kg and up (110+ lb) — SUPREP"
-    label_es: "50 kg en adelante (110+ lb) — SUPREP"
+    # SUPREP maps to the over-50 band only = [51, null). The eligible weight
+    # is "51 kg and up" (a 50 kg child falls in the 41-50 [41,51) band, not
+    # here), so the lb floor derives to 112+ (51 kg * 2.20462 ≈ 112).
+    kg_lo: 51
+    kg_hi: null
+    label_en: "51 kg and up (112+ lb) — SUPREP"
+    label_es: "51 kg en adelante (112+ lb) — SUPREP"
     # summary_label_* prints on the handout cover. SUPREP only has one
     # eligible band (over-50) so the summary label matches the full label.
-    summary_label_en: "50 kg and up — SUPREP"
-    summary_label_es: "50 kg en adelante — SUPREP"
+    summary_label_en: "51 kg and up — SUPREP"
+    summary_label_es: "51 kg en adelante — SUPREP"
     html_title_en: "Colonoscopy Bowel Preparation — SUPREP Option"
     html_title_es: "Preparación Intestinal para Colonoscopia — Opción SUPREP"
-    docx_heading_en: "Children 50 kg and up &mdash; SUPREP"
-    docx_heading_es: "Niños de 50 kg en adelante &mdash; SUPREP"
+    docx_heading_en: "Children 51 kg and up &mdash; SUPREP"
+    docx_heading_es: "Niños de 51 kg en adelante &mdash; SUPREP"
     mobile_path: "suprep"
     filename_stem: "suprep"
-    folder_en: "50 kg and up (110+ Lb) — SUPREP"
-    folder_es: "50 kg en adelante (110+ Lb) — SUPREP"
-    # Always on — the eligible band (>=50 kg) is adolescents (FDA age 12+),
+    folder_en: "51 kg and up (112+ Lb) — SUPREP"
+    folder_es: "51 kg en adelante (112+ Lb) — SUPREP"
+    # Always on — the eligible band (>=51 kg) is adolescents (FDA age 12+),
     # who may be on GLP-1 agonists.
     include_glp1_warning: true
-    # SUPREP dose specifics — identical across all eligible weights (≥50 kg).
+    # SUPREP dose specifics — identical across all eligible weights (≥51 kg).
     # Source: SUPREP FDA label + OpenEvidence-generated patient instructions
     # (2026-05-16). Each bottle = one dose; the concentrate MUST be diluted
     # with water to the 12-oz fill line on the supplied mixing container
@@ -744,6 +823,10 @@ bands:
     # over the next hour.
     dose1_window_en: "5:00 PM to 8:00 PM"
     dose1_window_es: "5:00 PM a 8:00 PM"
+    # Structured twins of dose1_window_en for the calendar export —
+    # validate.py check [3e] asserts these match the prose above.
+    dose1_window_start_hhmm: "17:00"
+    dose1_window_end_hhmm: "20:00"
     dose1_solution_oz: 12
     dose1_chasers_oz: 24
     dose1_chaser_fills: 2

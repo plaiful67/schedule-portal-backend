@@ -246,6 +246,7 @@ def render_pdf(
     appt_dt: datetime,
     variant: Literal["standard", "combined"] = "standard",
     prep_type: Literal["miralax", "lactulose", "clenpiq", "suprep"] = "miralax",
+    include_directions: bool = True,
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -504,5 +505,9 @@ def render_pdf(
 
     # Resolve relative URLs (logo PNG, etc.) against the skill's templates/ dir.
     base_url = (SKILL_ROOT / "templates").as_uri() + "/"
-    pdf_bytes = HTML(string=html, base_url=base_url).write_pdf()
+    if include_directions:
+        from ..directions_inline import inject_into_handout
+        html = inject_into_handout(html, location_id, lang)
+    from ..pdf_tagging import write_pdf_tagged
+    pdf_bytes = write_pdf_tagged(HTML(string=html, base_url=base_url))
     return pdf_bytes

@@ -198,7 +198,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
-<link rel="manifest" href="https://giready.com/site.webmanifest">
+<!-- No manifest on handout pages: the apex site.webmanifest declares start_url:"/" + display:standalone and is served with ACAO:*, which would hijack Add-to-Home-Screen to open giready.com standalone — losing the page AND the personalization hash. Without a manifest, A2HS bookmarks the current URL (hash included), in the browser, which is exactly what we teach. -->
+<meta name="apple-mobile-web-app-title" content="GI Ready">
 <meta name="theme-color" content="#1A3F8C">
 </head>
 <body>

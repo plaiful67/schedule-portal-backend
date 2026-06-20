@@ -50,7 +50,7 @@ PDF_REVIEW_DIR = Path.home() / "Desktop" / "peds-gi-system" / "bowel-prep-pdf-re
 # pages are guaranteed to use the same dose phrasing and the same
 # pre-rendered "2 Days Before" HTML block as the print PDF.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import build_strings, build_infant_strings, _load_partials  # noqa: E402
+from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y  # noqa: E402
 
 # Per-location target repo. The subdomain comes from `mobile_subdomain`
 # in dosing.yaml (NOT mobile_subdomain_combined, which points at the
@@ -84,16 +84,9 @@ BAND_LABELS = {
     "over-50":        {"en": "Over 50 kg",          "es": "Más de 50 kg"},
 }
 
-# lb-equivalent (shown bracketed inline with the kg label so it pops).
-BAND_LB = {
-    "under-15":       {"en": "[Under 33 lb]",        "es": "[Menos de 33 lb]"},
-    "under-15-enema": {"en": "[Under 33 lb]",        "es": "[Menos de 33 lb]"},
-    "15-20":          {"en": "[33–44 lb]",       "es": "[33–44 lb]"},
-    "21-30":          {"en": "[46–66 lb]",       "es": "[46–66 lb]"},
-    "31-40":          {"en": "[68–88 lb]",       "es": "[68–88 lb]"},
-    "41-50":          {"en": "[90–110 lb]",      "es": "[90–110 lb]"},
-    "over-50":        {"en": "[Over 110 lb]",        "es": "[Más de 110 lb]"},
-}
+# lb-equivalent (shown bracketed inline with the kg label so it pops) is
+# DERIVED from each band's kg cutpoints via render.lb_phrase() — single source
+# of truth, contiguous by construction. See dosing.yaml's cutpoint header.
 
 # Protocol disambiguation note (shown as the page subtitle, only when the
 # kg range alone is ambiguous — i.e. the two infant variants).
@@ -114,10 +107,7 @@ HTML_TITLE_BAND_ES = "Preparación para Colonoscopia — {label} — Qué Espera
 HTML_TITLE_LANDING_EN = "Colonoscopy Bowel Prep — What to Expect"
 HTML_TITLE_LANDING_ES = "Preparación para Colonoscopia — Qué Esperar"
 
-HEADERS_CONTENT = """/*
-  X-Robots-Tag: noindex, nofollow
-  X-Frame-Options: SAMEORIGIN
-"""
+from header_config import write_headers  # noqa: E402  (single source of truth)
 
 GITIGNORE_CONTENT = """.DS_Store
 *.swp
@@ -175,20 +165,27 @@ def build_location_placeholders(location, lang):
 
 
 def render_band_cards(bands_by_id, lang, band_ids):
-    """Build the landing-page band picker grid (one card per band)."""
+    """Build the landing-page band picker grid (one card per band).
+
+    Calm "lb-first" card: the pound range is the serif hero, the kg band is
+    the small secondary line, the protocol note (if any) is a coral tag.
+    """
+    arrow_svg = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+                 '<path d="M5 12h14M13 6l6 6-6 6"/></svg>')
+    n = len(band_ids)
     cards = []
-    for bid in band_ids:
+    for i, bid in enumerate(band_ids):
         path = bands_by_id[bid]["mobile_path"]
         label = BAND_LABELS[bid][lang]
-        lb = BAND_LB[bid][lang]
+        lb = lb_phrase(bands_by_id[bid], lang)
         note = BAND_NOTE[bid][lang]
-        note_html = f'    <div class="band-note">{note}</div>\n' if note else ""
-        arrow = "View instructions →" if lang == "en" else "Ver instrucciones →"
+        tag_html = f'<span class="tag">{note}</span>' if note else ""
+        wide = " wide" if (n % 2 == 1 and i == n - 1) else ""
         cards.append(
-            f'  <a class="band-card" href="{path}/">\n'
-            f'    <div class="band-label">{label} <span class="band-lb-inline">{lb}</span></div>\n'
-            f'{note_html}'
-            f'    <div class="band-arrow">{arrow}</div>\n'
+            f'  <a class="band{wide}" href="{path}/">\n'
+            f'    <div class="info"><h3>{lb}</h3><div class="kg">{label}</div>{tag_html}</div>\n'
+            f'    <span class="arr">{arrow_svg}</span>\n'
             f'  </a>'
         )
     return "\n".join(cards)
@@ -228,8 +225,12 @@ def find_handout_pdf(band, location_id, lang, family):
 
     # The band-label folder uses friendly names ("31-40 kg (68-88 Lb)") that
     # we don't track here, so glob across the variant dir to find the file.
+    # A lb-range change can leave an orphaned old folder ("(33-44 Lb)") next to
+    # the current one ("(33-45 Lb)"); both match the band's filename, and the
+    # alphabetically-first one is the stale orphan. Prefer the most recently
+    # rendered file so the fresh (tagged) PDF always wins.
     matches = list(base.glob(f"*/{pdf_name}"))
-    return matches[0] if matches else None
+    return max(matches, key=lambda p: p.stat().st_mtime) if matches else None
 
 
 def _band_template_for(protocol, lang, family):
@@ -328,6 +329,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
+        "{{PZ_EVENTS_JSON}}":   build_calendar_events_json(band, lang, location, family=family),
         # render.build_strings populates {{HTML_TITLE}} and {{BAND_LABEL}}
         # already, but those values are tuned for the printed handout
         # (e.g. include the lb range). Override them with the
@@ -337,7 +339,7 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         "{{LOGO_SRC}}":           logo_src,
         "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
         "{{LANDING_HREF}}":       landing_href,
-        "{{BAND_LB}}":            BAND_LB[band["id"]][lang],
+        "{{BAND_LB}}":            lb_phrase(band, lang, "bracket"),
         "{{BAND_NOTE}}":          BAND_NOTE[band["id"]][lang],
         "{{MAPS_URL}}":           maps_url,
         "{{YOUTUBE_URL}}":        youtube_url,
@@ -457,6 +459,10 @@ def _inject_analytics(html, family, location_id, lang, band_id=""):
     Skips silently for unknown family/location combos (no analytics hookup).
     """
     import json
+    # Shared WCAG 2.1 AA base (focus, skip link, contrast, keyboard/ARIA) on
+    # every mobile page — applied here because _inject_analytics is the single
+    # last-mile transform before every write_text. Independent of analytics.
+    html = _inject_shared_mobile_a11y(html)
     site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
     if not site:
         return html
@@ -579,12 +585,14 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
 
 
 def write_repo_metadata(repo_dir, location, subdomain):
-    """Create _headers, .gitignore, README.md if missing (don't clobber)."""
+    """Create .gitignore/README.md if missing; always rewrite _headers.
+
+    _headers is fully generator-owned for these Pages repos, so it is rewritten
+    on every build — this is what makes a security-header change propagate to
+    already-initialized repos instead of silently going stale.
+    """
     written = []
-    headers_path = repo_dir / "_headers"
-    if not headers_path.exists():
-        headers_path.write_text(HEADERS_CONTENT, encoding="utf-8")
-        written.append(headers_path)
+    written += write_headers(repo_dir)
 
     gitignore_path = repo_dir / ".gitignore"
     if not gitignore_path.exists():

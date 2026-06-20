@@ -438,7 +438,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
-<link rel="manifest" href="https://giready.com/site.webmanifest">
+<!-- No manifest on handout pages: the apex site.webmanifest declares start_url:"/" + display:standalone and is served with ACAO:*, which would hijack Add-to-Home-Screen to open giready.com standalone — losing the page AND the personalization hash. Without a manifest, A2HS bookmarks the current URL (hash included), in the browser, which is exactly what we teach. -->
+<meta name="apple-mobile-web-app-title" content="GI Ready">
 <meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
@@ -536,8 +537,8 @@
 <table class="avoid-allowed">
   <thead>
     <tr>
-      <th class="col-avoid">EVITAR</th>
-      <th class="col-allowed">OK para comer</th>
+      <th scope="col" class="col-avoid">EVITAR</th>
+      <th scope="col" class="col-allowed">OK para comer</th>
     </tr>
   </thead>
   <tbody>
@@ -568,8 +569,8 @@
 <table class="avoid-allowed">
   <thead>
     <tr>
-      <th class="col-avoid">EVITAR</th>
-      <th class="col-allowed">OK para beber</th>
+      <th scope="col" class="col-avoid">EVITAR</th>
+      <th scope="col" class="col-allowed">OK para beber</th>
     </tr>
   </thead>
   <tbody>
@@ -598,7 +599,7 @@
 <p>Estos tiempos se cuentan hacia atrás desde la hora programada del procedimiento de su niño:</p>
 <table class="keep-together">
   <thead>
-    <tr><th style="width: 55%;">Qué</th><th>Cuándo Suspender</th></tr>
+    <tr><th scope="col" style="width: 55%;">Qué</th><th scope="col">Cuándo Suspender</th></tr>
   </thead>
   <tbody>
     <tr><td>Todas las comidas sólidas y bajas en residuos</td><td>6:00 PM del día anterior</td></tr>

@@ -401,7 +401,8 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
-<link rel="manifest" href="https://giready.com/site.webmanifest">
+<!-- No manifest on handout pages: the apex site.webmanifest declares start_url:"/" + display:standalone and is served with ACAO:*, which would hijack Add-to-Home-Screen to open giready.com standalone — losing the page AND the personalization hash. Without a manifest, A2HS bookmarks the current URL (hash included), in the browser, which is exactly what we teach. -->
+<meta name="apple-mobile-web-app-title" content="GI Ready">
 <meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
@@ -496,9 +497,9 @@
 <table class="keep-together">
   <thead>
     <tr>
-      <th style="width: 30%;">Your Child&rsquo;s Weight</th>
-      <th style="width: 25%;">MiraLAX Dose</th>
-      <th>How to Give</th>
+      <th scope="col" style="width: 30%;">Your Child&rsquo;s Weight</th>
+      <th scope="col" style="width: 25%;">MiraLAX Dose</th>
+      <th scope="col">How to Give</th>
     </tr>
   </thead>
   <tbody>
@@ -535,8 +536,8 @@
 <table class="avoid-allowed">
   <thead>
     <tr>
-      <th class="col-avoid">AVOID</th>
-      <th class="col-allowed">OK to eat</th>
+      <th scope="col" class="col-avoid">AVOID</th>
+      <th scope="col" class="col-allowed">OK to eat</th>
     </tr>
   </thead>
   <tbody>
@@ -567,8 +568,8 @@
 <table class="avoid-allowed">
   <thead>
     <tr>
-      <th class="col-avoid">AVOID</th>
-      <th class="col-allowed">OK to drink</th>
+      <th scope="col" class="col-avoid">AVOID</th>
+      <th scope="col" class="col-allowed">OK to drink</th>
     </tr>
   </thead>
   <tbody>
@@ -597,7 +598,7 @@
 <p>These times are counted backward from your child&rsquo;s scheduled procedure time. The fasting rules apply to both the EGD and the colonoscopy.</p>
 <table class="keep-together">
   <thead>
-    <tr><th style="width: 55%;">What</th><th>When to Stop</th></tr>
+    <tr><th scope="col" style="width: 55%;">What</th><th scope="col">When to Stop</th></tr>
   </thead>
   <tbody>
     <tr><td>All solid and low-residue foods</td><td>6:00 PM the day before</td></tr>

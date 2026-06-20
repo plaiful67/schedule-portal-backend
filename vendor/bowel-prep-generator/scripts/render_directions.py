@@ -92,8 +92,9 @@ def render_one(location_id: str, out_path: Path, lang: str = "en") -> Path:
 
     render._ensure_weasyprint_libpath()
     from weasyprint import HTML
+    from pdf_tagging import write_pdf_tagged
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    HTML(string=html, base_url=str(template_path.parent)).write_pdf(str(out_path))
+    write_pdf_tagged(HTML(string=html, base_url=str(template_path.parent)), str(out_path))
     return out_path
 
 

@@ -40,7 +40,7 @@ LOGO_PATH = TEMPLATES / "logo-pmch.png"
 # Reuse the public-builder helpers — keeps lactulose pages 100% in lock-step
 # with the public-site chrome.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import build_lactulose_strings, _load_partials  # noqa: E402
+from render import build_lactulose_strings, _load_partials, build_calendar_events_json, lb_phrase  # noqa: E402
 from build_colonoscopy_websites import (  # noqa: E402
     _load_yaml,
     build_practice_placeholders,
@@ -72,11 +72,7 @@ BAND_LABELS = {
     "21-30-lact":    {"en": "21–30 kg",     "es": "21–30 kg"},
 }
 
-BAND_LB = {
-    "under-15-lact": {"en": "[Under 33 lb]", "es": "[Menos de 33 lb]"},
-    "15-20-lact":    {"en": "[33–44 lb]",    "es": "[33–44 lb]"},
-    "21-30-lact":    {"en": "[46–66 lb]",    "es": "[46–66 lb]"},
-}
+# lb-equivalent is DERIVED from each band's kg cutpoints via render.lb_phrase().
 
 # Subtitle under the H1 — distinguishes from MiraLAX so patients (and the
 # scheduler handing out the link) know this is the backup prep.
@@ -94,12 +90,7 @@ HTML_TITLE_BAND_ES = "Preparación para Colonoscopia — Lactulosa — {label} �
 HTML_TITLE_LANDING_EN = "Colonoscopy Bowel Prep — Lactulose (Internal)"
 HTML_TITLE_LANDING_ES = "Preparación para Colonoscopia — Lactulosa (Interno)"
 
-# Stronger noindex than the public sites — these must never be indexed.
-HEADERS_CONTENT = """/*
-  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: no-referrer
-"""
+from header_config import write_headers  # noqa: E402  (single source of truth)
 
 GITIGNORE_CONTENT = """.DS_Store
 *.swp
@@ -139,20 +130,27 @@ def _band_template_for_lact(protocol, lang):
 
 
 def render_band_cards(bands_by_id, lang, band_ids):
-    """Build the landing-page band picker grid (one card per band)."""
+    """Build the landing-page band picker grid (one card per band).
+
+    Calm "lb-first" card: the pound range is the serif hero, the kg band is
+    the small secondary line, the protocol note (if any) is a coral tag.
+    """
+    arrow_svg = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+                 '<path d="M5 12h14M13 6l6 6-6 6"/></svg>')
+    n = len(band_ids)
     cards = []
-    for bid in band_ids:
+    for i, bid in enumerate(band_ids):
         path = bands_by_id[bid]["mobile_path"]
         label = BAND_LABELS[bid][lang]
-        lb = BAND_LB[bid][lang]
+        lb = lb_phrase(bands_by_id[bid], lang)
         note = BAND_NOTE[bid][lang]
-        note_html = f'    <div class="band-note">{note}</div>\n' if note else ""
-        arrow = "View instructions →" if lang == "en" else "Ver instrucciones →"
+        tag_html = f'<span class="tag">{note}</span>' if note else ""
+        wide = " wide" if (n % 2 == 1 and i == n - 1) else ""
         cards.append(
-            f'  <a class="band-card" href="{path}/">\n'
-            f'    <div class="band-label">{label} <span class="band-lb-inline">{lb}</span></div>\n'
-            f'{note_html}'
-            f'    <div class="band-arrow">{arrow}</div>\n'
+            f'  <a class="band{wide}" href="{path}/">\n'
+            f'    <div class="info"><h3>{lb}</h3><div class="kg">{label}</div>{tag_html}</div>\n'
+            f'    <span class="arr">{arrow_svg}</span>\n'
             f'  </a>'
         )
     return "\n".join(cards)
@@ -186,12 +184,13 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
+        "{{PZ_EVENTS_JSON}}":   build_calendar_events_json(band, lang, location, family="colonoscopy"),
         "{{HTML_TITLE}}":         html_title,
         "{{BAND_LABEL}}":         BAND_LABELS[band["id"]][lang],
         "{{LOGO_SRC}}":           logo_src,
         "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
         "{{LANDING_HREF}}":       landing_href,
-        "{{BAND_LB}}":            BAND_LB[band["id"]][lang],
+        "{{BAND_LB}}":            lb_phrase(band, lang, "bracket"),
         "{{BAND_NOTE}}":          BAND_NOTE[band["id"]][lang],
         "{{MAPS_URL}}":           maps_url,
         "{{YOUTUBE_URL}}":        youtube_url,
@@ -349,12 +348,9 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id, b
 
 
 def write_repo_metadata(repo_dir, location, subdomain):
-    """Create _headers, .gitignore, README.md if missing."""
+    """Create .gitignore/README.md if missing; always rewrite _headers."""
     written = []
-    headers_path = repo_dir / "_headers"
-    if not headers_path.exists():
-        headers_path.write_text(HEADERS_CONTENT, encoding="utf-8")
-        written.append(headers_path)
+    written += write_headers(repo_dir)
 
     gitignore_path = repo_dir / ".gitignore"
     if not gitignore_path.exists():

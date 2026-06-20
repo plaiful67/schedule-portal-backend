@@ -336,6 +336,231 @@ def audit_shopping_totals():
     return failures
 
 
+# Parenthesized group that contains an "lb"/"Lb" token (the lb display portion
+# of a label), and a bare-integer matcher to pull edge numbers out of it.
+_LB_PAREN_RE = re.compile(r"\(([^)]*\b[Ll]b\b[^)]*)\)")
+_INT_RE = re.compile(r"\d+")
+
+
+def _render_lb_helpers():
+    """Import the single-source lb derivation helpers from render.py."""
+    sys.path.insert(0, str(SCRIPTS))
+    from render import lb_bounds, select_band, LB_PER_KG  # noqa: E402
+    return lb_bounds, select_band, LB_PER_KG
+
+
+def audit_weight_band_contiguity():
+    """CR-1: weight bands form a gapless, non-overlapping kg-canonical partition,
+    and every hand-written lb figure is a legal edge of its band's derived bounds.
+
+    1. Partition — the PRIMARY bands (protocol infant/infant-enema/standard) tile
+       the axis: distinct intervals sorted by kg_lo must satisfy, for each
+       adjacent pair, kg_hi[n] == kg_lo[n+1] AND derived lb_hi[n] + 1 ==
+       lb_lo[n+1]. The first interval must open at 0 and the last at None so the
+       whole 0..∞ range is covered.
+    2. Derived-lb consistency — for every band carrying cutpoints, each integer
+       sitting next to "lb" inside its label/heading/folder strings must be a
+       derived edge {lo, lo-1, hi, hi+1}. Catches a cutpoint changed without the
+       label (or vice-versa); wording style ("90-111 lb" / ">111 lb" / "68+ lb")
+       is free.
+
+    Returns list of (band_id, reason).
+    """
+    lb_bounds, _select, _K = _render_lb_helpers()
+    failures = []
+    bands = load_bands()
+    by_id = {b["id"]: b for b in bands}
+
+    # ---- 1. partition over the primary (tiling) bands ----
+    PRIMARY = {"infant", "infant-enema", "standard"}
+    intervals = {}  # (kg_lo, kg_hi) -> first band id with that interval
+    for b in bands:
+        if b.get("protocol") in PRIMARY:
+            intervals.setdefault((b.get("kg_lo") or 0, b.get("kg_hi")), b["id"])
+    ordered = sorted(intervals, key=lambda iv: iv[0])
+    if ordered and ordered[0][0] != 0:
+        failures.append((intervals[ordered[0]], f"partition does not start at 0 kg (kg_lo={ordered[0][0]})"))
+    if ordered and ordered[-1][1] is not None:
+        failures.append((intervals[ordered[-1]], f"partition does not end open (kg_hi={ordered[-1][1]})"))
+    for iv1, iv2 in zip(ordered, ordered[1:]):
+        id1, id2 = intervals[iv1], intervals[iv2]
+        if iv1[1] != iv2[0]:
+            failures.append((id1, f"kg gap/overlap: kg_hi={iv1[1]} != next {id2} kg_lo={iv2[0]}"))
+        _, lb_hi1 = lb_bounds(by_id[id1])
+        lb_lo2, _ = lb_bounds(by_id[id2])
+        if lb_hi1 is None or lb_lo2 is None or lb_hi1 + 1 != lb_lo2:
+            failures.append((id1, f"lb gap/overlap: lb_hi={lb_hi1} +1 != next {id2} lb_lo={lb_lo2}"))
+
+    # ---- 2. derived-lb consistency on every band with cutpoints ----
+    for b in bands:
+        if "kg_lo" not in b and "kg_hi" not in b:
+            continue
+        lo, hi = lb_bounds(b)
+        allowed = {n for n in (lo, lo - 1 if lo is not None else None,
+                               hi, hi + 1 if hi is not None else None) if n is not None}
+        for field in ("label_en", "label_es", "docx_heading_en",
+                      "docx_heading_es", "folder_en", "folder_es"):
+            for paren in _LB_PAREN_RE.findall(b.get(field) or ""):
+                for num in _INT_RE.findall(paren):
+                    if int(num) not in allowed:
+                        failures.append((b["id"],
+                                         f"{field}: lb figure {num} is not a derived edge {sorted(allowed)}"))
+    return failures
+
+
+def audit_band_selection_sweep():
+    """CR-1: sweep kg (0..100, 0.5 steps) and lb (1..220) through select_band()
+    over the distinct primary intervals — every weight must land in exactly one
+    band. select_band() is gap-detecting (raises on no match); the contiguity
+    audit above rules out overlap, so success here == exactly-one coverage.
+
+    Returns list of failure strings.
+    """
+    _bounds, select_band, LB_PER_KG = _render_lb_helpers()
+    bands = load_bands()
+    PRIMARY = {"infant", "infant-enema", "standard"}
+    seen, prim = set(), []
+    for b in bands:
+        if b.get("protocol") in PRIMARY:
+            iv = (b.get("kg_lo") or 0, b.get("kg_hi"))
+            if iv not in seen:
+                seen.add(iv)
+                prim.append(b)
+    failures = []
+    steps = [i * 0.5 for i in range(0, 201)]  # 0.0 .. 100.0 kg
+    for w in steps:
+        try:
+            select_band(round(w, 2), prim)
+        except ValueError:
+            failures.append(f"no band for {w:g} kg")
+    for lb in range(1, 221):
+        kg = lb / LB_PER_KG
+        try:
+            select_band(kg, prim)
+        except ValueError:
+            failures.append(f"no band for {lb} lb (~{kg:.2f} kg)")
+    return failures
+
+
+def audit_calendar_events(update_golden=False):
+    """Check [3e]: calendar-export event integrity.
+
+    Builds the full event set for every band × lang × location × family and
+    asserts schema invariants, prose↔structured-twin consistency, and golden
+    parity (tests/golden/calendar_events.json — refresh with --update-golden
+    after an intentional change and review the diff).
+
+    Returns (failures, golden_msg) where failures is a list of strings.
+    """
+    sys.path.insert(0, str(SCRIPTS))
+    import render  # noqa: E402
+
+    HHMM_RE = re.compile(r"^\d{2}:\d{2}$")
+    data = render.load_dosing()
+    locations = data["locations"]
+    cal = data.get("calendar", {})
+    failures = []
+
+    # --- prose ↔ structured-twin cross-checks --------------------------
+    # clears_start_hhmm must match the "After 2:00 PM" prose in the standard
+    # mobile templates (the canonical home of that time).
+    clears12 = render._12h(cal["clears_start_hhmm"])
+    std_tmpl = (TEMPLATES / "colonoscopy-mobile.en.html").read_text(encoding="utf-8")
+    if f"After {clears12}" not in std_tmpl:
+        failures.append(f"calendar.clears_start_hhmm ({clears12}) not found in "
+                        "colonoscopy-mobile.en.html prose")
+    # CLENPIQ/SUPREP dose-1 window twins must match dose1_window_en prose.
+    for band in data["bands"]:
+        if "dose1_window_start_hhmm" not in band:
+            continue
+        prose = band.get("dose1_window_en", "")
+        for key in ("dose1_window_start_hhmm", "dose1_window_end_hhmm"):
+            t12 = render._12h(band[key])
+            if t12 not in prose:
+                failures.append(f"{band['id']}.{key} ({t12}) does not match "
+                                f"dose1_window_en prose ({prose!r})")
+    # Infant feeding-cutoff twins must match the fasting-rules prose in the
+    # corresponding infant template.
+    for cuts_key, tmpl_name in (("infant_cutoffs", "colonoscopy-mobile-infant.en.html"),
+                                ("infant_enema_cutoffs", "colonoscopy-mobile-infant-enema.en.html")):
+        tmpl = (TEMPLATES / tmpl_name).read_text(encoding="utf-8")
+        for cut_id, cut in cal.get(cuts_key, {}).items():
+            t12 = render._12h(cut["hhmm"])
+            if t12 not in tmpl:
+                failures.append(f"calendar.{cuts_key}.{cut_id} ({t12}) not found "
+                                f"in {tmpl_name} prose")
+
+    # --- schema checks + golden snapshot --------------------------------
+    snapshot = {}
+    for family in ("colonoscopy", "combined"):
+        snapshot[family] = {}
+        for band in data["bands"]:
+            snapshot[family][band["id"]] = {}
+            for loc_id, loc in locations.items():
+                snapshot[family][band["id"]][loc_id] = {}
+                for lang in ("en", "es"):
+                    tag = f"{family}/{band['id']}/{loc_id}/{lang}"
+                    try:
+                        events = render.build_calendar_events(band, lang, loc, family)
+                    except Exception as e:
+                        failures.append(f"{tag}: build_calendar_events raised {e!r}")
+                        continue
+                    if not events:
+                        failures.append(f"{tag}: empty event list")
+                        continue
+                    seen_loc_ids = set()
+                    for ev in events:
+                        eid = ev.get("id", "?")
+                        etag = f"{tag}:{eid}"
+                        forms = sum([bool(ev.get("allDay")),
+                                     "offsetMin" in ev,
+                                     ("start" in ev and not ev.get("allDay")
+                                      and "offsetMin" not in ev)])
+                        if forms != 1:
+                            failures.append(f"{etag}: must use exactly one time form")
+                        for key in ("start", "end"):
+                            if key in ev and not HHMM_RE.match(ev[key]):
+                                failures.append(f"{etag}: {key}={ev[key]!r} not HH:MM")
+                        if "day" in ev and not (-7 <= ev["day"] <= 0):
+                            failures.append(f"{etag}: day={ev['day']} outside [-7, 0]")
+                        if "start" in ev and "end" in ev and ev["end"] <= ev["start"]:
+                            failures.append(f"{etag}: window end <= start")
+                        if "offsetEndMin" in ev and ev["offsetEndMin"] <= ev["offsetMin"]:
+                            failures.append(f"{etag}: offsetEndMin <= offsetMin")
+                        for key in ("titleDiscreet", "titleDetailed", "desc"):
+                            val = ev.get(key, "")
+                            if not val:
+                                failures.append(f"{etag}: empty {key}")
+                            elif "<" in val or "{{" in val:
+                                failures.append(f"{etag}: {key} contains markup: {val[:60]!r}")
+                        if "loc" in ev:
+                            seen_loc_ids.add(eid)
+                    if not {"arrival", "procedure"} <= seen_loc_ids:
+                        failures.append(f"{tag}: arrival/procedure missing loc field")
+                    snapshot[family][band["id"]][loc_id][lang] = events
+
+    golden_path = SKILL / "tests" / "golden" / "calendar_events.json"
+    golden_msg = ""
+    if update_golden:
+        golden_path.parent.mkdir(parents=True, exist_ok=True)
+        golden_path.write_text(
+            __import__("json").dumps(snapshot, indent=1, ensure_ascii=False,
+                                     sort_keys=True) + "\n",
+            encoding="utf-8")
+        golden_msg = f"golden updated: {golden_path.relative_to(SKILL)}"
+    elif golden_path.exists():
+        import json as _json
+        expected = _json.loads(golden_path.read_text(encoding="utf-8"))
+        if expected != snapshot:
+            failures.append("calendar events differ from golden snapshot — "
+                            "review the change, then refresh with "
+                            "`validate.py --quick --update-golden`")
+    else:
+        failures.append(f"missing golden file {golden_path.relative_to(SKILL)} — "
+                        "create with `validate.py --quick --update-golden`")
+    return failures, golden_msg
+
+
 def audit_translation_gaps():
     """Scan *.es.html for English-residue markers. Returns list of
     (file, lineno, marker, line) tuples."""
@@ -365,6 +590,8 @@ def main():
     ap.add_argument("--bands", help="Comma-separated band ids to limit render check (default: all)")
     ap.add_argument("--variants", default="standard,combined",
                     help="Comma-separated variants to test (default: standard,combined)")
+    ap.add_argument("--update-golden", action="store_true",
+                    help="Rewrite tests/golden/calendar_events.json from current output")
     args = ap.parse_args()
 
     failures = []
@@ -477,6 +704,53 @@ def main():
         failures.append(f"meds.giready.com pairing: {len(pairing_missing)} template(s)")
     else:
         print("      ✅ every template using {{HTML_MEDICATIONS_DRUGS}} references meds.giready.com")
+
+    # ------------------------------------------------------------------
+    # 3e. Calendar-export event integrity + golden snapshot
+    # ------------------------------------------------------------------
+    print("\n[3e] Calendar-export events (schema + prose twins + golden)")
+    cal_failures, golden_msg = audit_calendar_events(update_golden=args.update_golden)
+    if golden_msg:
+        print(f"      ✏️  {golden_msg}")
+    if cal_failures:
+        print(f"      ❌ {len(cal_failures)} calendar-event issue(s):")
+        for msg in cal_failures[:10]:
+            print(f"         {msg}")
+        if len(cal_failures) > 10:
+            print(f"         ... +{len(cal_failures)-10} more")
+        failures.append(f"calendar events: {len(cal_failures)} hit(s)")
+    else:
+        print("      ✅ calendar events valid for every band×lang×location×family")
+
+    # ------------------------------------------------------------------
+    # 3f. Weight-band contiguity + derived-lb consistency (CR-1)
+    # ------------------------------------------------------------------
+    print("\n[3f] Weight-band contiguity (kg-canonical partition + derived lb)")
+    contig_failures = audit_weight_band_contiguity()
+    if contig_failures:
+        print(f"      ❌ {len(contig_failures)} contiguity/derivation issue(s):")
+        for band_id, reason in contig_failures:
+            print(f"         {band_id}: {reason}")
+        print("      Hint: bands are [kg_lo, kg_hi) intervals; lb labels derive "
+              "from them. Fix the cutpoint or the lb figure so they agree.")
+        failures.append(f"weight-band contiguity: {len(contig_failures)} hit(s)")
+    else:
+        print("      ✅ bands tile the axis with no gap/overlap; lb labels derive cleanly")
+
+    # ------------------------------------------------------------------
+    # 3g. Band-selection sweep — every kg/lb weight lands in exactly one band
+    # ------------------------------------------------------------------
+    print("\n[3g] Band-selection sweep (kg 0–100 ×0.5, lb 1–220)")
+    sweep_failures = audit_band_selection_sweep()
+    if sweep_failures:
+        print(f"      ❌ {len(sweep_failures)} weight(s) match no band:")
+        for msg in sweep_failures[:10]:
+            print(f"         {msg}")
+        if len(sweep_failures) > 10:
+            print(f"         ... +{len(sweep_failures)-10} more")
+        failures.append(f"band-selection sweep: {len(sweep_failures)} hit(s)")
+    else:
+        print("      ✅ every swept kg/lb weight selects exactly one band")
 
     if args.quick:
         return _summary(failures)

@@ -176,6 +176,56 @@ def audit_meds_giready_reference():
     return missing
 
 
+_LB_PAREN_RE = re.compile(r"\(([^)]*\b[Ll]b\b[^)]*)\)")
+_INT_RE = re.compile(r"\d+")
+
+
+def audit_weight_band_contiguity():
+    """CR-1: the 3 flex-sig bands form a gapless kg-canonical partition and
+    every hand-written lb figure is a derived edge of its band's bounds.
+
+    Partition: distinct [kg_lo, kg_hi) intervals sorted by kg_lo must have
+    kg_hi[n] == kg_lo[n+1] and derived lb_hi[n] + 1 == lb_lo[n+1]; first opens
+    at 0, last opens (None). Derived-lb consistency: each integer next to "lb"
+    in label_*/folder_* must be in {lo, lo-1, hi, hi+1}. Wording is free.
+    Returns list of (band_id, reason).
+    """
+    sys.path.insert(0, str(SCRIPTS))
+    from render import lb_bounds  # single source of derivation
+    failures = []
+    bands = load_bands()
+    by_id = {b["id"]: b for b in bands}
+
+    intervals = {}
+    for b in bands:
+        intervals.setdefault((b.get("kg_lo") or 0, b.get("kg_hi")), b["id"])
+    ordered = sorted(intervals, key=lambda iv: iv[0])
+    if ordered and ordered[0][0] != 0:
+        failures.append((intervals[ordered[0]], f"partition does not start at 0 kg (kg_lo={ordered[0][0]})"))
+    if ordered and ordered[-1][1] is not None:
+        failures.append((intervals[ordered[-1]], f"partition does not end open (kg_hi={ordered[-1][1]})"))
+    for iv1, iv2 in zip(ordered, ordered[1:]):
+        id1, id2 = intervals[iv1], intervals[iv2]
+        if iv1[1] != iv2[0]:
+            failures.append((id1, f"kg gap/overlap: kg_hi={iv1[1]} != next {id2} kg_lo={iv2[0]}"))
+        _, lb_hi1 = lb_bounds(by_id[id1])
+        lb_lo2, _ = lb_bounds(by_id[id2])
+        if lb_hi1 is None or lb_lo2 is None or lb_hi1 + 1 != lb_lo2:
+            failures.append((id1, f"lb gap/overlap: lb_hi={lb_hi1} +1 != next {id2} lb_lo={lb_lo2}"))
+
+    for b in bands:
+        lo, hi = lb_bounds(b)
+        allowed = {n for n in (lo, lo - 1 if lo is not None else None,
+                               hi, hi + 1 if hi is not None else None) if n is not None}
+        for field in ("label_en", "label_es", "folder_en", "folder_es"):
+            for paren in _LB_PAREN_RE.findall(b.get(field) or ""):
+                for num in _INT_RE.findall(paren):
+                    if int(num) not in allowed:
+                        failures.append((b["id"],
+                                         f"{field}: lb figure {num} is not a derived edge {sorted(allowed)}"))
+    return failures
+
+
 # ----------------------------------------------------------------------
 # Check 4: Render every band × lang × location combo
 # ----------------------------------------------------------------------
@@ -287,6 +337,19 @@ def main():
         failures.append(f"meds.giready.com reference: {len(missing)} template(s)")
     else:
         print("      ✅ every flex-sig handout template references meds.giready.com")
+
+    # 3c. Weight-band contiguity + derived-lb consistency (CR-1)
+    print("\n[3c] Weight-band contiguity (kg-canonical partition + derived lb)")
+    contig_failures = audit_weight_band_contiguity()
+    if contig_failures:
+        print(f"      ❌ {len(contig_failures)} contiguity/derivation issue(s):")
+        for band_id, reason in contig_failures:
+            print(f"         {band_id}: {reason}")
+        print("      Hint: bands are [kg_lo, kg_hi) intervals; lb labels derive "
+              "from them. Fix the cutpoint or the lb figure so they agree.")
+        failures.append(f"weight-band contiguity: {len(contig_failures)} hit(s)")
+    else:
+        print("      ✅ bands tile the axis with no gap/overlap; lb labels derive cleanly")
 
     if args.quick:
         return _summary(failures)

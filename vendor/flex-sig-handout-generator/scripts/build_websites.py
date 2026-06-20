@@ -21,6 +21,8 @@ Usage:
     python scripts/build_websites.py
 """
 
+import base64
+import hashlib
 import re
 import shutil
 import sys
@@ -53,6 +55,8 @@ from render import (  # noqa: E402
     build_location_placeholders,
     build_band_placeholders,
     apply_conditional_blocks,
+    lb_phrase,
+    _inject_shared_mobile_a11y,
 )
 
 # Per-location target repo. Subdomains come from procedure.yaml's
@@ -78,27 +82,101 @@ BAND_MOBILE_PATH = {
 # Concise — the lb-equivalent appears as subtitle.
 BAND_LABELS = {
     "under-15kg": {"en": "Under 15 kg",  "es": "Menos de 15 kg"},
-    "20-40kg":    {"en": "20–40 kg",     "es": "20–40 kg"},
+    "20-40kg":    {"en": "15–40 kg",     "es": "15–40 kg"},
     "over-40kg":  {"en": "Over 40 kg",   "es": "Más de 40 kg"},
 }
 
-# lb-equivalent + protocol disambiguation (shown as the page subtitle).
-BAND_LB = {
-    "under-15kg": {"en": "Under 33 lb · saline enema given by staff",
-                   "es": "Menos de 33 lb · enema salina por el personal"},
-    "20-40kg":    {"en": "44–88 lb",     "es": "44–88 lb"},
-    "over-40kg":  {"en": "Over 88 lb",   "es": "Más de 88 lb"},
+# Protocol-disambiguation note appended after the (derived) lb range, split
+# back out into a coral tag by render_band_cards on " · ".
+BAND_LB_NOTE = {
+    "under-15kg": {"en": " · saline enema given by staff",
+                   "es": " · enema salina por el personal"},
 }
+
+
+def band_lb(band, lang):
+    """lb subtitle = derived lb range (from kg cutpoints) + optional note."""
+    return lb_phrase(band, lang) + BAND_LB_NOTE.get(band["id"], {}).get(lang, "")
 
 HTML_TITLE_BAND_EN = "Flexible Sigmoidoscopy Prep — {label} — What to Expect"
 HTML_TITLE_BAND_ES = "Preparación para Sigmoidoscopia Flexible — {label} — Qué Esperar"
 HTML_TITLE_LANDING_EN = "Flexible Sigmoidoscopy Prep — What to Expect"
 HTML_TITLE_LANDING_ES = "Preparación para Sigmoidoscopia Flexible — Qué Esperar"
 
-HEADERS_CONTENT = """/*
-  X-Robots-Tag: noindex, nofollow
-  X-Frame-Options: SAMEORIGIN
+# Canonical giready security-header block + per-page inline-script hashing.
+# Kept byte-identical with bowel-prep-generator/scripts/header_config.py and the
+# egd skill; the giready-cross-skill-consistency agent verifies no drift.
+# script-src uses sha256 hashes of the inline scripts (no 'unsafe-inline');
+# style-src KEEPS 'unsafe-inline' deliberately (pervasive inline styles, accepted
+# low-severity risk). CSP must stay on one physical line.
+_CSP_TEMPLATE = (
+    "default-src 'self'; "
+    "script-src 'self'{script_hashes} https://analytics.giready.com; "
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    "font-src 'self' https://fonts.gstatic.com; "
+    "img-src 'self' data: https://giready.com https://analytics.giready.com; "
+    "connect-src 'self' https://analytics.giready.com https://api-schedule.giready.com; "
+    "manifest-src 'self' https://giready.com; "
+    "frame-src https://calendar.google.com; "
+    "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
+)
+
+_HEADERS_TEMPLATE = """/*
+  Content-Security-Policy: {csp}
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
+  Referrer-Policy: no-referrer
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
 """
+
+_SCRIPT_BLOCK = re.compile(r"<script\b([^>]*)>(.*?)</script>", re.DOTALL | re.IGNORECASE)
+_ATTR = re.compile(r'([\w-]+)\s*=\s*"([^"]*)"')
+_EXECUTABLE_TYPES = {"", "text/javascript", "application/javascript", "module"}
+
+
+def _hashes_in_html(html):
+    found = set()
+    for match in _SCRIPT_BLOCK.finditer(html):
+        attrs = {k.lower(): v for k, v in _ATTR.findall(match.group(1))}
+        if "src" in attrs:
+            continue  # external script — governed by the source list, not a hash
+        if attrs.get("type", "").lower().strip() not in _EXECUTABLE_TYPES:
+            continue  # e.g. <script type="application/json"> data — not executed
+        inner = match.group(2)
+        if not inner.strip():
+            continue
+        digest = hashlib.sha256(inner.encode("utf-8")).digest()
+        found.add("'sha256-" + base64.b64encode(digest).decode() + "'")
+    return found
+
+
+def csp_script_hashes(repo_dir):
+    repo_dir = Path(repo_dir)
+    found = set()
+    for html_file in repo_dir.rglob("*.html"):
+        found |= _hashes_in_html(html_file.read_text(encoding="utf-8"))
+    return sorted(found)
+
+
+def build_csp(script_hashes=()):
+    joined = "".join(" " + h for h in script_hashes)
+    return _CSP_TEMPLATE.format(script_hashes=joined)
+
+
+def build_headers_content(script_hashes=()):
+    return _HEADERS_TEMPLATE.format(csp=build_csp(script_hashes))
+
+
+def write_headers(repo_dir):
+    repo_dir = Path(repo_dir)
+    content = build_headers_content(csp_script_hashes(repo_dir))
+    path = repo_dir / "_headers"
+    current = path.read_text(encoding="utf-8") if path.exists() else None
+    if current != content:
+        path.write_text(content, encoding="utf-8")
+        return [path]
+    return []
 
 GITIGNORE_CONTENT = """.DS_Store
 *.swp
@@ -132,18 +210,26 @@ def _load_yaml(path):
 
 
 def render_band_cards(bands_by_id, lang, band_ids):
-    """Build the landing-page band picker grid (one card per band)."""
+    """Build the landing-page band picker grid (one card per band).
+
+    Calm "lb-first" card: the pound range is the serif hero, the kg band is
+    the small secondary line. A trailing " · ..." note becomes a coral tag.
+    """
+    arrow_svg = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+                 '<path d="M5 12h14M13 6l6 6-6 6"/></svg>')
+    n = len(band_ids)
     cards = []
-    for bid in band_ids:
+    for i, bid in enumerate(band_ids):
         path = BAND_MOBILE_PATH[bid]
         label = BAND_LABELS[bid][lang]
-        lb = BAND_LB[bid][lang]
-        arrow = "View instructions →" if lang == "en" else "Ver instrucciones →"
+        lb_main, _, extra = band_lb(bands_by_id[bid], lang).partition(" · ")
+        tag_html = f'<span class="tag">{extra.strip()}</span>' if extra.strip() else ""
+        wide = " wide" if (n % 2 == 1 and i == n - 1) else ""
         cards.append(
-            f'  <a class="band-card" href="{path}/">\n'
-            f'    <div class="band-label">{label}</div>\n'
-            f'    <div class="band-lb">{lb}</div>\n'
-            f'    <div class="band-arrow">{arrow}</div>\n'
+            f'  <a class="band{wide}" href="{path}/">\n'
+            f'    <div class="info"><h3>{lb_main}</h3><div class="kg">{label}</div>{tag_html}</div>\n'
+            f'    <span class="arr">{arrow_svg}</span>\n'
             f'  </a>'
         )
     return "\n".join(cards)
@@ -253,7 +339,7 @@ def render_band_page(lang, procedure, band, location, practice_cfg, qr,
         # from BAND_LABELS / HTML_TITLE_BAND_*.
         "{{HTML_TITLE}}":         html_title,
         "{{BAND_LABEL}}":         BAND_LABELS[band["id"]][lang],
-        "{{BAND_LB}}":            BAND_LB[band["id"]][lang],
+        "{{BAND_LB}}":            band_lb(band, lang),
         "{{LOGO_SRC}}":           logo_src,
         "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
         "{{LANDING_HREF}}":       landing_href,
@@ -331,6 +417,9 @@ _ANALYTICS_SITE_BY_LOC = {
 def _inject_analytics(html, location_id, lang, band_id=""):
     """Inject the giready analytics + survey embed snippets before </head>. Idempotent."""
     import json
+    # Shared WCAG 2.1 AA base on every mobile page (independent of analytics);
+    # _inject_analytics is the single last-mile transform before write_text.
+    html = _inject_shared_mobile_a11y(html)
     site = _ANALYTICS_SITE_BY_LOC.get(location_id)
     if not site:
         return html
@@ -447,12 +536,9 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, procedure,
 
 
 def write_repo_metadata(repo_dir, location, subdomain):
-    """Create _headers, .gitignore, README.md if missing (don't clobber)."""
+    """Create .gitignore/README.md if missing; always rewrite _headers."""
     written = []
-    headers_path = repo_dir / "_headers"
-    if not headers_path.exists():
-        headers_path.write_text(HEADERS_CONTENT, encoding="utf-8")
-        written.append(headers_path)
+    written += write_headers(repo_dir)
 
     gitignore_path = repo_dir / ".gitignore"
     if not gitignore_path.exists():

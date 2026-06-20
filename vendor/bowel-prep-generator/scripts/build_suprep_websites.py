@@ -36,7 +36,7 @@ LOGO_PATH = TEMPLATES / "logo-pmch.png"
 # Reuse the public-builder helpers — keeps SUPREP pages 100% in lock-step
 # with the public-site chrome.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import build_suprep_strings, _load_partials  # noqa: E402
+from render import build_suprep_strings, _load_partials, build_calendar_events_json, lb_phrase  # noqa: E402
 from build_colonoscopy_websites import (  # noqa: E402
     _load_yaml,
     build_practice_placeholders,
@@ -59,20 +59,15 @@ SITES = {
 BAND_ORDER = ["suprep"]
 
 # Mobile-tuned hero labels for the H1 / weight-subtitle / subtitle line.
-BAND_LABELS = {"suprep": {"en": "50 kg and up", "es": "50 kg en adelante"}}
-BAND_LB     = {"suprep": {"en": "(110+ lb)",     "es": "(110+ lb)"}}
+BAND_LABELS = {"suprep": {"en": "51 kg and up", "es": "51 kg en adelante"}}
+# lb-equivalent DERIVED from the band's kg cutpoints (over-50 = [51,null) -> 112+ lb).
 BAND_NOTE   = {"suprep": {"en": "SUPREP option (oral, Rx)",
                           "es": "Opción SUPREP (oral, con receta)"}}
 
 HTML_TITLE_BAND_EN = "Colonoscopy Prep — SUPREP — What to Expect"
 HTML_TITLE_BAND_ES = "Preparación para Colonoscopia — SUPREP — Qué Esperar"
 
-# Stronger noindex than the public sites — these must never be indexed.
-HEADERS_CONTENT = """/*
-  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: no-referrer
-"""
+from header_config import write_headers  # noqa: E402  (single source of truth)
 
 GITIGNORE_CONTENT = """.DS_Store
 *.swp
@@ -120,11 +115,12 @@ def render_band_page(lang, band, location, practice_cfg, qr,
         **build_practice_placeholders(practice_cfg, lang),
         **build_location_placeholders(location, lang),
         **dose_replacements,
+        "{{PZ_EVENTS_JSON}}":   build_calendar_events_json(band, lang, location, family="colonoscopy"),
         "{{HTML_TITLE}}":         html_title,
         "{{BAND_LABEL}}":         BAND_LABELS[band["id"]][lang],
         "{{LOGO_SRC}}":           logo_src,
         "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
-        "{{BAND_LB}}":            BAND_LB[band["id"]][lang],
+        "{{BAND_LB}}":            lb_phrase(band, lang, "plus"),
         "{{BAND_NOTE}}":          BAND_NOTE[band["id"]][lang],
         "{{MAPS_URL}}":           maps_url,
         "{{YOUTUBE_URL}}":        youtube_url,
@@ -195,12 +191,9 @@ def build_for_repo(repo_dir, location_id, location, practice_cfg, bands_by_id):
 
 
 def write_repo_metadata(repo_dir, location, subdomain):
-    """Create _headers, .gitignore, README.md if missing."""
+    """Create .gitignore/README.md if missing; always rewrite _headers."""
     written = []
-    headers_path = repo_dir / "_headers"
-    if not headers_path.exists():
-        headers_path.write_text(HEADERS_CONTENT, encoding="utf-8")
-        written.append(headers_path)
+    written += write_headers(repo_dir)
 
     gitignore_path = repo_dir / ".gitignore"
     if not gitignore_path.exists():

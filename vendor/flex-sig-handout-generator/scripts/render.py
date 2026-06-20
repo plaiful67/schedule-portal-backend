@@ -43,6 +43,59 @@ TEMPLATES      = SKILL_DIR / "templates"
 PROCEDURE_PATH = SKILL_DIR / "data" / "procedure.yaml"
 PRACTICE_PATH  = SKILL_DIR / "practice.yaml"
 
+
+# ---------------------------------------------------------------------------
+# Weight-band lb display — DERIVED from kg cutpoints (CR-1). Mirrors the
+# identical helpers in the bowel-prep-generator skill; flex-sig is an
+# independent 3-band set, so it carries its own copy rather than importing
+# across skills. Each band in procedure.yaml declares a half-open kg interval
+# [kg_lo, kg_hi); lb labels derive from it so adjacent bands can't gap.
+# ---------------------------------------------------------------------------
+
+LB_PER_KG = 2.20462
+
+
+def _kg_to_lb(kg):
+    return int(round(kg * LB_PER_KG))
+
+
+def lb_bounds(band):
+    """Inclusive whole-pound range a band covers (None = open end)."""
+    kg_lo = band.get("kg_lo")
+    kg_hi = band.get("kg_hi")
+    lo = _kg_to_lb(kg_lo) if kg_lo else None
+    hi = (_kg_to_lb(kg_hi) - 1) if kg_hi is not None else None
+    return lo, hi
+
+
+def lb_phrase(band, lang="en", style="plain"):
+    """Localized lb label derived from a band's kg cutpoints.
+
+    styles: "plain" -> "33–89 lb" / "Under 33 lb" / "Over 89 lb";
+            "bracket" wraps in []. Spanish swaps the open-end words.
+    """
+    lo, hi = lb_bounds(band)
+    en = lang == "en"
+    if lo is None and hi is not None:
+        core = f"Under {hi + 1} lb" if en else f"Menos de {hi + 1} lb"
+    elif hi is None and lo is not None:
+        core = f"Over {lo - 1} lb" if en else f"Más de {lo - 1} lb"
+    elif lo is not None and hi is not None:
+        core = f"{lo}–{hi} lb"  # en dash
+    else:
+        raise ValueError(f"band {band.get('id')!r} has no kg cutpoints")
+    return f"[{core}]" if style == "bracket" else core
+
+
+def select_band(weight_kg, bands):
+    """First band whose half-open [kg_lo, kg_hi) contains weight_kg."""
+    for b in bands:
+        lo = b.get("kg_lo") or 0
+        hi = b.get("kg_hi")
+        if weight_kg >= lo and (hi is None or weight_kg < hi):
+            return b
+    raise ValueError(f"no band contains weight_kg={weight_kg}")
+
 # Shared design tokens + feedback-cell layout. Auto-prepended to every
 # template's <head> so future cross-skill style changes (color tokens,
 # font stack, feedback CTA layout) live in ONE file. Templates' own
@@ -58,6 +111,73 @@ def _inject_shared_print_css(html: str) -> str:
     if not _SHARED_PRINT_CSS:
         return html
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
+
+
+# Shared WCAG 2.1 AA base for the MOBILE renders (focus, skip link, contrast,
+# keyboard/ARIA). One source for every current and future mobile site, sibling
+# to print-base.css above. See ~/peds-gi-prep-system/shared/mobile-base.css +
+# mobile-a11y.js. Kept byte-identical across the giready skills.
+_SHARED_DIR = Path.home() / "peds-gi-prep-system" / "shared"
+try:
+    _SHARED_MOBILE_CSS = (_SHARED_DIR / "mobile-base.css").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_CSS = ""
+try:
+    _SHARED_MOBILE_JS = (_SHARED_DIR / "mobile-a11y.js").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_JS = ""
+
+
+def _inject_landmarks(html: str) -> str:
+    """Promote the mobile page chrome to ARIA/HTML5 landmark regions.
+
+    Kept byte-identical with bowel-prep-generator/scripts/render.py. Idempotent;
+    anchors are uniform across every mobile template (one .topbar, .container,
+    .footer, .medical-disclaimer aside per page):
+      - <div class="topbar">…</div>  -> <header class="topbar">…</header>  (banner)
+      - the .container body content   -> wrapped in <main>                 (main)
+      - .footer + copyright + policy nav + disclaimer -> wrapped in <footer> (contentinfo)
+    The inner .topbar/.footer divs keep their class (hence their CSS), so only
+    the element semantics change — the render is visually inert.
+    """
+    if "<main" in html or 'class="site-footer"' in html:
+        return html  # idempotent: landmarks already present
+    html = re.sub(
+        r'<div class="topbar">(.*?)</div>(\s*)</div>',
+        r'<header class="topbar">\1</div>\2</header>',
+        html, count=1, flags=re.S,
+    )
+    html = html.replace(
+        '<div class="container">',
+        '<div class="container">\n<main>', 1,
+    )
+    html = html.replace(
+        '<div class="footer">',
+        '</main>\n<footer class="site-footer">\n<div class="footer">', 1,
+    )
+    html = re.sub(
+        r'(<aside class="medical-disclaimer".*?</aside>)',
+        r'\1\n</footer>',
+        html, count=1, flags=re.S,
+    )
+    return html
+
+
+def _inject_shared_mobile_a11y(html: str) -> str:
+    """Add the shared a11y base (CSS + skip link + enhancement JS) to a mobile
+    HTML render. Idempotent; each step no-ops if its anchor is absent."""
+    if "a11y-skip" in html or "mobile-a11y" in html:
+        return html
+    if "<body>" in html and re.search(r"<h1(?![^>]*\bid=)", html):
+        html = re.sub(r"<h1(?![^>]*\bid=)", '<h1 id="gi-main" tabindex="-1"', html, count=1)
+        skip = '<a class="a11y-skip" href="#gi-main">Skip to main content</a>'
+        html = html.replace("<body>", f"<body>\n{skip}", 1)
+    html = _inject_landmarks(html)
+    if _SHARED_MOBILE_CSS and "</head>" in html:
+        html = html.replace("</head>", f"<style>{_SHARED_MOBILE_CSS}</style>\n</head>", 1)
+    if _SHARED_MOBILE_JS and "</body>" in html:
+        html = html.replace("</body>", f"<script>{_SHARED_MOBILE_JS}</script>\n</body>", 1)
+    return html
 
 
 # ---------------------------------------------------------------------------
@@ -328,7 +448,8 @@ def render_pdf(procedure_id, procedure, band, location, location_id, lang, theme
             "WeasyPrint failed to import. On macOS this usually means Pango/Cairo "
             "are missing — install with `brew install pango`. Original: " + repr(e)
         )
-    HTML(string=html, base_url=str(template_path.parent)).write_pdf(str(out_path))
+    from pdf_tagging import write_pdf_tagged
+    write_pdf_tagged(HTML(string=html, base_url=str(template_path.parent)), str(out_path))
 
 
 # ---------------------------------------------------------------------------

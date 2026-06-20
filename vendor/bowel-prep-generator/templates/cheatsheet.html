@@ -51,11 +51,12 @@
     font-weight: 700;
     color: #0e2233;
     letter-spacing: -0.01em;
+    margin: 0;
   }
   header.cs-header .subtitle {
     font-family: "Inter", sans-serif;
     font-size: 8.5pt;
-    color: #7a4a00;
+    color: #664000;
     font-weight: 600;
     margin-top: 1pt;
     text-transform: uppercase;
@@ -207,7 +208,7 @@
       margin: 14px auto 0;
       padding: 0 32px;
       font-size: 11px;
-      color: #7a7a7a;
+      color: #595959;
       text-align: center;
     }
     .cs-alt-break { display: none; }
@@ -252,13 +253,13 @@
   text-decoration: none;
 }
 .footer-policy-links a:hover { text-decoration: underline; }
-.footer-policy-links .sep { color: #999; margin: 0 6px; }
+.footer-policy-links .sep { color: #595959; margin: 0 6px; }
 
 .footer-copyright {
   margin: 6px 0 4px;
   text-align: center;
   font-size: 0.8em;
-  color: #888;
+  color: #595959;
 }
 
 .topbar-logo {
@@ -278,14 +279,15 @@
 <link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
-<link rel="manifest" href="https://giready.com/site.webmanifest">
+<!-- No manifest on handout pages: the apex site.webmanifest declares start_url:"/" + display:standalone and is served with ACAO:*, which would hijack Add-to-Home-Screen to open giready.com standalone — losing the page AND the personalization hash. Without a manifest, A2HS bookmarks the current URL (hash included), in the browser, which is exactly what we teach. -->
+<meta name="apple-mobile-web-app-title" content="GI Ready">
 <meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
 <div class="cs-page">
 
 <header class="cs-header">
-  <div class="title">Bowel-prep cheat sheet · Pediatric Gastroenterology</div>
+  <h1 class="title">Bowel-prep cheat sheet · Pediatric Gastroenterology</h1>
   <div class="subtitle">Internal staff reference · Not for patient distribution</div>
 </header>
 
@@ -299,14 +301,14 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Band</th>
-            <th>Dulcolax (bed+day)</th>
-            <th>Tot. mg</th>
-            <th>MiraLAX caps</th>
-            <th>Tot. g</th>
-            <th>Gatorade</th>
-            <th>Cup</th>
-            <th>Start</th>
+            <th scope="col">Band</th>
+            <th scope="col">Dulcolax (bed+day)</th>
+            <th scope="col">Tot. mg</th>
+            <th scope="col">MiraLAX caps</th>
+            <th scope="col">Tot. g</th>
+            <th scope="col">Gatorade</th>
+            <th scope="col">Cup</th>
+            <th scope="col">Start</th>
           </tr>
         </thead>
         <tbody>
@@ -318,10 +320,10 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th style="width: 22%;">Sub-band</th>
-            <th style="width: 18%;">MiraLAX caps</th>
-            <th style="width: 14%;">Tot. g</th>
-            <th>Mix in (Pedialyte or clear apple juice)</th>
+            <th scope="col" style="width: 22%;">Sub-band</th>
+            <th scope="col" style="width: 18%;">MiraLAX caps</th>
+            <th scope="col" style="width: 14%;">Tot. g</th>
+            <th scope="col">Mix in (Pedialyte or clear apple juice)</th>
           </tr>
         </thead>
         <tbody>
@@ -336,11 +338,11 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Band</th>
-            <th>Evening rescue</th>
-            <th>Morning rescue<br><span class="muted">finish &ge; NPO before procedure</span></th>
-            <th>Hard stop<br><span class="muted">incl. BIG PREP</span></th>
-            <th>If still not clear</th>
+            <th scope="col">Band</th>
+            <th scope="col">Evening rescue</th>
+            <th scope="col">Morning rescue<br><span class="muted">finish &ge; NPO before procedure</span></th>
+            <th scope="col">Hard stop<br><span class="muted">incl. BIG PREP</span></th>
+            <th scope="col">If still not clear</th>
           </tr>
         </thead>
         <tbody>
@@ -360,10 +362,10 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Band</th>
-            <th>Disimpaction</th>
-            <th>Start</th>
-            <th>Daily maintenance</th>
+            <th scope="col">Band</th>
+            <th scope="col">Disimpaction</th>
+            <th scope="col">Start</th>
+            <th scope="col">Daily maintenance</th>
           </tr>
         </thead>
         <tbody>
@@ -375,13 +377,13 @@
     <section class="cs-section">
       <h2>Locations</h2>
       <table class="cs-locations">
-        <thead><tr><th></th><th>{{LOC_SCC_NAME}}</th><th>{{LOC_PMCH_NAME}}</th></tr></thead>
+        <thead><tr><th scope="col"></th><th scope="col">{{LOC_SCC_NAME}}</th><th scope="col">{{LOC_PMCH_NAME}}</th></tr></thead>
         <tbody>
-          <tr><th>Address</th><td>{{LOC_SCC_ADDRESS}}</td><td>{{LOC_PMCH_ADDRESS}}</td></tr>
-          <tr><th>Facility phone</th><td class="num">{{LOC_SCC_PHONE}}</td><td class="num">{{LOC_PMCH_PHONE}}</td></tr>
-          <tr><th>NPO clears</th><td class="num">{{NPO_SCC_HOURS}} h before procedure</td><td class="num">{{NPO_PMCH_HOURS}} h before procedure</td></tr>
-          <tr><th>Arrival</th><td class="num">{{LOC_SCC_ARRIVAL_MIN}} min before</td><td class="num">{{LOC_PMCH_ARRIVAL_MIN}} min before</td></tr>
-          <tr><th>Mobile sites</th><td class="muted">{{LOC_SCC_MOBILE_LINES}}</td><td class="muted">{{LOC_PMCH_MOBILE_LINES}}</td></tr>
+          <tr><th scope="row">Address</th><td>{{LOC_SCC_ADDRESS}}</td><td>{{LOC_PMCH_ADDRESS}}</td></tr>
+          <tr><th scope="row">Facility phone</th><td class="num">{{LOC_SCC_PHONE}}</td><td class="num">{{LOC_PMCH_PHONE}}</td></tr>
+          <tr><th scope="row">NPO clears</th><td class="num">{{NPO_SCC_HOURS}} h before procedure</td><td class="num">{{NPO_PMCH_HOURS}} h before procedure</td></tr>
+          <tr><th scope="row">Arrival</th><td class="num">{{LOC_SCC_ARRIVAL_MIN}} min before</td><td class="num">{{LOC_PMCH_ARRIVAL_MIN}} min before</td></tr>
+          <tr><th scope="row">Mobile sites</th><td class="muted">{{LOC_SCC_MOBILE_LINES}}</td><td class="muted">{{LOC_PMCH_MOBILE_LINES}}</td></tr>
         </tbody>
       </table>
     </section>
@@ -418,7 +420,7 @@
 <div class="cs-alt-break"></div>
 
 <header class="cs-header cs-alt-header">
-  <div class="title">Alternative protocols</div>
+  <h2 class="title">Alternative protocols</h2>
   <div class="subtitle">CLENPIQ + SUPREP + Lactulose · for MiraLAX intolerance or physician preference</div>
 </header>
 
@@ -431,11 +433,11 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Dose</th>
-            <th>Bottle</th>
-            <th>Window</th>
-            <th>Clears after</th>
-            <th>Cup</th>
+            <th scope="col">Dose</th>
+            <th scope="col">Bottle</th>
+            <th scope="col">Window</th>
+            <th scope="col">Clears after</th>
+            <th scope="col">Cup</th>
           </tr>
         </thead>
         <tbody>
@@ -450,11 +452,11 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Dose</th>
-            <th>Solution (mixed)</th>
-            <th>Window</th>
-            <th>Water chasers</th>
-            <th>Cup</th>
+            <th scope="col">Dose</th>
+            <th scope="col">Solution (mixed)</th>
+            <th scope="col">Window</th>
+            <th scope="col">Water chasers</th>
+            <th scope="col">Cup</th>
           </tr>
         </thead>
         <tbody>
@@ -473,12 +475,12 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th>Band</th>
-            <th>Dulcolax (bed+day)</th>
-            <th>Lactulose</th>
-            <th>Gatorade</th>
-            <th>Cup</th>
-            <th>Start</th>
+            <th scope="col">Band</th>
+            <th scope="col">Dulcolax (bed+day)</th>
+            <th scope="col">Lactulose</th>
+            <th scope="col">Gatorade</th>
+            <th scope="col">Cup</th>
+            <th scope="col">Start</th>
           </tr>
         </thead>
         <tbody>
@@ -490,9 +492,9 @@
       <table class="cs-table">
         <thead>
           <tr>
-            <th style="width: 26%;">Sub-band</th>
-            <th>Daily lactulose dose</th>
-            <th>Mix in (juice or Pedialyte)</th>
+            <th scope="col" style="width: 26%;">Sub-band</th>
+            <th scope="col">Daily lactulose dose</th>
+            <th scope="col">Mix in (juice or Pedialyte)</th>
           </tr>
         </thead>
         <tbody>

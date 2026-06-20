@@ -28,6 +28,8 @@ Design:
 
 import argparse
 import base64
+import html as html_lib
+import json
 import os
 import re
 import shutil
@@ -70,6 +72,92 @@ def _inject_shared_print_css(html: str) -> str:
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
 
 
+# Shared accessibility (WCAG 2.1 AA) base for the MOBILE renders: focus
+# visibility, skip link, muted-text contrast (CSS) + keyboard/ARIA semantics
+# for the checklist, feedback FAB, and tables (JS). One source for every
+# current and future mobile site, sibling to print-base.css above. See
+# ~/peds-gi-prep-system/shared/mobile-base.css + mobile-a11y.js.
+_SHARED_DIR = Path.home() / "peds-gi-prep-system" / "shared"
+try:
+    _SHARED_MOBILE_CSS = (_SHARED_DIR / "mobile-base.css").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_CSS = ""
+try:
+    _SHARED_MOBILE_JS = (_SHARED_DIR / "mobile-a11y.js").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_JS = ""
+
+
+def _inject_landmarks(html: str) -> str:
+    """Promote the mobile page chrome to ARIA/HTML5 landmark regions.
+
+    Runs on the fully-rendered HTML at the shared a11y chokepoint. Idempotent.
+    Anchors are uniform across every mobile template (one .topbar, one
+    .container, one .footer, one .medical-disclaimer aside per page):
+      - <div class="topbar">…</div>  -> <header class="topbar">…</header>  (banner)
+      - the .container body content   -> wrapped in <main>                 (main)
+      - .footer + copyright + policy nav + disclaimer -> wrapped in <footer> (contentinfo)
+    The inner .topbar/.footer divs keep their class (hence their CSS), so only
+    the element semantics change — the render is visually inert. Each step is a
+    no-op if its anchor is absent, so atypical templates pass through untouched.
+    """
+    if "<main" in html or 'class="site-footer"' in html:
+        return html  # idempotent: landmarks already present
+    # banner — rename the topbar wrapper div to <header> (keep class + CSS).
+    html = re.sub(
+        r'<div class="topbar">(.*?)</div>(\s*)</div>',
+        r'<header class="topbar">\1</div>\2</header>',
+        html, count=1, flags=re.S,
+    )
+    # main — open just inside .container; closed just before the footer block.
+    html = html.replace(
+        '<div class="container">',
+        '<div class="container">\n<main>', 1,
+    )
+    # contentinfo — close <main>, open the semantic <footer> before the address
+    # block, and close it after the medical-disclaimer aside (the last footer
+    # element on every page), so address + copyright + policy nav all land
+    # inside one contentinfo landmark.
+    html = html.replace(
+        '<div class="footer">',
+        '</main>\n<footer class="site-footer">\n<div class="footer">', 1,
+    )
+    html = re.sub(
+        r'(<aside class="medical-disclaimer".*?</aside>)',
+        r'\1\n</footer>',
+        html, count=1, flags=re.S,
+    )
+    return html
+
+
+def _inject_shared_mobile_a11y(html: str) -> str:
+    """Add the shared a11y base to a mobile HTML render.
+
+    - CSS appended as the LAST <style> (before </head>) so it wins on cascade.
+    - A skip link is inserted as the first child of <body>, targeting the page
+      <h1> (which gains id="gi-main" tabindex="-1").
+    - The enhancement JS is appended just before </body>, after the template's
+      own inline scripts have built the interactive checklist + FAB.
+    Each step is a no-op if its anchor (</head>, <body>, <h1, </body>) is
+    absent, so non-standard templates pass through untouched.
+    """
+    if "a11y-skip" in html or "mobile-a11y" in html:
+        return html  # idempotent: already injected
+    # Skip link FIRST, on the original markup — before CSS/JS injection adds any
+    # text that could shadow the <h1> the regex targets. Only when there's an
+    # id-less <h1> to land focus on.
+    if "<body>" in html and re.search(r"<h1(?![^>]*\bid=)", html):
+        html = re.sub(r"<h1(?![^>]*\bid=)", '<h1 id="gi-main" tabindex="-1"', html, count=1)
+        skip = '<a class="a11y-skip" href="#gi-main">Skip to main content</a>'
+        html = html.replace("<body>", f"<body>\n{skip}", 1)
+    html = _inject_landmarks(html)
+    if _SHARED_MOBILE_CSS and "</head>" in html:
+        html = html.replace("</head>", f"<style>{_SHARED_MOBILE_CSS}</style>\n</head>", 1)
+    if _SHARED_MOBILE_JS and "</body>" in html:
+        html = html.replace("</body>", f"<script>{_SHARED_MOBILE_JS}</script>\n</body>", 1)
+    return html
+
+
 # ---------------------------------------------------------------------------
 # Phrasing — how structured dosing numbers become prose in each language.
 # These are the ONLY places language-specific wording lives in code. Edit here
@@ -86,7 +174,146 @@ def oz_to_ml(oz):
     return int(round(oz * ML_PER_OZ / ML_ROUND) * ML_ROUND)
 
 
+# ---------------------------------------------------------------------------
+# Weight-band lb display — DERIVED from the kg cutpoints (CR-1).
+#
+# Each band declares a half-open kg interval [kg_lo, kg_hi) in dosing.yaml
+# (kg_lo: 0 = open-low, kg_hi: null = open-high). The pound labels shown to
+# parents/staff are computed from those cutpoints so adjacent bands can never
+# gap or overlap. This is the SINGLE source for lb wording — render.py, the
+# mobile build scripts, the apex landing, and the scheduler all route their lb
+# strings through lb_phrase(); validate.py asserts the lb baked into
+# dosing.yaml's own labels matches lb_bounds().
+#
+#   lb_lo = round(kg_lo * LB_PER_KG)            (the band's lb floor)
+#   lb_hi = round(kg_hi * LB_PER_KG) - 1        (one below the next band's floor)
+#
+# so e.g. 41-50 = [41,51) -> 90..111 lb and over-50 = [51,null) -> 112+ lb,
+# which is contiguous with 41-50's 111 by construction.
+# ---------------------------------------------------------------------------
+
+LB_PER_KG = 2.20462
+
+
+def _kg_to_lb(kg):
+    """Round a kg weight to whole pounds (used only for display labels)."""
+    return int(round(kg * LB_PER_KG))
+
+
+def lb_bounds(band):
+    """Inclusive whole-pound range a band covers, derived from its kg cutpoints.
+
+    Returns (lo, hi) where either may be None for an open end:
+      lo is None  -> open-low  (kg_lo is 0/None)
+      hi is None  -> open-high (kg_hi is None)
+    """
+    kg_lo = band.get("kg_lo")
+    kg_hi = band.get("kg_hi")
+    lo = _kg_to_lb(kg_lo) if kg_lo else None
+    hi = (_kg_to_lb(kg_hi) - 1) if kg_hi is not None else None
+    return lo, hi
+
+
+def lb_phrase(band, lang="en", style="plain"):
+    """Localized lb label for a band, derived from its kg cutpoints.
+
+    styles:
+      "plain"   -> "33–45 lb" / "Under 33 lb" / "Over 111 lb"   (apex, flex-sig)
+      "bracket" -> "[33–45 lb]" / "[Under 33 lb]" / "[Over 111 lb]"  (mobile BAND_LB)
+      "plus"    -> "(112+ lb)"   (open-high only; CLENPIQ / SUPREP BAND_LB cells)
+
+    Spanish swaps the open-end words: "Menos de N lb" / "Más de N lb".
+    The range form is language-neutral (digits + en dash + "lb").
+    """
+    lo, hi = lb_bounds(band)
+    en = lang == "en"
+    if style == "plus":
+        if lo is None:
+            raise ValueError(f"lb_phrase style 'plus' needs an open-high band, got {band.get('id')!r}")
+        return f"({lo}+ lb)"
+    if lo is None and hi is not None:
+        core = f"Under {hi + 1} lb" if en else f"Menos de {hi + 1} lb"
+    elif hi is None and lo is not None:
+        core = f"Over {lo - 1} lb" if en else f"Más de {lo - 1} lb"
+    elif lo is not None and hi is not None:
+        core = f"{lo}–{hi} lb"  # en dash
+    else:
+        raise ValueError(f"band {band.get('id')!r} has no kg cutpoints to derive lb from")
+    if style == "bracket":
+        return f"[{core}]"
+    if style == "plain":
+        return core
+    raise ValueError(f"unknown lb_phrase style {style!r}")
+
+
+def select_band(weight_kg, bands):
+    """Return the first band whose half-open [kg_lo, kg_hi) contains weight_kg.
+
+    The canonical kg-only binning primitive: kg is the unit of selection, and a
+    contiguous partition guarantees exactly one interval matches every weight.
+    Used by validate.py / the test sweep (no UX wires weight entry today), so it
+    intentionally ignores protocol/variant — multiple bands may share an
+    interval (e.g. under-15 + under-15-enema) and the first is returned.
+    """
+    for b in bands:
+        lo = b.get("kg_lo") or 0
+        hi = b.get("kg_hi")
+        if weight_kg >= lo and (hi is None or weight_kg < hi):
+            return b
+    raise ValueError(f"no band contains weight_kg={weight_kg}")
+
+
 REMOVE_PARAGRAPH_MARKER = "__OMIT_PARAGRAPH__"
+
+
+def _tablet_word(n, lang):
+    if lang == "en":
+        return "tablet" if n == 1 else "tablets"
+    return "tableta" if n == 1 else "tabletas"
+
+
+def _miralax_dose_phrase(band, lang):
+    """The exact MiraLAX dose phrase printed in the BIG PREP time-box.
+
+    Shared between build_strings (handout text) and build_calendar_events
+    (calendar event description) so the two can never drift.
+    """
+    capfuls = band["miralax_capfuls"]
+    grams = band["miralax_grams"]
+    note = band.get(f"miralax_note_{lang}", "") or ""
+    oz = band["gatorade_oz"]
+    ml = oz_to_ml(oz)
+    if lang == "en":
+        return f"{capfuls} capfuls (~{grams} g{note}) of MiraLAX in {oz} oz (~{ml} mL) of Gatorade"
+    return f"{capfuls} tapas (~{grams} g{note}) de MiraLAX en {oz} oz (~{ml} mL) de Gatorade"
+
+
+def _shopping_totals(band):
+    """Big-prep + rescue shopping totals for a standard-protocol band.
+
+    The Plan-Ahead shopping row promises "enough for big prep with rescue",
+    so totals cover the BIG PREP dose PLUS the full rescue plan (see
+    build_contingency_block). Grams come from contingency_total_grams
+    (17 g/cap) rather than caps*17 because the big-prep miralax_grams values
+    round differently per band. Bands without contingency_* fields degrade
+    to big-prep-only. Shared between build_strings and build_calendar_events.
+    """
+    capfuls = band["miralax_capfuls"]
+    grams = band["miralax_grams"]
+    oz = band["gatorade_oz"]
+    rescue_caps = band.get("contingency_evening_caps", 0) + band.get("contingency_morning_caps", 0)
+    caps = capfuls + rescue_caps
+    grams_total = band.get("contingency_total_grams", grams) if rescue_caps else grams
+    gatorade_oz = oz + band.get("contingency_evening_oz", 0) + band.get("contingency_morning_oz", 0)
+    return {
+        "caps": caps,
+        "grams": grams_total,
+        # Round powder oz to nearest whole number (28.35 g/oz) — patients
+        # freak out at decimal places.
+        "miralax_oz": round(grams_total / 28.35),
+        "gatorade_oz": gatorade_oz,
+        "gatorade_ml": oz_to_ml(gatorade_oz),
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -314,24 +541,15 @@ def build_strings(band, lang, location=None):
     miralax_time = band.get("miralax_time", "3:00 PM")
     drink_cup = band.get(f"drink_cup_{lang}", "1 cup (8 oz)" if lang == "en" else "1 taza (8 oz)")
 
-    # Shopping totals — the Plan-Ahead row promises "enough for big prep with
-    # rescue", so it must cover the BIG PREP dose PLUS the full rescue plan
-    # (see build_contingency_block), not just the big prep. Grams come from
-    # contingency_total_grams (17 g/cap) rather than caps*17 because the
-    # big-prep miralax_grams values round differently per band. Bands without
-    # contingency_* fields degrade to big-prep-only.
-    rescue_caps = band.get("contingency_evening_caps", 0) + band.get("contingency_morning_caps", 0)
-    shop_caps = capfuls + rescue_caps
-    shop_grams = band.get("contingency_total_grams", grams) if rescue_caps else grams
-    shop_gatorade_oz = oz + band.get("contingency_evening_oz", 0) + band.get("contingency_morning_oz", 0)
-    shop_gatorade_ml = oz_to_ml(shop_gatorade_oz)
+    # Shopping totals (big prep + rescue) — shared with the calendar export
+    # via _shopping_totals; see its docstring for the rationale.
+    _shop = _shopping_totals(band)
+    shop_caps = _shop["caps"]
+    shop_grams = _shop["grams"]
+    shop_gatorade_oz = _shop["gatorade_oz"]
+    shop_gatorade_ml = _shop["gatorade_ml"]
+    shop_miralax_oz = _shop["miralax_oz"]
     shopping_note = band.get(f"miralax_shopping_note_{lang}", "") or ""
-
-    # Round powder oz to nearest whole number (28.35 g/oz). Keeps the
-    # shopping row simple — patients freak out at decimal places. The rescue
-    # sub-line under the shopping row explains *why* the amount exceeds the
-    # big-prep dose, so we don't need to in the quantity itself.
-    shop_miralax_oz = round(shop_grams / 28.35)
 
     if lang == "en":
         tablet_word = tablet_word_en(tabs)
@@ -465,9 +683,7 @@ def build_strings(band, lang, location=None):
     # and MiraLAX times are the same (true for all bands ≥21 kg), collapse
     # both meds into a single time-box. The 15-20 kg band keeps its earlier
     # split schedule (Dulcolax 12 PM, MiraLAX 1 PM) as two separate boxes.
-    miralax_dose_phrase_en = f"{capfuls} capfuls (~{grams} g{note}) of MiraLAX in {oz} oz (~{ml} mL) of Gatorade"
-    miralax_dose_phrase_es = f"{capfuls} tapas (~{grams} g{note}) de MiraLAX en {oz} oz (~{ml} mL) de Gatorade"
-    miralax_dose_phrase = miralax_dose_phrase_en if lang == "en" else miralax_dose_phrase_es
+    miralax_dose_phrase = _miralax_dose_phrase(band, lang)
 
     if dayof_time == miralax_time and dayof_tabs > 0:
         if lang == "en":
@@ -922,6 +1138,728 @@ def _medications_drugs(band, lang):
 
 
 # ---------------------------------------------------------------------------
+# Calendar-export events ("Add this schedule to your calendar" on mobile pages)
+# ---------------------------------------------------------------------------
+# build_calendar_events() emits the structured event list that the personalize
+# partial serializes as {{PZ_EVENTS_JSON}}. Browser-side JS turns it into
+# .ics / Google Calendar entries once the parent enters the procedure
+# datetime — the date never leaves the device.
+#
+# TIMING ONLY by design: dose amounts appear exclusively as build-time
+# verbatim handout strings (the same fields the handout text uses) — the
+# client never computes a dose. This is the documented SaMD line.
+#
+# Event time forms (exactly one per event):
+#   allDay: true + day              → all-day event on (procedure date + day)
+#   day + start [+ end "HH:MM"]     → wall-clock event on that day
+#   offsetMin [+ offsetEndMin]      → minutes relative to the procedure datetime
+# Optional: latestEndOffsetMin (clamp — SUPREP dose 2 must end ≥5 h before
+# the procedure), durationMin, alarmMin (omitted → JS defaults).
+
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _plain(html_text):
+    """Strip tags + unescape entities + collapse whitespace → plain text
+    suitable for a calendar event description."""
+    text = _TAG_RE.sub("", html_text or "")
+    text = html_lib.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def _hhmm_from_12h(t12):
+    """'3:00 PM' → '15:00'."""
+    from datetime import datetime as _dtt
+    return _dtt.strptime(t12.strip(), "%I:%M %p").strftime("%H:%M")
+
+
+def _12h(hhmm):
+    """'14:00' → '2:00 PM' (matches the handouts' clock-time style)."""
+    from datetime import datetime as _dtt
+    t = _dtt.strptime(hhmm.strip(), "%H:%M")
+    return t.strftime("%-I:%M %p")
+
+
+_CALENDAR_CFG_CACHE = None
+
+
+def _calendar_cfg():
+    global _CALENDAR_CFG_CACHE
+    if _CALENDAR_CFG_CACHE is None:
+        _CALENDAR_CFG_CACHE = load_dosing().get("calendar", {})
+    return _CALENDAR_CFG_CACHE
+
+
+def _ev(eid, title_discreet, title_detailed, desc, **kw):
+    ev = {"id": eid, "titleDiscreet": title_discreet,
+          "titleDetailed": title_detailed, "desc": _plain(desc)}
+    ev.update({k: v for k, v in kw.items() if v is not None})
+    return ev
+
+
+def _cal_meds_stop(band, lang, cal):
+    drugs = _medications_drugs(band, lang)
+    if lang == "en":
+        return _ev("meds_stop",
+                   "Pause certain medicines",
+                   f"Stop {drugs}",
+                   f"Stop {drugs} 7 days before the procedure. "
+                   "Check any medicine at meds.giready.com.",
+                   allDay=True, day=cal["meds_stop_day"])
+    return _ev("meds_stop",
+               "Pausar ciertos medicamentos",
+               f"Suspender {drugs}",
+               f"Suspenda {drugs} 7 días antes del procedimiento. "
+               "Verifique cualquier medicamento en meds.giready.com.",
+               allDay=True, day=cal["meds_stop_day"])
+
+
+def _cal_low_residue(lang, cal, family):
+    clears12 = _12h(cal["clears_start_hhmm"])
+    if lang == "en":
+        suffix = "EGD + colonoscopy prep" if family == "combined" else "colonoscopy prep"
+        return _ev("low_residue_start",
+                   "Start low-fiber diet",
+                   f"Start low-residue diet — {suffix}",
+                   "Low-residue (“white”) diet for the 3 days before the "
+                   "procedure, through lunch the day before. After "
+                   f"{clears12} the day before, switch to clear liquids only "
+                   "— no dairy. Sample meals are on your instructions page.",
+                   allDay=True, day=cal["low_residue_start_day"])
+    suffix = ("preparación para endoscopia + colonoscopia" if family == "combined"
+              else "preparación para colonoscopia")
+    return _ev("low_residue_start",
+               "Comenzar dieta baja en fibra",
+               f"Comenzar dieta baja en residuos — {suffix}",
+               "Dieta baja en residuos (“blanca”) durante los 3 días antes "
+               "del procedimiento, hasta el almuerzo del día anterior. Después de las "
+               f"{clears12} del día anterior, cambie a solo líquidos claros — sin "
+               "lácteos. Ideas de comidas en su página de instrucciones.",
+               allDay=True, day=cal["low_residue_start_day"])
+
+
+def _cal_clears_start(lang, cal, family):
+    clears12 = _12h(cal["clears_start_hhmm"])
+    if lang == "en":
+        suffix = "EGD + colonoscopy prep" if family == "combined" else "colonoscopy prep"
+        return _ev("clears_start",
+                   "Clear liquids only — begins",
+                   f"Clear liquids only begins — {suffix}",
+                   f"After {clears12} — clear liquids only. No solid food, no "
+                   "dairy. OK: water, apple juice, white grape juice, lemonade, "
+                   "clear soda, clear broth, popsicles, plain Jell-O. Nothing "
+                   "red or purple.",
+                   day=-1, start=cal["clears_start_hhmm"])
+    suffix = ("preparación para endoscopia + colonoscopia" if family == "combined"
+              else "preparación para colonoscopia")
+    return _ev("clears_start",
+               "Solo líquidos claros — comienza",
+               f"Comienzan solo líquidos claros — {suffix}",
+               f"Después de las {clears12} — solo líquidos claros. Sin alimentos "
+               "sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva "
+               "blanca, limonada, refresco claro, caldo claro, paletas heladas, "
+               "gelatina simple. Nada rojo ni morado.",
+               day=-1, start=cal["clears_start_hhmm"])
+
+
+def _cal_clears_allday(lang, family):
+    if lang == "en":
+        suffix = "EGD + colonoscopy prep" if family == "combined" else "colonoscopy prep"
+        return _ev("clears_allday",
+                   "Clear liquids only — all day",
+                   f"Clear liquids only all day — {suffix}",
+                   "Clear liquids only all day — no solid food, no dairy. OK: "
+                   "water, apple juice, white grape juice, lemonade, clear soda, "
+                   "clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+                   allDay=True, day=-1)
+    suffix = ("preparación para endoscopia + colonoscopia" if family == "combined"
+              else "preparación para colonoscopia")
+    return _ev("clears_allday",
+               "Solo líquidos claros — todo el día",
+               f"Solo líquidos claros todo el día — {suffix}",
+               "Solo líquidos claros todo el día — sin alimentos sólidos, sin "
+               "lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, "
+               "limonada, refresco claro, caldo claro, paletas heladas, gelatina "
+               "simple. Nada rojo ni morado.",
+               allDay=True, day=-1)
+
+
+def _cal_common_tail(lang, location, cal, family):
+    """npo_clears_stop, arrival, procedure — identical across protocols."""
+    npo = location["clears_npo_hours"]
+    arr_min = location["arrival_minutes_before"]
+    name = location[f"name_{lang}"]
+    address = location["address"]
+    phone = location.get("phone", "")
+    phone_label = location.get(f"phone_label_{lang}", "")
+    facility = location.get(f"arrival_facility_short_{lang}", name)
+    arrival_sentence = location.get(f"arrival_{lang}", "")
+    proc_dur = cal.get("procedure_duration_min", 60)
+    if lang == "en":
+        proc_detail = "EGD + colonoscopy" if family == "combined" else "Colonoscopy"
+        return [
+            _ev("npo_clears_stop",
+                "Stop all drinks",
+                f"Stop all clear liquids ({npo} hours before procedure)",
+                f"Stop all clear liquids {npo} hours before the procedure. "
+                "After this, nothing to eat or drink — this keeps your child "
+                "safe during anesthesia.",
+                offsetMin=-npo * 60),
+            _ev("arrival",
+                "Arrive for appointment",
+                f"Arrive at {facility} — check-in",
+                f"{arrival_sentence}. {name}: {address}. {phone_label}: {phone}.",
+                offsetMin=-arr_min, offsetEndMin=0, loc=address),
+            _ev("procedure",
+                "Appointment",
+                proc_detail,
+                f"{name}: {address}. {phone_label}: {phone}.",
+                offsetMin=0, durationMin=proc_dur, loc=address),
+        ]
+    proc_detail = ("Endoscopia (EGD) + colonoscopia" if family == "combined"
+                   else "Colonoscopia")
+    return [
+        _ev("npo_clears_stop",
+            "Suspender todos los líquidos",
+            f"Suspender líquidos claros ({npo} horas antes del procedimiento)",
+            f"Suspenda todos los líquidos claros {npo} horas antes del "
+            "procedimiento. Después de esto, nada de comer ni beber — esto "
+            "mantiene a su niño seguro durante la anestesia.",
+            offsetMin=-npo * 60),
+        _ev("arrival",
+            "Llegar a la cita",
+            f"Llegue a {facility} — registro",
+            f"{arrival_sentence}. {name}: {address}. {phone_label}: {phone}.",
+            offsetMin=-arr_min, offsetEndMin=0, loc=address),
+        _ev("procedure",
+            "Cita",
+            proc_detail,
+            f"{name}: {address}. {phone_label}: {phone}.",
+            offsetMin=0, durationMin=proc_dur, loc=address),
+    ]
+
+
+def _cal_standard_events(band, lang, cal, family, is_lact=False):
+    """Shared body for protocol: standard and lactulose-standard."""
+    events = [_cal_meds_stop(band, lang, cal),
+              _cal_low_residue(lang, cal, family)]
+
+    # Buy supplies (all-day, "buy at least 2 days before")
+    tabs = band["dulcolax_tablets"]
+    if is_lact:
+        tiers = band["lactulose_big_prep_tiers"]
+        max_dose = max(t["lactulose_ml"] for t in tiers)
+        rescue_ml = (band.get("rescue_evening_lactulose_ml", 0)
+                     + band.get("rescue_morning_lactulose_ml", 0))
+        total_ml = max_dose + rescue_ml + 30  # +30 mL safety, same as handout
+        gat_oz = band.get("gatorade_oz") or tiers[0].get("gatorade_oz", 20)
+        max_gat = max(t.get("gatorade_oz", gat_oz) for t in tiers)
+        rescue_gat = (band.get("rescue_evening_gatorade_oz", 0)
+                      + band.get("rescue_morning_gatorade_oz", 0))
+        if lang == "en":
+            buy_desc = (f"Lactulose (prescription): about {total_ml} mL total. "
+                        f"Clear Gatorade (no red or purple): {max_gat + rescue_gat} oz. "
+                        f"Dulcolax 5 mg tablets: {tabs}.")
+            buy_detail = "Buy prep supplies — lactulose, Gatorade, Dulcolax"
+        else:
+            buy_desc = (f"Lactulosa (con receta): aproximadamente {total_ml} mL en total. "
+                        f"Gatorade transparente (sin rojo ni morado): {max_gat + rescue_gat} oz. "
+                        f"Tabletas de Dulcolax 5 mg: {tabs}.")
+            buy_detail = "Comprar suministros de preparación — lactulosa, Gatorade, Dulcolax"
+    else:
+        shop = _shopping_totals(band)
+        note = band.get(f"miralax_shopping_note_{lang}", "") or ""
+        if lang == "en":
+            buy_desc = (f"MiraLAX: {shop['caps']} capfuls ({shop['miralax_oz']} oz or "
+                        f"{shop['grams']} g){' — ' + note if note else ''}. "
+                        f"Clear Gatorade (no red or purple): {shop['gatorade_oz']} oz "
+                        f"(~{shop['gatorade_ml']} mL). Dulcolax 5 mg tablets: {tabs}. "
+                        "Enough for the big prep plus the rescue plan.")
+            buy_detail = "Buy prep supplies — MiraLAX, Gatorade, Dulcolax"
+        else:
+            buy_desc = (f"MiraLAX: {shop['caps']} tapas ({shop['miralax_oz']} oz o "
+                        f"{shop['grams']} g){' — ' + note if note else ''}. "
+                        f"Gatorade transparente (sin rojo ni morado): {shop['gatorade_oz']} oz "
+                        f"(~{shop['gatorade_ml']} mL). Tabletas de Dulcolax 5 mg: {tabs}. "
+                        "Suficiente para la preparación grande más el plan de rescate.")
+            buy_detail = "Comprar suministros de preparación — MiraLAX, Gatorade, Dulcolax"
+    events.append(_ev("buy_supplies",
+                      "Buy supplies" if lang == "en" else "Comprar suministros",
+                      buy_detail, buy_desc,
+                      allDay=True, day=cal["buy_supplies_day"]))
+
+    # Bedtime Dulcolax + mix-and-refrigerate (day -2; mirrors the
+    # "2 Days Before" section, which only exists when bedtime tablets > 0).
+    bedtime_tabs = band.get("dulcolax_bedtime_tablets", 0)
+    if bedtime_tabs > 0:
+        bedtime_text = f"{bedtime_tabs} {_tablet_word(bedtime_tabs, lang)} ({bedtime_tabs * 5} mg)"
+        if is_lact:
+            tiers = band["lactulose_big_prep_tiers"]
+            if lang == "en":
+                mix_rows = "; ".join(
+                    f"{t['label_en']}: mix {t['lactulose_ml']} mL of lactulose into "
+                    f"{t.get('gatorade_oz', 20)} oz of Gatorade" for t in tiers)
+                mix_desc = (f"At bedtime: give Dulcolax tablets — {bedtime_text} — with a "
+                            "sip of water. Evening: prepare only — do NOT drink yet. "
+                            f"{mix_rows}. Shake, refrigerate overnight. Your child will "
+                            "drink this tomorrow.")
+            else:
+                mix_rows = "; ".join(
+                    f"{t['label_es']}: mezcle {t['lactulose_ml']} mL de lactulosa en "
+                    f"{t.get('gatorade_oz', 20)} oz de Gatorade" for t in tiers)
+                mix_desc = (f"Antes de dormir: dé las tabletas de Dulcolax — {bedtime_text} — "
+                            "con un sorbo de agua. Por la noche: solo preparar — NO beber aún. "
+                            f"{mix_rows}. Agite, refrigere durante la noche. Su niño lo beberá "
+                            "mañana.")
+        else:
+            caps = band["miralax_capfuls"]
+            grams = band["miralax_grams"]
+            gat_oz = band["gatorade_oz"]
+            if lang == "en":
+                mix_desc = (f"At bedtime: give Dulcolax tablets — {bedtime_text} — with a "
+                            "sip of water. Evening: prepare only — do NOT drink yet. Mix "
+                            f"MiraLAX ({caps} capfuls / {grams} g) into Gatorade ({gat_oz} oz). "
+                            "Shake, refrigerate overnight. Your child will drink this tomorrow.")
+            else:
+                mix_desc = (f"Antes de dormir: dé las tabletas de Dulcolax — {bedtime_text} — "
+                            "con un sorbo de agua. Por la noche: solo preparar — NO beber aún. "
+                            f"Mezcle el MiraLAX ({caps} tapas / {grams} g) con el Gatorade "
+                            f"({gat_oz} oz). Agite, refrigere durante la noche. Su niño lo "
+                            "beberá mañana.")
+        if lang == "en":
+            events.append(_ev("bedtime_dulcolax_mix",
+                              "Evening: prep steps",
+                              "Bedtime Dulcolax + mix the prep drink (refrigerate)",
+                              mix_desc, allDay=True, day=-2))
+        else:
+            events.append(_ev("bedtime_dulcolax_mix",
+                              "Por la noche: pasos de preparación",
+                              "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
+                              mix_desc, allDay=True, day=-2))
+
+    events.append(_cal_clears_start(lang, cal, family))
+
+    # THE BIG PREP — day before the procedure. ("dulcolax_dayof_*" in
+    # dosing.yaml means "day of PREP", which is day -1 relative to the
+    # procedure — the template heading carries data-pz-day="-1".)
+    dayof_tabs = band.get("dulcolax_dayof_tablets", 0)
+    dayof_mg = dayof_tabs * 5
+    dayof_short = f"{dayof_tabs} {_tablet_word(dayof_tabs, lang)} ({dayof_mg} mg)"
+    dayof_time12 = band.get("dulcolax_dayof_time", "3:00 PM")
+    drink_time12 = (band.get("lactulose_time") if is_lact
+                    else band.get("miralax_time")) or "3:00 PM"
+    drink_cup = band.get(f"drink_cup_{lang}",
+                         "1 cup (8 oz)" if lang == "en" else "1 taza (8 oz)")
+    if is_lact:
+        tiers = band["lactulose_big_prep_tiers"]
+        if lang == "en":
+            dose_rows = "; ".join(
+                f"{t['label_en']}: {t['lactulose_ml']} mL of lactulose in "
+                f"{t.get('gatorade_oz', 20)} oz of Gatorade" for t in tiers)
+            drink_phrase = f"the lactulose + Gatorade mix from the fridge ({dose_rows})"
+            drink_name = "lactulose"
+        else:
+            dose_rows = "; ".join(
+                f"{t['label_es']}: {t['lactulose_ml']} mL de lactulosa en "
+                f"{t.get('gatorade_oz', 20)} oz de Gatorade" for t in tiers)
+            drink_phrase = f"la mezcla de lactulosa + Gatorade del refrigerador ({dose_rows})"
+            drink_name = "lactulosa"
+    else:
+        drink_phrase = (f"the MiraLAX solution — {_miralax_dose_phrase(band, lang)} — from the fridge"
+                        if lang == "en" else
+                        f"la solución de MiraLAX — {_miralax_dose_phrase(band, lang)} — del refrigerador")
+        drink_name = "MiraLAX"
+
+    if dayof_time12 == drink_time12 and dayof_tabs > 0:
+        if lang == "en":
+            events.append(_ev("big_prep",
+                              "Start THE BIG PREP",
+                              f"Dulcolax {dayof_short} + start the {drink_name} drink",
+                              f"Give Dulcolax tablets — {dayof_short} — with a sip of "
+                              f"water, then start {drink_phrase}. Have your child drink "
+                              f"{drink_cup} every 30 minutes until finished.",
+                              day=-1, start=_hhmm_from_12h(drink_time12)))
+        else:
+            events.append(_ev("big_prep",
+                              "Comenzar LA GRAN PREPARACIÓN",
+                              f"Dulcolax {dayof_short} + comenzar la bebida de {drink_name}",
+                              f"Dé las tabletas de Dulcolax — {dayof_short} — con un sorbo "
+                              f"de agua, luego comience {drink_phrase}. Haga que su niño "
+                              f"beba {drink_cup} cada 30 minutos hasta terminar.",
+                              day=-1, start=_hhmm_from_12h(drink_time12)))
+    else:
+        # Split schedule (15-20 kg: tablets at 12 PM, drink at 1 PM) —
+        # mirror the two time-boxes with two events.
+        if lang == "en":
+            if dayof_tabs > 0:
+                events.append(_ev("big_prep_tablets",
+                                  "Give the tablets",
+                                  f"Give Dulcolax — {dayof_short}",
+                                  f"Give Dulcolax tablets — {dayof_short} — with a sip of water.",
+                                  day=-1, start=_hhmm_from_12h(dayof_time12)))
+            events.append(_ev("big_prep_drink",
+                              "Start the prep drink",
+                              f"Start the {drink_name} drink",
+                              f"Start {drink_phrase}. Have your child drink {drink_cup} "
+                              "every 30 minutes until finished.",
+                              day=-1, start=_hhmm_from_12h(drink_time12)))
+        else:
+            if dayof_tabs > 0:
+                events.append(_ev("big_prep_tablets",
+                                  "Dar las tabletas",
+                                  f"Dar Dulcolax — {dayof_short}",
+                                  f"Dé las tabletas de Dulcolax — {dayof_short} — con un sorbo de agua.",
+                                  day=-1, start=_hhmm_from_12h(dayof_time12)))
+            events.append(_ev("big_prep_drink",
+                              "Comenzar la bebida de preparación",
+                              f"Comenzar la bebida de {drink_name}",
+                              f"Comience {drink_phrase}. Haga que su niño beba {drink_cup} "
+                              "cada 30 minutos hasta terminar.",
+                              day=-1, start=_hhmm_from_12h(drink_time12)))
+    return events
+
+
+def _cal_clenpiq_events(band, lang, cal, family, location):
+    bottle_oz = band["clenpiq_bottle_oz"]
+    bottle_ml = band["clenpiq_bottle_ml"]
+    cup = band[f"drink_cup_{lang}"]
+    npo = location["clears_npo_hours"]
+    d1_start = band["dose1_window_start_hhmm"]
+    d1_end = band["dose1_window_end_hhmm"]
+    d2_min = band["dose2_hours_before_min"]
+    d2_max = band["dose2_hours_before_max"]
+    events = [_cal_meds_stop(band, lang, cal),
+              _cal_low_residue(lang, cal, family)]
+    if lang == "en":
+        events.append(_ev("buy_supplies",
+                          "Buy supplies",
+                          "Buy prep supplies — CLENPIQ kit + clear liquids",
+                          f"1 CLENPIQ kit ({band['clenpiq_total_bottles']} bottles, "
+                          f"{bottle_oz} oz / {bottle_ml} mL each — ready to drink, no "
+                          "mixing). Plus plenty of clear liquids, including Gatorade, "
+                          "Pedialyte, or another electrolyte drink. Nothing red or purple.",
+                          allDay=True, day=cal["buy_supplies_day"]))
+        events.append(_cal_clears_allday(lang, family))
+        events.append(_ev("dose1",
+                          "Give first dose (evening window)",
+                          "CLENPIQ Dose 1 — drink 1 bottle during this window",
+                          f"Drink 1 full bottle ({bottle_oz} oz / {bottle_ml} mL) of "
+                          "CLENPIQ — cranberry-flavored, ready to drink, no mixing "
+                          f"needed (tastes better cold). After the dose, drink at least "
+                          f"{band['dose1_clears_cups']} × {cup} cups "
+                          f"({band['dose1_clears_oz']} oz total) of clear liquids over "
+                          f"the next {band['dose1_clears_hours']} hours, including an "
+                          "electrolyte drink.",
+                          day=-1, start=d1_start, end=d1_end))
+        events.append(_ev("dose2",
+                          "Give second dose (morning window)",
+                          f"CLENPIQ Dose 2 — {d2_min}–{d2_max} hours before procedure",
+                          f"Drink the second bottle ({bottle_oz} oz / {bottle_ml} mL) of "
+                          f"CLENPIQ, then at least {band['dose2_clears_cups']} × {cup} "
+                          f"cups ({band['dose2_clears_oz']} oz total) of clear liquids, "
+                          f"finishing at least {npo} hours before the procedure.",
+                          offsetMin=-d2_max * 60, offsetEndMin=-d2_min * 60))
+    else:
+        events.append(_ev("buy_supplies",
+                          "Comprar suministros",
+                          "Comprar suministros — kit de CLENPIQ + líquidos claros",
+                          f"1 kit de CLENPIQ ({band['clenpiq_total_bottles']} botellas, "
+                          f"{bottle_oz} oz / {bottle_ml} mL cada una — lista para beber, "
+                          "sin mezclar). Además, suficientes líquidos claros, incluyendo "
+                          "Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo "
+                          "ni morado.",
+                          allDay=True, day=cal["buy_supplies_day"]))
+        events.append(_cal_clears_allday(lang, family))
+        events.append(_ev("dose1",
+                          "Dar la primera dosis (ventana de la tarde)",
+                          "CLENPIQ Dosis 1 — beba 1 botella durante esta ventana",
+                          f"Beba 1 botella completa ({bottle_oz} oz / {bottle_ml} mL) de "
+                          "CLENPIQ — sabor arándano, lista para beber, sin mezclar "
+                          "(sabe mejor fría). Después de la dosis, beba al menos "
+                          f"{band['dose1_clears_cups']} × {cup} vasos "
+                          f"({band['dose1_clears_oz']} oz en total) de líquidos claros "
+                          f"durante las próximas {band['dose1_clears_hours']} horas, "
+                          "incluyendo una bebida con electrolitos.",
+                          day=-1, start=d1_start, end=d1_end))
+        events.append(_ev("dose2",
+                          "Dar la segunda dosis (ventana de la mañana)",
+                          f"CLENPIQ Dosis 2 — {d2_min}–{d2_max} horas antes del procedimiento",
+                          f"Beba la segunda botella ({bottle_oz} oz / {bottle_ml} mL) de "
+                          f"CLENPIQ, luego al menos {band['dose2_clears_cups']} × {cup} "
+                          f"vasos ({band['dose2_clears_oz']} oz en total) de líquidos "
+                          f"claros, terminando al menos {npo} horas antes del procedimiento.",
+                          offsetMin=-d2_max * 60, offsetEndMin=-d2_min * 60))
+    return events
+
+
+def _cal_suprep_events(band, lang, cal, family, location):
+    npo = location["clears_npo_hours"]
+    fill = band["suprep_fill_line_oz"]
+    bottle = band["suprep_bottle_oz"]
+    sep_min = band["dose_separation_hours_min"]
+    sep_max = band["dose_separation_hours_max"]
+    d2_floor = band["dose2_hours_before_min"]
+    d1_start = band["dose1_window_start_hhmm"]
+    d1_end = band["dose1_window_end_hhmm"]
+
+    # Dose 2 clock window on day 0: dose1 window shifted by the 10–12 h
+    # separation (5 PM + 10 h = 3 AM; 8 PM + 12 h = 8 AM next day), clamped
+    # client-side so it always ends ≥ dose2_hours_before_min before the
+    # procedure (latestEndOffsetMin).
+    def _shift(hhmm, hours):
+        h, m = (int(x) for x in hhmm.split(":"))
+        total = (h + hours) % 24
+        return f"{total:02d}:{m:02d}"
+    d2_start = _shift(d1_start, sep_min)
+    d2_end = _shift(d1_end, sep_max)
+
+    events = [_cal_meds_stop(band, lang, cal),
+              _cal_low_residue(lang, cal, family)]
+    if lang == "en":
+        events.append(_ev("buy_supplies",
+                          "Buy supplies",
+                          "Buy prep supplies — SUPREP kit + clear liquids",
+                          f"1 SUPREP kit ({band['suprep_total_bottles']} bottles of "
+                          f"{bottle} oz concentrate + mixing container — prescription). "
+                          "Plus plenty of clear liquids, including an electrolyte drink. "
+                          "Nothing red or purple.",
+                          allDay=True, day=cal["buy_supplies_day"]))
+        events.append(_cal_clears_allday(lang, family))
+        events.append(_ev("dose1",
+                          "Give first dose (evening window)",
+                          "SUPREP Dose 1 — mix and drink during this window",
+                          f"Pour one bottle of SUPREP ({bottle} oz) into the mixing "
+                          f"container that comes with the kit. Add cool drinking water to "
+                          f"the {fill}-oz fill line. Mix, then drink the entire "
+                          f"{band['dose1_solution_oz']} oz. Over the next hour, drink "
+                          f"{band['dose1_chaser_fills']} more containers of plain water "
+                          f"filled to the {fill}-oz line ({band['dose1_chasers_oz']} oz "
+                          "total). Cold water and a straw help with the salty taste.",
+                          day=-1, start=d1_start, end=d1_end))
+        events.append(_ev("dose2",
+                          "Give second dose (morning window)",
+                          f"SUPREP Dose 2 — {sep_min}–{sep_max} hours after Dose 1",
+                          f"Take {sep_min}–{sep_max} hours after Dose 1 and at least "
+                          f"{d2_floor} hours before the procedure: mix the second bottle "
+                          f"of SUPREP to the {fill}-oz fill line, drink it all, then "
+                          f"{band['dose2_chaser_fills']} more containers of plain water "
+                          f"({band['dose2_chasers_oz']} oz total) over the next hour. "
+                          f"Finish all SUPREP and required water at least {npo} hours "
+                          "before the procedure.",
+                          day=0, start=d2_start, end=d2_end,
+                          latestEndOffsetMin=-d2_floor * 60))
+    else:
+        events.append(_ev("buy_supplies",
+                          "Comprar suministros",
+                          "Comprar suministros — kit de SUPREP + líquidos claros",
+                          f"1 kit de SUPREP ({band['suprep_total_bottles']} botellas de "
+                          f"{bottle} oz de concentrado + recipiente para mezclar — con "
+                          "receta). Además, suficientes líquidos claros, incluyendo una "
+                          "bebida con electrolitos. Nada rojo ni morado.",
+                          allDay=True, day=cal["buy_supplies_day"]))
+        events.append(_cal_clears_allday(lang, family))
+        events.append(_ev("dose1",
+                          "Dar la primera dosis (ventana de la tarde)",
+                          "SUPREP Dosis 1 — mezcle y beba durante esta ventana",
+                          f"Vierta una botella de SUPREP ({bottle} oz) en el recipiente "
+                          "para mezclar que viene con el kit. Agregue agua potable fría "
+                          f"hasta la línea de {fill} oz. Mezcle y beba las "
+                          f"{band['dose1_solution_oz']} oz completas. Durante la "
+                          f"siguiente hora, beba {band['dose1_chaser_fills']} recipientes "
+                          f"más de agua simple llenados hasta la línea de {fill} oz "
+                          f"({band['dose1_chasers_oz']} oz en total). Agua fría y un "
+                          "popote ayudan con el sabor salado.",
+                          day=-1, start=d1_start, end=d1_end))
+        events.append(_ev("dose2",
+                          "Dar la segunda dosis (ventana de la mañana)",
+                          f"SUPREP Dosis 2 — {sep_min}–{sep_max} horas después de la Dosis 1",
+                          f"Tómela {sep_min}–{sep_max} horas después de la Dosis 1 y al "
+                          f"menos {d2_floor} horas antes del procedimiento: mezcle la "
+                          f"segunda botella de SUPREP hasta la línea de {fill} oz, bébala "
+                          f"toda, luego {band['dose2_chaser_fills']} recipientes más de "
+                          f"agua simple ({band['dose2_chasers_oz']} oz en total) durante "
+                          "la siguiente hora. Termine todo el SUPREP y el agua requerida "
+                          f"al menos {npo} horas antes del procedimiento.",
+                          day=0, start=d2_start, end=d2_end,
+                          latestEndOffsetMin=-d2_floor * 60))
+    return events
+
+
+def _cal_infant_events(band, lang, cal, location, is_lact=False, is_enema=False):
+    """Infant protocols: timing-only event set — daily doses (PEG/lactulose),
+    feeding cutoffs, NPO, arrival, procedure. No dose amounts computed."""
+    npo = location["clears_npo_hours"]
+    events = [_cal_meds_stop(band, lang, cal)]
+
+    if not is_enema:
+        # Daily medicine dose on days -3 and -2 ("3 Days and 2 Days Before").
+        med = ("lactulose" if is_lact else "MiraLAX") if lang == "en" else \
+              ("lactulosa" if is_lact else "MiraLAX")
+        for day in (-3, -2):
+            if lang == "en":
+                events.append(_ev("daily_dose",
+                                  "Give today's medicine dose",
+                                  f"Give one {med} dose (see dose table)",
+                                  "Continue your child's normal diet. Give one "
+                                  f"{med} dose today, mixed into juice or Pedialyte — "
+                                  "see the dose-by-weight table on your instructions page.",
+                                  allDay=True, day=day))
+            else:
+                events.append(_ev("daily_dose",
+                                  "Dar la dosis de medicina de hoy",
+                                  f"Dar una dosis de {med} (vea la tabla de dosis)",
+                                  "Continúe la dieta normal de su niño. Dé una dosis de "
+                                  f"{med} hoy, mezclada en jugo o Pedialyte — vea la tabla "
+                                  "de dosis por peso en su página de instrucciones.",
+                                  allDay=True, day=day))
+
+    cuts = cal["infant_enema_cutoffs"] if is_enema else cal["infant_cutoffs"]
+    formula12 = _12h(cuts["formula_stop"]["hhmm"])
+    bm12 = _12h(cuts["breastmilk_stop"]["hhmm"])
+
+    if is_enema:
+        if lang == "en":
+            events.append(_ev("clears_day",
+                              "Clear liquids day",
+                              "Clear liquids only today — no solid foods",
+                              f"No solid foods today. Formula or milk until {formula12}; "
+                              f"breast milk until {bm12}. OK: Pedialyte, clear apple "
+                              "juice (no pulp), water, clear broth, popsicles or plain "
+                              "gelatin (no red/purple). Apply protective ointment to the "
+                              "diaper area.",
+                              allDay=True, day=-1))
+        else:
+            events.append(_ev("clears_day",
+                              "Día de líquidos claros",
+                              "Solo líquidos claros hoy — sin alimentos sólidos",
+                              f"Sin alimentos sólidos hoy. Fórmula o leche hasta las "
+                              f"{formula12}; leche materna hasta las {bm12}. Permitido: "
+                              "Pedialyte, jugo de manzana claro (sin pulpa), agua, caldo "
+                              "claro, paletas heladas o gelatina simple (sin rojo/morado). "
+                              "Aplique ungüento protector en el área del pañal.",
+                              allDay=True, day=-1))
+    else:
+        solids12 = _12h(cuts["solids_stop"]["hhmm"])
+        if lang == "en":
+            events.append(_ev("day_before",
+                              "Special diet & feeding cutoffs today",
+                              "Low-residue foods + feeding cutoffs tonight",
+                              f"Low-residue foods until {solids12}. Then: formula until "
+                              f"{formula12}; breast milk until {bm12} (early morning, day "
+                              "of procedure). After that, only clear liquids: Pedialyte, "
+                              "clear apple juice (no pulp), water. Apply protective "
+                              "ointment to the diaper area.",
+                              allDay=True, day=-1))
+            events.append(_ev("solids_stop",
+                              "Stop solid foods",
+                              "Stop solid foods",
+                              "All solid and low-residue foods stop now. Formula is OK "
+                              f"until {formula12}; breast milk until {bm12}.",
+                              day=cuts["solids_stop"]["day"],
+                              start=cuts["solids_stop"]["hhmm"]))
+        else:
+            events.append(_ev("day_before",
+                              "Dieta especial y horarios de alimentación hoy",
+                              "Alimentos bajos en residuos + horarios límite esta noche",
+                              f"Alimentos bajos en residuos hasta las {solids12}. Luego: "
+                              f"fórmula hasta las {formula12}; leche materna hasta las "
+                              f"{bm12} (madrugada del día del procedimiento). Después, "
+                              "solo líquidos claros: Pedialyte, jugo de manzana claro "
+                              "(sin pulpa), agua. Aplique ungüento protector en el área "
+                              "del pañal.",
+                              allDay=True, day=-1))
+            events.append(_ev("solids_stop",
+                              "Suspender comidas sólidas",
+                              "Suspender comidas sólidas",
+                              "Todas las comidas sólidas y bajas en residuos se detienen "
+                              f"ahora. La fórmula está bien hasta las {formula12}; la "
+                              f"leche materna hasta las {bm12}.",
+                              day=cuts["solids_stop"]["day"],
+                              start=cuts["solids_stop"]["hhmm"]))
+
+    if lang == "en":
+        events.append(_ev("formula_stop",
+                          "Stop formula",
+                          "Stop formula" + (" / milk" if is_enema else ""),
+                          ("Formula and milk stop now. " if is_enema else "Formula stops now. ")
+                          + f"Breast milk is OK until {bm12}; clear liquids until "
+                          f"{npo} hours before the procedure.",
+                          day=cuts["formula_stop"]["day"],
+                          start=cuts["formula_stop"]["hhmm"]))
+        events.append(_ev("breastmilk_stop",
+                          "Stop breast milk",
+                          "Stop breast milk",
+                          "Breast milk stops now. Only clear liquids (Pedialyte, clear "
+                          f"apple juice, water) until {npo} hours before the procedure.",
+                          day=cuts["breastmilk_stop"]["day"],
+                          start=cuts["breastmilk_stop"]["hhmm"]))
+    else:
+        events.append(_ev("formula_stop",
+                          "Suspender la fórmula",
+                          "Suspender la fórmula" + (" / leche" if is_enema else ""),
+                          ("La fórmula y la leche se detienen ahora. " if is_enema
+                           else "La fórmula se detiene ahora. ")
+                          + f"La leche materna está bien hasta las {bm12}; líquidos "
+                          f"claros hasta {npo} horas antes del procedimiento.",
+                          day=cuts["formula_stop"]["day"],
+                          start=cuts["formula_stop"]["hhmm"]))
+        events.append(_ev("breastmilk_stop",
+                          "Suspender la leche materna",
+                          "Suspender la leche materna",
+                          "La leche materna se detiene ahora. Solo líquidos claros "
+                          f"(Pedialyte, jugo de manzana claro, agua) hasta {npo} horas "
+                          "antes del procedimiento.",
+                          day=cuts["breastmilk_stop"]["day"],
+                          start=cuts["breastmilk_stop"]["hhmm"]))
+    return events
+
+
+def build_calendar_events(band, lang, location, family="colonoscopy"):
+    """Structured prep-milestone events for the mobile calendar export.
+
+    Returns a list of event dicts (see the section comment above for the
+    schema). `family` is "colonoscopy" or "combined" — combined changes only
+    the detailed procedure title and diet-title suffixes (the combined
+    standard template carries no extra NPO cutoffs; formula/breastmilk rules
+    exist only in infant protocols).
+    """
+    if lang not in ("en", "es"):
+        raise ValueError(f"Unsupported language: {lang}")
+    if not location:
+        raise ValueError("build_calendar_events requires a location dict")
+    cal = _calendar_cfg()
+    protocol = band.get("protocol", "")
+
+    if protocol == "standard":
+        events = _cal_standard_events(band, lang, cal, family)
+    elif protocol == "lactulose-standard":
+        events = _cal_standard_events(band, lang, cal, family, is_lact=True)
+    elif protocol == "clenpiq-standard":
+        events = _cal_clenpiq_events(band, lang, cal, family, location)
+    elif protocol == "suprep-standard":
+        events = _cal_suprep_events(band, lang, cal, family, location)
+    elif protocol == "infant":
+        events = _cal_infant_events(band, lang, cal, location)
+    elif protocol == "infant-enema":
+        events = _cal_infant_events(band, lang, cal, location, is_enema=True)
+    elif protocol == "lactulose-infant":
+        events = _cal_infant_events(band, lang, cal, location, is_lact=True)
+    else:
+        raise ValueError(f"Unknown protocol for calendar events: {protocol!r}")
+
+    events.extend(_cal_common_tail(lang, location, cal, family))
+    return events
+
+
+def build_calendar_events_json(band, lang, location, family="colonoscopy"):
+    """The {{PZ_EVENTS_JSON}} payload — compact JSON, safe to inline in a
+    <script type="application/json"> tag (escapes '</')."""
+    payload = {"v": 1, "events": build_calendar_events(band, lang, location, family)}
+    return json.dumps(payload, ensure_ascii=False,
+                      separators=(",", ":")).replace("</", "<\\/")
+
+
+# ---------------------------------------------------------------------------
 # Rendering
 # ---------------------------------------------------------------------------
 
@@ -937,6 +1875,7 @@ def render_html(template_path, replacements, out_path):
     if REMOVE_PARAGRAPH_MARKER in html:
         omit_pat = re.compile(r'<div class="time-box">(?:(?!</div>).)*?' + re.escape(REMOVE_PARAGRAPH_MARKER) + r'(?:(?!</div>).)*?</div>\s*', re.DOTALL)
         html = omit_pat.sub("", html)
+    html = _inject_shared_mobile_a11y(html)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -1346,7 +2285,9 @@ def render_pdf_print(template_path, replacements, out_path,
     html = _inject_shared_print_css(html)
 
     # Resolve relative URLs (e.g. local stub images) against the template directory.
-    HTML(string=html, base_url=str(Path(template_path).parent)).write_pdf(str(out_path))
+    # Tagged PDF/UA-1 output (deterministic) — see scripts/pdf_tagging.py.
+    from pdf_tagging import write_pdf_tagged
+    write_pdf_tagged(HTML(string=html, base_url=str(Path(template_path).parent)), str(out_path))
 
 
 def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id="scc", theme="color", variant="standard"):
@@ -1728,11 +2669,23 @@ def render_cheatsheet(dosing_data, out_dir):
     index_path = out_dir / "index.html"
     pdf_path = out_dir / "bowel-prep-cheatsheet.pdf"
 
-    index_path.write_text(html, encoding="utf-8")
+    # Screen copy (doses.giready.com) gets the shared a11y base (focus, table
+    # scope, keyboard); the PDF copy does not (print ignores it and WeasyPrint
+    # doesn't run the JS anyway).
+    index_path.write_text(_inject_shared_mobile_a11y(html), encoding="utf-8")
+
+    # Regenerate _headers so the CSP script-src hash covers the inline a11y
+    # script we just added (self-maintaining, same mechanism as the site builds).
+    try:
+        from header_config import write_headers
+        write_headers(out_dir)
+    except Exception:
+        pass
 
     _ensure_weasyprint_libpath()
     from weasyprint import HTML  # type: ignore
-    HTML(string=html, base_url=str(TEMPLATES)).write_pdf(str(pdf_path))
+    from pdf_tagging import write_pdf_tagged
+    write_pdf_tagged(HTML(string=html, base_url=str(TEMPLATES)), str(pdf_path))
 
     return [index_path, pdf_path]
 
