@@ -86,6 +86,10 @@ try:
     _SHARED_MOBILE_JS = (_SHARED_DIR / "mobile-a11y.js").read_text(encoding="utf-8")
 except OSError:
     _SHARED_MOBILE_JS = ""
+try:
+    _SHARED_MOBILE_TOKENS = (_SHARED_DIR / "mobile-tokens.css").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_TOKENS = ""
 
 
 def _inject_landmarks(html: str) -> str:
@@ -151,6 +155,13 @@ def _inject_shared_mobile_a11y(html: str) -> str:
         skip = '<a class="a11y-skip" href="#gi-main">Skip to main content</a>'
         html = html.replace("<body>", f"<body>\n{skip}", 1)
     html = _inject_landmarks(html)
+    # Calm design tokens (light): prepend as the FIRST <style> after <head> so the
+    # template's own <style> and mobile-base.css (injected last) still win. Gated on
+    # the /*GI-MOBILE-TOKENS*/ marker the token-extraction left in each handout
+    # template's <style> — scopes injection to the handout mobile pages, leaving
+    # doses/qrg (no marker) untouched.
+    if _SHARED_MOBILE_TOKENS and "<head>" in html and "/*GI-MOBILE-TOKENS*/" in html:
+        html = html.replace("<head>", f"<head>\n<style>{_SHARED_MOBILE_TOKENS}</style>", 1)
     if _SHARED_MOBILE_CSS and "</head>" in html:
         html = html.replace("</head>", f"<style>{_SHARED_MOBILE_CSS}</style>\n</head>", 1)
     if _SHARED_MOBILE_JS and "</body>" in html:
@@ -270,6 +281,16 @@ def _tablet_word(n, lang):
     if lang == "en":
         return "tablet" if n == 1 else "tablets"
     return "tableta" if n == 1 else "tabletas"
+
+
+def _dulcolax_label_en(n):
+    """Dulcolax tablet-noun label, agreeing with the count (tablet / tablets)."""
+    return f"Dulcolax {_tablet_word(n, 'en')}"
+
+
+def _dulcolax_label_es(n):
+    """Spanish Dulcolax tablet-noun label with article+noun agreement."""
+    return f"{'la' if n == 1 else 'las'} {_tablet_word(n, 'es')} de Dulcolax"
 
 
 def _miralax_dose_phrase(band, lang):
@@ -648,7 +669,7 @@ def build_strings(band, lang, location=None):
                 '        <div class="details-content">\n'
                 '            <div class="time-box">\n'
                 '                <div class="when">At bedtime</div>\n'
-                f'                <div class="what">Give Dulcolax tablets — <strong>{bedtime_dose_text}</strong> — with a sip of water.</div>\n'
+                f'                <div class="what">Give {_dulcolax_label_en(bedtime_tabs)} — <strong>{bedtime_dose_text}</strong> — with a sip of water.</div>\n'
                 '            </div>\n'
                 '            <div class="time-box">\n'
                 '                <div class="when">Evening — prepare the prep</div>\n'
@@ -666,7 +687,7 @@ def build_strings(band, lang, location=None):
                 '        <div class="details-content">\n'
                 '            <div class="time-box">\n'
                 '                <div class="when">Antes de dormir</div>\n'
-                f'                <div class="what">Dé las tabletas de Dulcolax — <strong>{bedtime_dose_text}</strong> — con un sorbo de agua.</div>\n'
+                f'                <div class="what">Dé {_dulcolax_label_es(bedtime_tabs)} — <strong>{bedtime_dose_text}</strong> — con un sorbo de agua.</div>\n'
                 '            </div>\n'
                 '            <div class="time-box">\n'
                 '                <div class="when">Por la noche — preparar la preparación</div>\n'
@@ -691,7 +712,7 @@ def build_strings(band, lang, location=None):
                 '<div class="time-box">\n'
                 f'  <div class="when">{miralax_time}</div>\n'
                 '  <div class="what">\n'
-                f'    Give Dulcolax tablets &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water,<br>\n'
+                f'    Give {_dulcolax_label_en(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water,<br>\n'
                 f'    then start the MiraLAX solution &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; from the fridge.<br>\n'
                 f'    Have your child drink <strong>{drink_cup} every 30 minutes</strong> until finished.\n'
                 '  </div>\n'
@@ -702,7 +723,7 @@ def build_strings(band, lang, location=None):
                 '<div class="time-box">\n'
                 f'  <div class="when">{miralax_time}</div>\n'
                 '  <div class="what">\n'
-                f'    Dé las tabletas de Dulcolax &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua,<br>\n'
+                f'    Dé {_dulcolax_label_es(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua,<br>\n'
                 f'    luego comience la solución de MiraLAX &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; del refrigerador.<br>\n'
                 f'    Haga que su niño beba <strong>{drink_cup} cada 30 minutos</strong> hasta terminar.\n'
                 '  </div>\n'
@@ -714,7 +735,7 @@ def build_strings(band, lang, location=None):
             html_prep_medicine_block = (
                 '<div class="time-box">\n'
                 f'  <div class="when">{dayof_time}</div>\n'
-                f'  <div class="what">Give Dulcolax tablets &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water.</div>\n'
+                f'  <div class="what">Give {_dulcolax_label_en(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water.</div>\n'
                 '</div>\n'
                 '<div class="time-box">\n'
                 f'  <div class="when">{miralax_time}</div>\n'
@@ -728,7 +749,7 @@ def build_strings(band, lang, location=None):
             html_prep_medicine_block = (
                 '<div class="time-box">\n'
                 f'  <div class="when">{dayof_time}</div>\n'
-                f'  <div class="what">Dé las tabletas de Dulcolax &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua.</div>\n'
+                f'  <div class="what">Dé {_dulcolax_label_es(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua.</div>\n'
                 '</div>\n'
                 '<div class="time-box">\n'
                 f'  <div class="when">{miralax_time}</div>\n'
@@ -911,7 +932,7 @@ def _lactulose_two_days_before_block_html(band, lang):
             '        <div class="details-content">\n'
             '            <div class="time-box">\n'
             '                <div class="when">At bedtime</div>\n'
-            f'                <div class="what">Give Dulcolax tablets — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — with a sip of water.</div>\n'
+            f'                <div class="what">Give {_dulcolax_label_en(bedtime_tabs)} — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — with a sip of water.</div>\n'
             '            </div>\n'
             '            <div class="time-box">\n'
             '                <div class="when">Evening — prepare the prep</div>\n'
@@ -931,7 +952,7 @@ def _lactulose_two_days_before_block_html(band, lang):
             '        <div class="details-content">\n'
             '            <div class="time-box">\n'
             '                <div class="when">Antes de dormir</div>\n'
-            f'                <div class="what">Dé las tabletas de Dulcolax — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — con un sorbo de agua.</div>\n'
+            f'                <div class="what">Dé {_dulcolax_label_es(bedtime_tabs)} — <strong>{bedtime_tabs} {tab} ({bedtime_mg} mg)</strong> — con un sorbo de agua.</div>\n'
             '            </div>\n'
             '            <div class="time-box">\n'
             '                <div class="when">Por la noche — preparar la preparación</div>\n'
@@ -1399,7 +1420,7 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
                 mix_rows = "; ".join(
                     f"{t['label_en']}: mix {t['lactulose_ml']} mL of lactulose into "
                     f"{t.get('gatorade_oz', 20)} oz of Gatorade" for t in tiers)
-                mix_desc = (f"At bedtime: give Dulcolax tablets — {bedtime_text} — with a "
+                mix_desc = (f"At bedtime: give {_dulcolax_label_en(bedtime_tabs)} — {bedtime_text} — with a "
                             "sip of water. Evening: prepare only — do NOT drink yet. "
                             f"{mix_rows}. Shake, refrigerate overnight. Your child will "
                             "drink this tomorrow.")
@@ -1407,7 +1428,7 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
                 mix_rows = "; ".join(
                     f"{t['label_es']}: mezcle {t['lactulose_ml']} mL de lactulosa en "
                     f"{t.get('gatorade_oz', 20)} oz de Gatorade" for t in tiers)
-                mix_desc = (f"Antes de dormir: dé las tabletas de Dulcolax — {bedtime_text} — "
+                mix_desc = (f"Antes de dormir: dé {_dulcolax_label_es(bedtime_tabs)} — {bedtime_text} — "
                             "con un sorbo de agua. Por la noche: solo preparar — NO beber aún. "
                             f"{mix_rows}. Agite, refrigere durante la noche. Su niño lo beberá "
                             "mañana.")
@@ -1416,12 +1437,12 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
             grams = band["miralax_grams"]
             gat_oz = band["gatorade_oz"]
             if lang == "en":
-                mix_desc = (f"At bedtime: give Dulcolax tablets — {bedtime_text} — with a "
+                mix_desc = (f"At bedtime: give {_dulcolax_label_en(bedtime_tabs)} — {bedtime_text} — with a "
                             "sip of water. Evening: prepare only — do NOT drink yet. Mix "
                             f"MiraLAX ({caps} capfuls / {grams} g) into Gatorade ({gat_oz} oz). "
                             "Shake, refrigerate overnight. Your child will drink this tomorrow.")
             else:
-                mix_desc = (f"Antes de dormir: dé las tabletas de Dulcolax — {bedtime_text} — "
+                mix_desc = (f"Antes de dormir: dé {_dulcolax_label_es(bedtime_tabs)} — {bedtime_text} — "
                             "con un sorbo de agua. Por la noche: solo preparar — NO beber aún. "
                             f"Mezcle el MiraLAX ({caps} tapas / {grams} g) con el Gatorade "
                             f"({gat_oz} oz). Agite, refrigere durante la noche. Su niño lo "
@@ -1475,7 +1496,7 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
             events.append(_ev("big_prep",
                               "Start THE BIG PREP",
                               f"Dulcolax {dayof_short} + start the {drink_name} drink",
-                              f"Give Dulcolax tablets — {dayof_short} — with a sip of "
+                              f"Give {_dulcolax_label_en(dayof_tabs)} — {dayof_short} — with a sip of "
                               f"water, then start {drink_phrase}. Have your child drink "
                               f"{drink_cup} every 30 minutes until finished.",
                               day=-1, start=_hhmm_from_12h(drink_time12)))
@@ -1483,7 +1504,7 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
             events.append(_ev("big_prep",
                               "Comenzar LA GRAN PREPARACIÓN",
                               f"Dulcolax {dayof_short} + comenzar la bebida de {drink_name}",
-                              f"Dé las tabletas de Dulcolax — {dayof_short} — con un sorbo "
+                              f"Dé {_dulcolax_label_es(dayof_tabs)} — {dayof_short} — con un sorbo "
                               f"de agua, luego comience {drink_phrase}. Haga que su niño "
                               f"beba {drink_cup} cada 30 minutos hasta terminar.",
                               day=-1, start=_hhmm_from_12h(drink_time12)))
@@ -1493,9 +1514,9 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
         if lang == "en":
             if dayof_tabs > 0:
                 events.append(_ev("big_prep_tablets",
-                                  "Give the tablets",
+                                  f"Give the {_tablet_word(dayof_tabs, 'en')}",
                                   f"Give Dulcolax — {dayof_short}",
-                                  f"Give Dulcolax tablets — {dayof_short} — with a sip of water.",
+                                  f"Give {_dulcolax_label_en(dayof_tabs)} — {dayof_short} — with a sip of water.",
                                   day=-1, start=_hhmm_from_12h(dayof_time12)))
             events.append(_ev("big_prep_drink",
                               "Start the prep drink",
@@ -1506,9 +1527,9 @@ def _cal_standard_events(band, lang, cal, family, is_lact=False):
         else:
             if dayof_tabs > 0:
                 events.append(_ev("big_prep_tablets",
-                                  "Dar las tabletas",
+                                  f"Dar {'la' if dayof_tabs == 1 else 'las'} {_tablet_word(dayof_tabs, 'es')}",
                                   f"Dar Dulcolax — {dayof_short}",
-                                  f"Dé las tabletas de Dulcolax — {dayof_short} — con un sorbo de agua.",
+                                  f"Dé {_dulcolax_label_es(dayof_tabs)} — {dayof_short} — con un sorbo de agua.",
                                   day=-1, start=_hhmm_from_12h(dayof_time12)))
             events.append(_ev("big_prep_drink",
                               "Comenzar la bebida de preparación",

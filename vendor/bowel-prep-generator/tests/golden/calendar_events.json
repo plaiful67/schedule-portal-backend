@@ -37,11 +37,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -112,11 +112,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -189,11 +189,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -264,11 +264,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -343,11 +343,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -418,11 +418,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -495,11 +495,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -570,11 +570,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -642,7 +642,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -657,7 +657,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -717,7 +717,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -732,7 +732,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -794,7 +794,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -809,7 +809,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -869,7 +869,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -884,7 +884,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -948,7 +948,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -963,7 +963,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the lactulose drink",
@@ -1023,7 +1023,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -1038,7 +1038,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de lactulosa",
@@ -1100,7 +1100,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -1115,7 +1115,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the lactulose drink",
@@ -1175,7 +1175,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -1190,7 +1190,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de lactulosa",
@@ -1254,7 +1254,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -1269,7 +1269,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -1329,7 +1329,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -1344,7 +1344,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -1406,7 +1406,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -1421,7 +1421,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -1481,7 +1481,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -1496,7 +1496,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -1575,7 +1575,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -1650,7 +1650,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -1727,7 +1727,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -1802,7 +1802,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -3727,11 +3727,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -3802,11 +3802,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -3879,11 +3879,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -3954,11 +3954,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -4033,11 +4033,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -4108,11 +4108,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -4185,11 +4185,11 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Give Dulcolax — 1 tablet (5 mg)",
-      "titleDiscreet": "Give the tablets"
+      "titleDiscreet": "Give the tablet"
      },
      {
       "day": -1,
@@ -4260,11 +4260,11 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua.",
       "id": "big_prep_tablets",
       "start": "12:00",
       "titleDetailed": "Dar Dulcolax — 1 tableta (5 mg)",
-      "titleDiscreet": "Dar las tabletas"
+      "titleDiscreet": "Dar la tableta"
      },
      {
       "day": -1,
@@ -4332,7 +4332,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -4347,7 +4347,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -4407,7 +4407,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -4422,7 +4422,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -4484,7 +4484,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (7 capfuls / 120 g) into Gatorade (28 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -4499,7 +4499,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 7 capfuls (~120 g) of MiraLAX in 28 oz (~850 mL) of Gatorade — from the fridge. Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -4559,7 +4559,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (7 tapas / 120 g) con el Gatorade (28 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -4574,7 +4574,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 7 tapas (~120 g) de MiraLAX en 28 oz (~850 mL) de Gatorade — del refrigerador. Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -4638,7 +4638,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -4653,7 +4653,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the lactulose drink",
@@ -4713,7 +4713,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -4728,7 +4728,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de lactulosa",
@@ -4790,7 +4790,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. 21–30 kg (46–66 lb): mix 90 mL of lactulose into 28 oz of Gatorade. Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -4805,7 +4805,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the lactulose + Gatorade mix from the fridge (21–30 kg (46–66 lb): 90 mL of lactulose in 28 oz of Gatorade). Have your child drink 5 oz (~150 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the lactulose drink",
@@ -4865,7 +4865,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. 21–30 kg (46–66 lb): mezcle 90 mL de lactulosa en 28 oz de Gatorade. Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -4880,7 +4880,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la mezcla de lactulosa + Gatorade del refrigerador (21–30 kg (46–66 lb): 90 mL de lactulosa en 28 oz de Gatorade). Haga que su niño beba 5 oz (~150 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de lactulosa",
@@ -4944,7 +4944,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -4959,7 +4959,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -5019,7 +5019,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -5034,7 +5034,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -5096,7 +5096,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "At bedtime: give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
+      "desc": "At bedtime: give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water. Evening: prepare only — do NOT drink yet. Mix MiraLAX (10 capfuls / 170 g) into Gatorade (40 oz). Shake, refrigerate overnight. Your child will drink this tomorrow.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Bedtime Dulcolax + mix the prep drink (refrigerate)",
       "titleDiscreet": "Evening: prep steps"
@@ -5111,7 +5111,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 10 capfuls (~170 g) of MiraLAX in 40 oz (~1200 mL) of Gatorade — from the fridge. Have your child drink 7 oz (~200 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -5171,7 +5171,7 @@
      {
       "allDay": true,
       "day": -2,
-      "desc": "Antes de dormir: dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
+      "desc": "Antes de dormir: dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua. Por la noche: solo preparar — NO beber aún. Mezcle el MiraLAX (10 tapas / 170 g) con el Gatorade (40 oz). Agite, refrigere durante la noche. Su niño lo beberá mañana.",
       "id": "bedtime_dulcolax_mix",
       "titleDetailed": "Dulcolax antes de dormir + mezclar la bebida (refrigerar)",
       "titleDiscreet": "Por la noche: pasos de preparación"
@@ -5186,7 +5186,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 10 tapas (~170 g) de MiraLAX en 40 oz (~1200 mL) de Gatorade — del refrigerador. Haga que su niño beba 7 oz (~200 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -5265,7 +5265,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -5340,7 +5340,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",
@@ -5417,7 +5417,7 @@
      },
      {
       "day": -1,
-      "desc": "Give Dulcolax tablets — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
+      "desc": "Give Dulcolax tablet — 1 tablet (5 mg) — with a sip of water, then start the MiraLAX solution — 12 capfuls (~200 g) of MiraLAX in 48 oz (~1400 mL) of Gatorade — from the fridge. Have your child drink 8 oz (~250 mL) every 30 minutes until finished.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tablet (5 mg) + start the MiraLAX drink",
@@ -5492,7 +5492,7 @@
      },
      {
       "day": -1,
-      "desc": "Dé las tabletas de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
+      "desc": "Dé la tableta de Dulcolax — 1 tableta (5 mg) — con un sorbo de agua, luego comience la solución de MiraLAX — 12 tapas (~200 g) de MiraLAX en 48 oz (~1400 mL) de Gatorade — del refrigerador. Haga que su niño beba 8 oz (~250 mL) cada 30 minutos hasta terminar.",
       "id": "big_prep",
       "start": "15:00",
       "titleDetailed": "Dulcolax 1 tableta (5 mg) + comenzar la bebida de MiraLAX",

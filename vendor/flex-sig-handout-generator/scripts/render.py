@@ -126,6 +126,10 @@ try:
     _SHARED_MOBILE_JS = (_SHARED_DIR / "mobile-a11y.js").read_text(encoding="utf-8")
 except OSError:
     _SHARED_MOBILE_JS = ""
+try:
+    _SHARED_MOBILE_TOKENS = (_SHARED_DIR / "mobile-tokens.css").read_text(encoding="utf-8")
+except OSError:
+    _SHARED_MOBILE_TOKENS = ""
 
 
 def _inject_landmarks(html: str) -> str:
@@ -173,6 +177,13 @@ def _inject_shared_mobile_a11y(html: str) -> str:
         skip = '<a class="a11y-skip" href="#gi-main">Skip to main content</a>'
         html = html.replace("<body>", f"<body>\n{skip}", 1)
     html = _inject_landmarks(html)
+    # Calm design tokens (light): prepend as the FIRST <style> after <head> so the
+    # template's own <style> and mobile-base.css (injected last) still win. Gated on
+    # the /*GI-MOBILE-TOKENS*/ marker the token-extraction left in each handout
+    # template's <style> — scopes injection to the handout mobile pages, leaving
+    # doses/qrg (no marker) untouched.
+    if _SHARED_MOBILE_TOKENS and "<head>" in html and "/*GI-MOBILE-TOKENS*/" in html:
+        html = html.replace("<head>", f"<head>\n<style>{_SHARED_MOBILE_TOKENS}</style>", 1)
     if _SHARED_MOBILE_CSS and "</head>" in html:
         html = html.replace("</head>", f"<style>{_SHARED_MOBILE_CSS}</style>\n</head>", 1)
     if _SHARED_MOBILE_JS and "</body>" in html:

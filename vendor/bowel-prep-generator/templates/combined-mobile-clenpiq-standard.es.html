@@ -7,23 +7,9 @@
 <title>{{HTML_TITLE}}</title>
 <link rel="alternate" hreflang="es" href="./">
 <link rel="alternate" hreflang="en" href="{{LANG_TOGGLE_HREF}}">
-<style>
+<style>/*GI-MOBILE-TOKENS*/
 @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
-:root{
-  --paper:#FBF7F1; --paper-2:#F5EEE4; --card:#FFFFFF;
-  --ink:#22323D; --ink-soft:#5D6B76; --ink-faint:#8A949C;
-  --line:#EBE2D5; --line-soft:#F0E9DD; --line-strong:#DCD2C2;
-  --teal:#2E7C8A; --teal-deep:#1E5663; --teal-tint:#E3F0F0;
-  --coral:#DD6B45; --coral-soft:#FBEAE0; --coral-deep:#B5512F;
-  --green:#4F9A6B; --green-tint:#E7F1E8; --green-deep:#347A4F;
-  --amber-tint:#FBF1DA; --amber-line:#E8CB80; --amber-ink:#876514;
-  --err-bg:#FBEAE0; --err-line:#E3B5A4; --err-ink:#A23B1E;
-  --sans:'Hanken Grotesk',system-ui,-apple-system,sans-serif;
-  --serif:'Newsreader',Georgia,serif;
-  --shadow-sm:0 1px 2px rgba(34,50,61,.05),0 2px 8px rgba(34,50,61,.04);
-  --shadow:0 4px 14px rgba(34,50,61,.07),0 18px 40px -22px rgba(34,50,61,.18);
-  --r:18px; --r-sm:12px;
-}
+
 {{PARTIAL_BOX_STYLES}}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
@@ -284,8 +270,26 @@ details.post-procedure strong{color:var(--ink)}
 <h2 class="step"><span class="icon">📖</span> Sobre la Preparación Intestinal</h2>
 <p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. El medicamento a continuación lo vacía antes del procedimiento. La EGD no necesita preparación intestinal — solo las reglas de ayuno.</p>
 
-<h2 class="step"><span class="icon">✅</span> Planifique con Anticipación (compre al menos 2 días antes<span class="pz-only" data-pz-day="-2" data-pz-template=", o antes del {date}"></span>)</h2>
-<p>Compre estos artículos al menos 2 días antes del procedimiento.</p>
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} <span data-pz-day="-7" data-pz-template="antes del {date}">7 días antes</span>.</strong><br>
+        Si toma antibióticos tetraciclinas o fluoroquinolonas, hierro, digoxina, clorpromazina o penicilamina — tómelos al menos <strong>2 horas antes y no menos de 6 horas después</strong> de cada dosis de CLENPIQ.<br>
+        Administre todos los demás medicamentos orales al menos <strong>1 hora antes</strong> de comenzar cada dosis de CLENPIQ.<br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+{{HTML_PRECLEANOUT_BLOCK}}
+
+<h2 class="step"><span class="icon">✅</span> Planifique con Anticipación (compre ahora — a más tardar 2 días antes<span class="pz-only" data-pz-day="-2" data-pz-template=", o antes del {date}"></span>)</h2>
+<p>Compre estos artículos ahora — a más tardar 2 días antes del procedimiento.</p>
 <table class="supplies">
   <thead>
     <tr><th style="width: 68%;">Ingrediente activo / Artículo</th><th style="text-align: right;">Qué comprar</th></tr>
@@ -308,24 +312,6 @@ details.post-procedure strong{color:var(--ink)}
 <div class="warning">
   ⚠️ <strong>CLENPIQ ya contiene un laxante estimulante (picosulfato de sodio).</strong> NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación a menos que su médico se lo indique específicamente.
 </div>
-
-<div class="callout">
-  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <div style="display:flex;align-items:flex-start;gap:10px;">
-    <div style="flex:1;">
-      <p style="margin: 0;">
-        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
-        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} <span data-pz-day="-7" data-pz-template="antes del {date}">7 días antes</span>.</strong><br>
-        Si toma antibióticos tetraciclinas o fluoroquinolonas, hierro, digoxina, clorpromazina o penicilamina — tómelos al menos <strong>2 horas antes y no menos de 6 horas después</strong> de cada dosis de CLENPIQ.<br>
-        Administre todos los demás medicamentos orales al menos <strong>1 hora antes</strong> de comenzar cada dosis de CLENPIQ.<br>
-        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
-      </p>
-    </div>
-    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
-  </div>
-</div>
-
-{{HTML_PRECLEANOUT_BLOCK}}
 
 <h2 class="step" data-pz-day="-3" data-pz-suffix=" — Dieta Baja en Residuos"><span class="icon">📅</span> 3 Días Antes — Dieta Baja en Residuos</h2>
 <table class="avoid-allowed">
@@ -350,6 +336,39 @@ details.post-procedure strong{color:var(--ink)}
     </tr>
   </tbody>
 </table>
+
+<h2 class="step"><span class="icon">🍚</span> Dieta Baja en Residuos — Comidas de Muestra</h2>
+<p>Ideas de comidas para la dieta baja en residuos (también llamada dieta &ldquo;blanca&rdquo;). Continúe esta dieta durante los 3 días antes del procedimiento. El día antes del procedimiento, cambie a solo líquidos claros — sin lácteos.</p>
+<div class="meals">
+  <div class="meal">
+    <h4>Desayuno (mañana)</h4>
+    <ul>
+      <li>Huevos revueltos</li>
+      <li>Pan blanco tostado con mantequilla</li>
+      <li>Plátano</li>
+      <li>Yogur (sin semillas ni bayas)</li>
+      <li>Jugo de manzana</li>
+    </ul>
+  </div>
+  <div class="meal">
+    <h4>Almuerzo (~mediodía)</h4>
+    <ul>
+      <li>Sándwich de pollo simple en pan blanco (sin verduras)</li>
+      <li>Macarrones con queso</li>
+      <li>Arroz blanco con pollo</li>
+      <li>Pasta simple</li>
+      <li>Puré de manzana</li>
+      <li>Budín de vainilla</li>
+    </ul>
+  </div>
+  <div class="meal">
+    <h4>Después del almuerzo (~2:00 PM en adelante)</h4>
+    <ul>
+      <li>Solo líquidos claros (vea las bebidas permitidas arriba)</li>
+      <li>No más lácteos — leche, yogur, helado, etc.</li>
+    </ul>
+  </div>
+</div>
 
 <h2 class="step" data-pz-day="-1" data-pz-suffix=" — Líquidos Claros Todo el Día"><span class="icon">📅</span> 1 Día Antes — Líquidos Claros Todo el Día</h2>
 <p><strong>Solo líquidos claros — sin alimentos sólidos, sin lácteos</strong> durante todo el día.</p>
@@ -439,39 +458,6 @@ details.post-procedure strong{color:var(--ink)}
     <span class="title">🌐 GIKids.org</span>
     <span class="sub">Información general sobre procedimientos de GI pediátrica</span>
   </a>
-</div>
-
-<h2 class="step"><span class="icon">🍚</span> Dieta Baja en Residuos — Comidas de Muestra</h2>
-<p>Ideas de comidas para la dieta baja en residuos (también llamada dieta &ldquo;blanca&rdquo;). Continúe esta dieta durante los 3 días antes del procedimiento. El día antes del procedimiento, cambie a solo líquidos claros — sin lácteos.</p>
-<div class="meals">
-  <div class="meal">
-    <h4>Desayuno (mañana)</h4>
-    <ul>
-      <li>Huevos revueltos</li>
-      <li>Pan blanco tostado con mantequilla</li>
-      <li>Plátano</li>
-      <li>Yogur (sin semillas ni bayas)</li>
-      <li>Jugo de manzana</li>
-    </ul>
-  </div>
-  <div class="meal">
-    <h4>Almuerzo (~mediodía)</h4>
-    <ul>
-      <li>Sándwich de pollo simple en pan blanco (sin verduras)</li>
-      <li>Macarrones con queso</li>
-      <li>Arroz blanco con pollo</li>
-      <li>Pasta simple</li>
-      <li>Puré de manzana</li>
-      <li>Budín de vainilla</li>
-    </ul>
-  </div>
-  <div class="meal">
-    <h4>Después del almuerzo (~2:00 PM en adelante)</h4>
-    <ul>
-      <li>Solo líquidos claros (vea las bebidas permitidas arriba)</li>
-      <li>No más lácteos — leche, yogur, helado, etc.</li>
-    </ul>
-  </div>
 </div>
 
 <details class="post-procedure">
