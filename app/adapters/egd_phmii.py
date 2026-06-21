@@ -19,6 +19,7 @@ from typing import Any
 import yaml
 
 from .. import personalization, physicians
+from ._calm import swap_calm
 from ._paths import skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -150,6 +151,9 @@ def render_pdf(
     if template_path is None:
         raise ValueError(f"No egd_phmii template for lang={lang!r}")
     html = template_path.read_text(encoding="utf-8")
+    # Calm theme: swap the forked template's navy <style> for the shared Calm
+    # stylesheet (+ personalization + EGD-table rules) before substitution.
+    html = swap_calm(html, include_egd=True)
     all_replacements = {**replacements, **qr_replacements, **personalization_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))

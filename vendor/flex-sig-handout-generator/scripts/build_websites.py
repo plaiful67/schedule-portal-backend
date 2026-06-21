@@ -23,6 +23,7 @@ Usage:
 
 import base64
 import hashlib
+import os
 import re
 import shutil
 import sys
@@ -199,7 +200,9 @@ def find_handout_pdf(band, location_id, lang):
     if not base.exists():
         return None
 
-    pdf_name = f"flex-sig-{stem}-{loc_upper}{es_suffix}-print.pdf"
+    # Calm is the default download-PDF theme; HANDOUT_PDF_THEME=color reverts.
+    calm_suffix = "-calm" if os.environ.get("HANDOUT_PDF_THEME", "calm").strip().lower() == "calm" else ""
+    pdf_name = f"flex-sig-{stem}-{loc_upper}{es_suffix}-print{calm_suffix}.pdf"
     candidate = base / pdf_name
     return candidate if candidate.exists() else None
 

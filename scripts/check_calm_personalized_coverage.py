@@ -18,7 +18,10 @@ import sys
 from pathlib import Path
 
 BACKEND = Path(__file__).resolve().parent.parent
-TPL_DIR = BACKEND / "app" / "templates" / "bowel_prep"
+TPL_ROOT = BACKEND / "app" / "templates"
+# bowel_prep swaps in calm-print.css ∪ calm-personalized.css; egd / egd_phmii
+# also append calm-egd.css (the NPO / med-stops / trouble-table classes).
+TPL_DIRS = ["bowel_prep", "egd", "egd_phmii"]
 # Read the Calm CSS that actually ships (vendored copy); fall back to the
 # meta-repo source so the check works pre-vendor-sync too.
 CALM_DIRS = [BACKEND / "vendor" / "shared",
@@ -55,9 +58,13 @@ def main() -> int:
     if not calm:
         print("FATAL: calm-print.css not found in", CALM_DIRS, file=sys.stderr)
         return 2
-    covered = _defined_classes(calm) | _defined_classes(_read_calm("calm-personalized.css"))
+    covered = (_defined_classes(calm)
+               | _defined_classes(_read_calm("calm-personalized.css"))
+               | _defined_classes(_read_calm("calm-egd.css")))
 
-    templates = sorted(TPL_DIR.glob("*print-personalized*.html"))
+    templates = []
+    for d in TPL_DIRS:
+        templates += sorted((TPL_ROOT / d).glob("*print-personalized*.html"))
     if not templates:
         print("FATAL: no personalized templates found", file=sys.stderr)
         return 2

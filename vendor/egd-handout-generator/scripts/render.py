@@ -56,6 +56,30 @@ def _inject_shared_print_css(html: str) -> str:
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
 
 
+# Calm theme — replace the template's own <style> with the shared Calm
+# stylesheet (calm-print.css) + calm-egd.css (the EGD/flex-sig table classes
+# calm-print.css doesn't carry). Mirrors the bowel-prep skill's _swap_calm_style.
+_CALM_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "calm-print.css"
+_CALM_EGD_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "calm-egd.css"
+try:
+    _CALM_PRINT_CSS = _CALM_PRINT_CSS_PATH.read_text(encoding="utf-8") if _CALM_PRINT_CSS_PATH.exists() else ""
+    _CALM_EGD_CSS = _CALM_EGD_CSS_PATH.read_text(encoding="utf-8") if _CALM_EGD_CSS_PATH.exists() else ""
+except OSError:
+    _CALM_PRINT_CSS = _CALM_EGD_CSS = ""
+
+
+def _swap_calm_style(html: str) -> str:
+    """Replace the template's first <style>…</style> with the Calm CSS, run on
+    the raw template before token substitution so the Calm CSS's
+    {{PRACTICE_FOOTER}}/{{BAND_LABEL}} tokens resolve in the normal pass."""
+    if not _CALM_PRINT_CSS:
+        return html
+    css = _CALM_PRINT_CSS + "\n" + _CALM_EGD_CSS
+    return re.sub(r"<style>.*?</style>",
+                  lambda _: f"<style>\n{css}\n</style>",
+                  html, count=1, flags=re.S)
+
+
 # Shared WCAG 2.1 AA base for the MOBILE renders (focus, skip link, contrast,
 # keyboard/ARIA). One source for every current and future mobile site, sibling
 # to print-base.css above. See ~/peds-gi-prep-system/shared/mobile-base.css +
@@ -259,6 +283,11 @@ def build_egd_placeholders(procedure, lang, location=None):
     return {
         "{{HTML_TITLE}}":         title,
         "{{PROCEDURE_LABEL}}":    label,
+        # EGD has no weight band. The Calm stylesheet's @page running header +
+        # cover string-set reference {{BAND_LABEL}}; map it to the procedure
+        # label so the swap resolves cleanly (no-op on the color/print-light
+        # templates, which don't carry the token).
+        "{{BAND_LABEL}}":         label,
         "{{DURATION_MIN}}":       str(procedure.get("duration_min", "")),
         "{{NPO_SOLID}}":          str(npo.get("solid_hours", 8)),
         "{{NPO_FORMULA}}":        str(npo.get("formula_hours", 6)),
@@ -418,6 +447,12 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
     with open(template_path, encoding="utf-8") as f:
         html = f.read()
 
+    # Calm theme: swap the template's own <style> for the shared Calm
+    # stylesheet (before substitution, so calm-print.css's
+    # {{PRACTICE_FOOTER}}/{{BAND_LABEL}} tokens resolve in the loop below).
+    if theme == "calm":
+        html = _swap_calm_style(html)
+
     # Procedure-level `mobile_subdomain` (e.g. egdph) wins over the location's
     # default (e.g. egd86) so variant handouts point to their own subdomain.
     sub = procedure.get("mobile_subdomain") or location.get("mobile_subdomain", "") or _procedure_data().get("mobile_site", {}).get("subdomain", "")
@@ -495,7 +530,7 @@ def main():
     ap.add_argument("--procedure", default="egd", help="Procedure id (default: egd)")
     ap.add_argument("--location", default="all", help="scc | pmch | all")
     ap.add_argument("--lang", default="both", choices=["en", "es", "both"])
-    ap.add_argument("--theme", default="color", choices=["color", "print-light", "both"])
+    ap.add_argument("--theme", default="color", choices=["color", "print-light", "calm", "both"])
     args = ap.parse_args()
 
     out_dir = Path(args.out)

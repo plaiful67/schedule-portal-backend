@@ -17,7 +17,7 @@ RENDER := $(PYTHON) scripts/render.py
 
 REVIEW_OUT := $(HOME)/Desktop/peds-gi-system/flex-sig-pdf-review
 
-.PHONY: help install render render-color render-light render-scc render-pmch sites clean-review
+.PHONY: help install render render-calm render-color render-light render-scc render-pmch sites clean-review
 
 help:
 	@echo "Targets:"
@@ -37,8 +37,12 @@ install:
 	@echo
 	@echo "Done. If WeasyPrint complains about Pango/Cairo at runtime, run: brew install pango"
 
-render:
-	$(RENDER) --out "$(REVIEW_OUT)" --theme color
+render: render-color render-calm
+
+# Calm visual language — the design the website download PDFs now ship
+# (build_websites.py reads flex-sig-<stem>-<LOC>[-es]-print-calm.pdf by default).
+render-calm:
+	$(RENDER) --out "$(REVIEW_OUT)" --theme calm
 
 render-color:
 	$(RENDER) --out "$(REVIEW_OUT)" --theme color

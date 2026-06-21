@@ -1,0 +1,59 @@
+/* calm-egd.css — Calm rules for the EGD / EGD+pH-MII / flex-sig table vocabulary
+   that calm-print.css (keyed to the bowel-prep classes) doesn't cover.
+
+   Appended AFTER calm-print.css (its :root tokens are in scope) when the Calm
+   <style> swap runs:
+     - website print PDFs  : egd-handout + flex-sig skills' `_swap_calm_style`
+     - scheduler PDFs      : schedule-portal-backend egd.py / egd_phmii.py `_swap_calm`
+       (those also append calm-personalized.css for the shared personalization
+        classes — appt-*, followup-*, meds-reference*, performing-physician).
+
+   Source of truth: ~/peds-gi-prep-system/shared/. Vendored into the backend by
+   scripts/vendor_sync.py. calm-print.css already styles generic table/th/td;
+   this only adds the EGD/flex-sig column + helper classes, re-toned to Calm. */
+
+/* .ui mirrors the heading font (the skills' h1..h4,.ui rule). */
+.ui { font-family: var(--serif); color: var(--teal-deep); }
+
+/* NPO / medication-stop / troubleshooting tables — give them the Calm rounded
+   card frame (calm-print.css leaves plain tables borderless). */
+table.npo, table.med-stops, table.trouble-table {
+  border: 1pt solid var(--line);
+  border-radius: 9pt;
+  overflow: hidden;
+}
+table.npo th, table.med-stops th, table.trouble-table th { background: var(--paper); }
+table.npo tr:last-child td,
+table.med-stops tr:last-child td,
+table.trouble-table tr:last-child td { border-bottom: none; }
+
+/* Column roles (keep the structural widths; re-tone the accent colour). */
+.col-item    { width: 60%; }
+table.med-stops .col-item { width: 65%; }
+.col-stop {
+  width: 40%;
+  font-family: var(--sans);
+  font-weight: 700;
+  color: var(--teal-deep);
+}
+table.med-stops .col-stop { width: 35%; }
+.stop-hours  { font-size: 11pt; }
+.col-problem { width: 38%; font-weight: 700; color: var(--teal-deep); }
+
+/* "Highlighted" NPO row (clear-liquid cutoff) — warm tint instead of #fffdf6. */
+.row-thickener td { background: var(--amber-tint); }
+
+/* Example-meds + the personalized "by <date>" stamp under each med-stop cell. */
+.med-examples {
+  font-size: 9pt;
+  color: var(--ink-soft);
+  font-style: italic;
+  margin-top: 1pt;
+}
+.med-stop-date {
+  font-family: var(--sans);
+  font-weight: 400;
+  font-size: 9pt;
+  color: var(--ink-soft);
+  margin-top: 1pt;
+}

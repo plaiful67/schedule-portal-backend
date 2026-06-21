@@ -16,7 +16,7 @@ RENDER := $(PYTHON) scripts/render.py
 
 REVIEW_OUT := $(HOME)/Desktop/peds-gi-system/egd-pdf-review
 
-.PHONY: help install render render-egd render-egdph render-color render-light render-scc render-pmch sites clean-review
+.PHONY: help install render render-egd render-egdph render-calm render-color render-light render-scc render-pmch sites clean-review
 
 help:
 	@echo "Targets:"
@@ -38,13 +38,19 @@ install:
 	@echo
 	@echo "Done. If WeasyPrint complains about Pango/Cairo at runtime, run: brew install pango"
 
-render: render-egd render-egdph
+render: render-egd render-egdph render-calm
 
 render-egd:
 	$(RENDER) --out "$(REVIEW_OUT)" --procedure egd --theme both
 
 render-egdph:
 	$(RENDER) --out "$(REVIEW_OUT)" --procedure egdph --theme both
+
+# Calm visual language — the design the website download PDFs now ship
+# (build_websites.py reads {proc}-{LOC}[-es]-print-calm.pdf by default).
+render-calm:
+	$(RENDER) --out "$(REVIEW_OUT)" --procedure egd   --theme calm
+	$(RENDER) --out "$(REVIEW_OUT)" --procedure egdph --theme calm
 
 render-color:
 	$(RENDER) --out "$(REVIEW_OUT)" --procedure egd   --theme color

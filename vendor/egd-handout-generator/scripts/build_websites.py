@@ -33,6 +33,11 @@ LOGO_PATH = TEMPLATES / "logo-pmch.png"
 # Mirrors the bowel-prep skill's PDF_REVIEW_DIR convention.
 PDF_REVIEW_DIR = Path.home() / "Desktop" / "peds-gi-system" / "egd-pdf-review"
 
+# Which print theme the website download PDFs use. Calm is the default (live
+# downloads ship the Calm design); HANDOUT_PDF_THEME=color reverts to the
+# legacy navy "color" renders. Picks the matching `-print[-calm].pdf` file.
+HANDOUT_PDF_THEME = os.environ.get("HANDOUT_PDF_THEME", "calm").strip().lower()
+
 # Per-procedure × per-location target repo. egdph is PMCH-only.
 SITE_OUT_BY_PROCEDURE = {
     "egd": {
@@ -71,7 +76,8 @@ def find_handout_pdf(procedure_id: str, location_id: str, lang: str) -> Path | N
     loc_upper = location_id.upper()
     lang_dir = "English" if lang == "en" else "Spanish"
     lang_suffix = "" if lang == "en" else "-es"
-    pdf_name = f"{procedure_id}-{loc_upper}{lang_suffix}-print.pdf"
+    calm_suffix = "-calm" if HANDOUT_PDF_THEME == "calm" else ""
+    pdf_name = f"{procedure_id}-{loc_upper}{lang_suffix}-print{calm_suffix}.pdf"
     candidate = PDF_REVIEW_DIR / loc_upper / lang_dir / pdf_name
     return candidate if candidate.exists() else None
 

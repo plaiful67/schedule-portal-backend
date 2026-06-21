@@ -49,6 +49,11 @@ CASES = [
     ("suprep en",    dict(procedure_type="bowel_prep", weight_band="over-50", language="en", prep_type="suprep")),
     ("clenpiq en",   dict(procedure_type="bowel_prep", weight_band="31-40", language="en", prep_type="clenpiq")),
     ("lactulose en", dict(procedure_type="bowel_prep", weight_band="15-20", language="en", prep_type="lactulose")),
+    # EGD / EGD+pH-MII carry no weight band. egd_phmii is PMCH-only.
+    ("egd en",       dict(procedure_type="egd", language="en")),
+    ("egd es",       dict(procedure_type="egd", language="es")),
+    ("egdph en",     dict(procedure_type="egd_phmii", language="en", location_id="pmch")),
+    ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch")),
 ]
 
 
