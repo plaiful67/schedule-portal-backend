@@ -301,13 +301,10 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: clear-liquids inline",
     )
 
-    # 7. Meals section: wrap 3 inline phrases.
-    out = _replace_unique(
-        out,
-        "Continue this diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only",
-        'Continue this diet for <span class="pz-only" data-pz-day="-3" data-pz-template="the 3 days before the procedure (starting {date})">the 3 days before the procedure</span>, through lunch <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>. After 2:00 PM <span class="pz-only" data-pz-day="-1" data-pz-template="on {date}">the day before</span>, switch to clear liquids only',
-        where="combined en: meals inline pz spans",
-    )
+    # (The old standalone "Sample Meals" box was removed from the canonical
+    #  template; its food examples now live in the 3-Days-Before AVOID/OK table
+    #  and the clear-liquids/no-dairy note moved into the 1-Day-Before line, so
+    #  there is no longer a meals-intro paragraph to wrap with pz spans.)
 
     return BANNER + out
 
@@ -376,12 +373,8 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: clear-liquids inline",
     )
 
-    out = _replace_unique(
-        out,
-        "Continúe esta dieta durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros",
-        'Continúe esta dieta durante <span class="pz-only" data-pz-day="-3" data-pz-template="los 3 días antes del procedimiento (a partir del {date})">los 3 días antes del procedimiento</span>, hasta el almuerzo <span class="pz-only" data-pz-day="-1" data-pz-template="del día anterior ({date})">del día anterior</span>. Después de las 2:00 PM <span class="pz-only" data-pz-day="-1" data-pz-template="del día ({date})">del día anterior</span>, cambie a solo líquidos claros',
-        where="combined es: meals inline pz spans",
-    )
+    # (Caja de "Comidas de Muestra" eliminada de la plantilla canónica; ya no hay
+    #  párrafo de introducción de comidas que envolver con spans pz.)
 
     return BANNER + out
 
