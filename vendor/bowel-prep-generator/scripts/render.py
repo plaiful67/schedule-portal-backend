@@ -1600,8 +1600,9 @@ def _cal_clenpiq_events(band, lang, cal, family, location):
     d1_end = band["dose1_window_end_hhmm"]
     d2_min = band["dose2_hours_before_min"]
     d2_max = band["dose2_hours_before_max"]
-    events = [_cal_meds_stop(band, lang, cal),
-              _cal_low_residue(lang, cal, family)]
+    # SUPREP/CLENPIQ: eat normally until the day before (no 3-day low-residue),
+    # then low-residue through lunch + clears after 2 PM (see _cal_clears_start).
+    events = [_cal_meds_stop(band, lang, cal)]
     if lang == "en":
         events.append(_ev("buy_supplies",
                           "Buy supplies",
@@ -1611,7 +1612,7 @@ def _cal_clenpiq_events(band, lang, cal, family, location):
                           "mixing). Plus plenty of clear liquids, including Gatorade, "
                           "Pedialyte, or another electrolyte drink. Nothing red or purple.",
                           allDay=True, day=cal["buy_supplies_day"]))
-        events.append(_cal_clears_allday(lang, family))
+        events.append(_cal_clears_start(lang, cal, family))
         events.append(_ev("dose1",
                           "Give first dose (evening window)",
                           "CLENPIQ Dose 1 — drink 1 bottle during this window",
@@ -1641,7 +1642,7 @@ def _cal_clenpiq_events(band, lang, cal, family, location):
                           "Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo "
                           "ni morado.",
                           allDay=True, day=cal["buy_supplies_day"]))
-        events.append(_cal_clears_allday(lang, family))
+        events.append(_cal_clears_start(lang, cal, family))
         events.append(_ev("dose1",
                           "Dar la primera dosis (ventana de la tarde)",
                           "CLENPIQ Dosis 1 — beba 1 botella durante esta ventana",
@@ -1685,8 +1686,9 @@ def _cal_suprep_events(band, lang, cal, family, location):
     d2_start = _shift(d1_start, sep_min)
     d2_end = _shift(d1_end, sep_max)
 
-    events = [_cal_meds_stop(band, lang, cal),
-              _cal_low_residue(lang, cal, family)]
+    # SUPREP/CLENPIQ: eat normally until the day before (no 3-day low-residue),
+    # then low-residue through lunch + clears after 2 PM (see _cal_clears_start).
+    events = [_cal_meds_stop(band, lang, cal)]
     if lang == "en":
         events.append(_ev("buy_supplies",
                           "Buy supplies",
@@ -1696,7 +1698,7 @@ def _cal_suprep_events(band, lang, cal, family, location):
                           "Plus plenty of clear liquids, including an electrolyte drink. "
                           "Nothing red or purple.",
                           allDay=True, day=cal["buy_supplies_day"]))
-        events.append(_cal_clears_allday(lang, family))
+        events.append(_cal_clears_start(lang, cal, family))
         events.append(_ev("dose1",
                           "Give first dose (evening window)",
                           "SUPREP Dose 1 — mix and drink during this window",
@@ -1729,7 +1731,7 @@ def _cal_suprep_events(band, lang, cal, family, location):
                           "receta). Además, suficientes líquidos claros, incluyendo una "
                           "bebida con electrolitos. Nada rojo ni morado.",
                           allDay=True, day=cal["buy_supplies_day"]))
-        events.append(_cal_clears_allday(lang, family))
+        events.append(_cal_clears_start(lang, cal, family))
         events.append(_ev("dose1",
                           "Dar la primera dosis (ventana de la tarde)",
                           "SUPREP Dosis 1 — mezcle y beba durante esta ventana",

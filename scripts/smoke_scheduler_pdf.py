@@ -48,6 +48,10 @@ CASES = [
     ("combined es",  dict(procedure_type="combined",   weight_band="31-40", language="es")),
     ("suprep en",    dict(procedure_type="bowel_prep", weight_band="over-50", language="en", prep_type="suprep")),
     ("clenpiq en",   dict(procedure_type="bowel_prep", weight_band="31-40", language="en", prep_type="clenpiq")),
+    # Combined EGD+colonoscopy with the higher-potency preps (loosened diet:
+    # eat normally → low-residue through lunch → clears after 2 PM the day before).
+    ("combined suprep en",  dict(procedure_type="combined", weight_band="over-50", language="en", prep_type="suprep")),
+    ("combined clenpiq es", dict(procedure_type="combined", weight_band="31-40", language="es", prep_type="clenpiq")),
     ("lactulose en", dict(procedure_type="bowel_prep", weight_band="15-20", language="en", prep_type="lactulose")),
     # EGD / EGD+pH-MII carry no weight band. egd_phmii is PMCH-only.
     ("egd en",       dict(procedure_type="egd", language="en")),

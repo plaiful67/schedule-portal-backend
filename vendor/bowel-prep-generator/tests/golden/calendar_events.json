@@ -1849,14 +1849,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 CLENPIQ kit (2 bottles, 5.4 oz / 160 mL each — ready to drink, no mixing). Plus plenty of clear liquids, including Gatorade, Pedialyte, or another electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -1864,12 +1856,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -1925,14 +1917,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de CLENPIQ (2 botellas, 5.4 oz / 160 mL cada una — lista para beber, sin mezclar). Además, suficientes líquidos claros, incluyendo Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -1940,12 +1924,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -2003,14 +1987,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 CLENPIQ kit (2 bottles, 5.4 oz / 160 mL each — ready to drink, no mixing). Plus plenty of clear liquids, including Gatorade, Pedialyte, or another electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -2018,12 +1994,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -2079,14 +2055,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de CLENPIQ (2 botellas, 5.4 oz / 160 mL cada una — lista para beber, sin mezclar). Además, suficientes líquidos claros, incluyendo Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -2094,12 +2062,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -2465,14 +2433,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 SUPREP kit (2 bottles of 6 oz concentrate + mixing container — prescription). Plus plenty of clear liquids, including an electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -2480,12 +2440,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -2543,14 +2503,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de SUPREP (2 botellas de 6 oz de concentrado + recipiente para mezclar — con receta). Además, suficientes líquidos claros, incluyendo una bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -2558,12 +2510,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -2623,14 +2575,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 SUPREP kit (2 bottles of 6 oz concentrate + mixing container — prescription). Plus plenty of clear liquids, including an electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -2638,12 +2582,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -2701,14 +2645,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de SUPREP (2 botellas de 6 oz de concentrado + recipiente para mezclar — con receta). Además, suficientes líquidos claros, incluyendo una bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -2716,12 +2652,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -5539,14 +5475,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — EGD + colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 CLENPIQ kit (2 bottles, 5.4 oz / 160 mL each — ready to drink, no mixing). Plus plenty of clear liquids, including Gatorade, Pedialyte, or another electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -5554,12 +5482,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — EGD + colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — EGD + colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -5615,14 +5543,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de CLENPIQ (2 botellas, 5.4 oz / 160 mL cada una — lista para beber, sin mezclar). Además, suficientes líquidos claros, incluyendo Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -5630,12 +5550,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para endoscopia + colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -5693,14 +5613,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — EGD + colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 CLENPIQ kit (2 bottles, 5.4 oz / 160 mL each — ready to drink, no mixing). Plus plenty of clear liquids, including Gatorade, Pedialyte, or another electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -5708,12 +5620,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — EGD + colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — EGD + colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -5769,14 +5681,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de CLENPIQ (2 botellas, 5.4 oz / 160 mL cada una — lista para beber, sin mezclar). Además, suficientes líquidos claros, incluyendo Gatorade, Pedialyte u otra bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -5784,12 +5688,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para endoscopia + colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -6155,14 +6059,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — EGD + colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 SUPREP kit (2 bottles of 6 oz concentrate + mixing container — prescription). Plus plenty of clear liquids, including an electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -6170,12 +6066,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — EGD + colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — EGD + colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -6233,14 +6129,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de SUPREP (2 botellas de 6 oz de concentrado + recipiente para mezclar — con receta). Además, suficientes líquidos claros, incluyendo una bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -6248,12 +6136,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para endoscopia + colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
@@ -6313,14 +6201,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Low-residue (“white”) diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy. Sample meals are on your instructions page.",
-      "id": "low_residue_start",
-      "titleDetailed": "Start low-residue diet — EGD + colonoscopy prep",
-      "titleDiscreet": "Start low-fiber diet"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 SUPREP kit (2 bottles of 6 oz concentrate + mixing container — prescription). Plus plenty of clear liquids, including an electrolyte drink. Nothing red or purple.",
       "id": "buy_supplies",
@@ -6328,12 +6208,12 @@
       "titleDiscreet": "Buy supplies"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Clear liquids only all day — no solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
-      "id": "clears_allday",
-      "titleDetailed": "Clear liquids only all day — EGD + colonoscopy prep",
-      "titleDiscreet": "Clear liquids only — all day"
+      "desc": "After 2:00 PM — clear liquids only. No solid food, no dairy. OK: water, apple juice, white grape juice, lemonade, clear soda, clear broth, popsicles, plain Jell-O. Nothing red or purple.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Clear liquids only begins — EGD + colonoscopy prep",
+      "titleDiscreet": "Clear liquids only — begins"
      },
      {
       "day": -1,
@@ -6391,14 +6271,6 @@
      },
      {
       "allDay": true,
-      "day": -3,
-      "desc": "Dieta baja en residuos (“blanca”) durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos. Ideas de comidas en su página de instrucciones.",
-      "id": "low_residue_start",
-      "titleDetailed": "Comenzar dieta baja en residuos — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Comenzar dieta baja en fibra"
-     },
-     {
-      "allDay": true,
       "day": -2,
       "desc": "1 kit de SUPREP (2 botellas de 6 oz de concentrado + recipiente para mezclar — con receta). Además, suficientes líquidos claros, incluyendo una bebida con electrolitos. Nada rojo ni morado.",
       "id": "buy_supplies",
@@ -6406,12 +6278,12 @@
       "titleDiscreet": "Comprar suministros"
      },
      {
-      "allDay": true,
       "day": -1,
-      "desc": "Solo líquidos claros todo el día — sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
-      "id": "clears_allday",
-      "titleDetailed": "Solo líquidos claros todo el día — preparación para endoscopia + colonoscopia",
-      "titleDiscreet": "Solo líquidos claros — todo el día"
+      "desc": "Después de las 2:00 PM — solo líquidos claros. Sin alimentos sólidos, sin lácteos. Permitido: agua, jugo de manzana, jugo de uva blanca, limonada, refresco claro, caldo claro, paletas heladas, gelatina simple. Nada rojo ni morado.",
+      "id": "clears_start",
+      "start": "14:00",
+      "titleDetailed": "Comienzan solo líquidos claros — preparación para endoscopia + colonoscopia",
+      "titleDiscreet": "Solo líquidos claros — comienza"
      },
      {
       "day": -1,
