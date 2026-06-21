@@ -23,7 +23,7 @@ CHEATSHEET_OUT := $(HOME)/Desktop/peds-gi-system/doses-giready
 STAFF_OUT      := $(HOME)/Desktop/peds-gi-system/staff
 
 .PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
-        render-combined render-directions render-cheatsheet \
+        render-pdf-calm render-combined render-combined-calm render-directions render-cheatsheet \
         sites-colonoscopy sites-combined \
         sites-lactulose sites-lactulose-combined \
         sites-clenpiq sites-clenpiq-combined \
@@ -72,6 +72,20 @@ render-pdf:
 render-pdf-light:
 	$(RENDER) --out "$(REVIEW_OUT)/SCC-print-light"  --format pdf-print --location scc  --theme print-light
 	$(RENDER) --out "$(REVIEW_OUT)/PMCH-print-light" --format pdf-print --location pmch --theme print-light
+
+# Calm visual language — colonoscopy family (standard + infant bands). This is
+# the design the website download PDFs now ship: build_colonoscopy_websites.py
+# reads {LOC}-calm-color by default (BOWEL_PREP_PDF_THEME=calm). In render-all
+# so `make sites` always has fresh Calm PDFs to copy in.
+render-pdf-calm:
+	$(RENDER) --out "$(REVIEW_OUT)/SCC-calm-color"  --format pdf-print --location scc  --theme calm
+	$(RENDER) --out "$(REVIEW_OUT)/PMCH-calm-color" --format pdf-print --location pmch --theme calm
+
+# Calm visual language — combined EGD+colonoscopy family. Feeds the
+# egdcolon / egdcolon86 download PDFs ({LOC}-combined-calm-color).
+render-combined-calm:
+	$(RENDER) --out "$(REVIEW_OUT)/SCC-combined-calm-color"  --format pdf-print --location scc  --theme calm --variant combined
+	$(RENDER) --out "$(REVIEW_OUT)/PMCH-combined-calm-color" --format pdf-print --location pmch --theme calm --variant combined
 
 render-combined:
 	$(RENDER) --out "$(REVIEW_OUT)/SCC-combined-color"  --format pdf-print --location scc  --theme color --variant combined
@@ -158,7 +172,7 @@ sites: sites-colonoscopy sites-combined \
        sites-clenpiq sites-clenpiq-combined \
        sites-suprep sites-suprep-combined
 
-render-all: render-scc render-pmch render-pdf render-pdf-light render-combined render-pdf-suprep render-pdf-lactulose render-pdf-clenpiq render-directions render-cheatsheet
+render-all: render-scc render-pmch render-pdf render-pdf-light render-pdf-calm render-combined render-combined-calm render-pdf-suprep render-pdf-lactulose render-pdf-clenpiq render-directions render-cheatsheet
 
 # Alias so the meta repo's `render-bowel-prep` (which calls `$(MAKE) -C
 # $(BP_SKILL) render`) finds a target. Keeps the per-skill makefiles

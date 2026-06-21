@@ -24,6 +24,7 @@ Kept byte-identical across the giready skills + the schedule-portal-backend.
 from __future__ import annotations
 
 import builtins
+import threading
 
 import weasyprint.pdf.tags as _wp_tags
 
@@ -34,23 +35,38 @@ class _StableId:
     """Maps each object to a small, render-local, monotonically increasing int,
     keyed by its real ``id()`` so the same object always gets the same value
     within one render. Reset before each render so every PDF is independently
-    reproducible regardless of what else rendered in the same process."""
+    reproducible regardless of what else rendered in the same process.
+
+    State is THREAD-LOCAL. ``_wp_tags.id`` is one module attribute shared by
+    every thread, but the scheduler backend serves renders from a sync FastAPI
+    handler — Starlette runs those on a thread pool, so two PDFs can render
+    concurrently in one process. A single shared counter/map would let one
+    render's ``reset()`` and id assignments interleave with another's, corrupting
+    struct-element IDs and the TD->TH ``/Headers`` references (broken tags for a
+    screen reader) and destroying byte-determinism. Per-thread state keeps each
+    render fully isolated; a single render is synchronous within its own thread,
+    so the same document still serializes identically every time."""
 
     def __init__(self) -> None:
-        self._m: dict[int, int] = {}
-        self._n = 0
+        self._tl = threading.local()
+
+    def _state(self) -> dict:
+        s = getattr(self._tl, "state", None)
+        if s is None:
+            s = self._tl.state = {"m": {}, "n": 0}
+        return s
 
     def reset(self) -> None:
-        self._m = {}
-        self._n = 0
+        self._tl.state = {"m": {}, "n": 0}
 
     def __call__(self, obj) -> int:
+        s = self._state()
         real = builtins.id(obj)
-        val = self._m.get(real)
+        val = s["m"].get(real)
         if val is None:
-            self._n += 1
-            val = self._n
-            self._m[real] = val
+            s["n"] += 1
+            val = s["n"]
+            s["m"][real] = val
         return val
 
 

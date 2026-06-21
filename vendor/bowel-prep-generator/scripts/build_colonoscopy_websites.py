@@ -23,6 +23,7 @@ Usage:
     python scripts/build_colonoscopy_websites.py
 """
 
+import os
 import re
 import shutil
 import sys
@@ -45,6 +46,12 @@ DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 # scripts/render.py; if missing the build still succeeds but the PDF link is
 # dropped from that band.
 PDF_REVIEW_DIR = Path.home() / "Desktop" / "peds-gi-system" / "bowel-prep-pdf-review"
+# Which rendered print theme the website download PDFs use. Calm is the default
+# (the live download handouts are the Calm design); override with
+# BOWEL_PREP_PDF_THEME=color to fall back to the legacy navy "color" renders.
+# Picks the matching review folder ({LOC}[-combined][-calm]-color) in
+# find_handout_pdf below.
+PDF_THEME = os.environ.get("BOWEL_PREP_PDF_THEME", "calm").strip().lower()
 
 # Pull the single-source-of-truth render helpers from render.py so the mobile
 # pages are guaranteed to use the same dose phrasing and the same
@@ -213,15 +220,21 @@ def find_handout_pdf(band, location_id, lang, family):
     stem = band["filename_stem"]  # e.g. "31-40kg", "under-15kg-enema"
     loc_upper = location_id.upper()
     lang_dir = "English" if lang == "en" else "Spanish"
-    variant = f"{loc_upper}-combined-color" if family == "combined" else f"{loc_upper}-color"
+    fam_seg = "-combined" if family == "combined" else ""
+    theme_seg = "-calm" if PDF_THEME == "calm" else ""
+    variant = f"{loc_upper}{fam_seg}{theme_seg}-color"
 
     base = PDF_REVIEW_DIR / variant / lang_dir
     if not base.exists():
         return None
 
     es_suffix = "-es" if lang == "es" else ""
+    calm_suffix = "-calm" if PDF_THEME == "calm" else ""
     family_suffix = "-combined" if family == "combined" else ""
-    pdf_name = f"bowel-prep-{stem}-{loc_upper}{es_suffix}-print{family_suffix}.pdf"
+    # Calm renders insert "-calm" between "-print" and the combined suffix:
+    #   color    -> bowel-prep-31-40kg-SCC-print.pdf / ...-print-combined.pdf
+    #   calm     -> bowel-prep-31-40kg-SCC-print-calm.pdf / ...-print-calm-combined.pdf
+    pdf_name = f"bowel-prep-{stem}-{loc_upper}{es_suffix}-print{calm_suffix}{family_suffix}.pdf"
 
     # The band-label folder uses friendly names ("31-40 kg (68-88 Lb)") that
     # we don't track here, so glob across the variant dir to find the file.

@@ -78,3 +78,35 @@ textarea:focus-visible,
 /* Interactive checklist steps upgraded by mobile-a11y.js get a pointer +
  * keep the tap target comfortably large for 2.5.5 (target size). */
 .time-box.ck[role="button"] { cursor: pointer; }
+
+/* --- MiraLAX cup tracker (mobile-only; the print templates don't reference
+ * the cup-tracker token, so it never appears in the PDF). One tappable chip
+ * per cup; mobile-a11y.js persists progress across reloads. */
+.cup-tracker {
+  margin: 12px 0 4px;
+  padding: 12px 14px;
+  background: var(--card, #ffffff);
+  border: 1px solid var(--line, #E6DCCB);
+  border-left: 4px solid var(--teal, #2E7C8A);
+  border-radius: 10px;
+}
+.cup-tracker-head { font-size: 14px; line-height: 1.4; color: var(--ink, #22323D); margin-bottom: 10px; }
+.cup-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.cup-grid .cup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  min-height: 44px;          /* 2.5.5 target size */
+  padding: 0 12px;
+  border: 1.5px solid var(--teal, #2E7C8A);
+  border-radius: 10px;
+  background: var(--card, #ffffff);
+  color: var(--teal-deep, #1E5663);
+  font: 700 16px/1 var(--sans, system-ui, sans-serif);
+  cursor: pointer;
+}
+.cup-grid .cup input { width: 18px; height: 18px; accent-color: var(--teal, #2E7C8A); margin: 0; }
+.cup-grid .cup.is-done { background: var(--teal-tint, #E3F0F0); border-color: var(--teal-deep, #1E5663); }
+.cup-progress { margin: 10px 0 0; font: 700 13px/1.3 var(--sans, system-ui, sans-serif); color: var(--teal-deep, #1E5663); }

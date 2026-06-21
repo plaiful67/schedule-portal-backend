@@ -30,16 +30,28 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
       fontconfig ca-certificates curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Source Serif 4 (variable font, OFL-licensed). Pinned to a specific commit
-# in google/fonts so builds are reproducible.
+# Source Serif 4 (the "color"/personalized templates' serif) plus the Calm
+# theme fonts — Newsreader (serif) + Hanken Grotesk (sans). All variable,
+# OFL-licensed, pulled from google/fonts and pinned to a commit so builds are
+# reproducible. The Calm scheduler PDFs reference these by family name; baking
+# them in keeps render-time output deterministic (no Google-Fonts fetch — the
+# @import is stripped from the vendored calm CSS by the bowel_prep adapter).
 ARG GOOGLE_FONTS_SHA=main
 RUN mkdir -p /usr/share/fonts/truetype/sourceserif4 \
+              /usr/share/fonts/truetype/newsreader \
+              /usr/share/fonts/truetype/hankengrotesk \
  && curl -fsSL -o /usr/share/fonts/truetype/sourceserif4/SourceSerif4-Roman.ttf \
       "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/sourceserif4/SourceSerif4%5Bopsz%2Cwght%5D.ttf" \
  && curl -fsSL -o /usr/share/fonts/truetype/sourceserif4/SourceSerif4-Italic.ttf \
       "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/sourceserif4/SourceSerif4-Italic%5Bopsz%2Cwght%5D.ttf" \
+ && curl -fsSL -o /usr/share/fonts/truetype/newsreader/Newsreader-Roman.ttf \
+      "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/newsreader/Newsreader%5Bopsz%2Cwght%5D.ttf" \
+ && curl -fsSL -o /usr/share/fonts/truetype/newsreader/Newsreader-Italic.ttf \
+      "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/newsreader/Newsreader-Italic%5Bopsz%2Cwght%5D.ttf" \
+ && curl -fsSL -o /usr/share/fonts/truetype/hankengrotesk/HankenGrotesk.ttf \
+      "https://github.com/google/fonts/raw/${GOOGLE_FONTS_SHA}/ofl/hankengrotesk/HankenGrotesk%5Bwght%5D.ttf" \
  && fc-cache -fv >/dev/null \
- && fc-list | grep -iE "inter|source serif" | head -6
+ && fc-list | grep -iE "inter|source serif|newsreader|hanken" | head -10
 
 WORKDIR /app
 

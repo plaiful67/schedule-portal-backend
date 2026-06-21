@@ -211,7 +211,6 @@ _LEGAL_FOOTER_HTML_EN = """
 
 _LEGAL_FOOTER_HTML_ES = """
 
-<!-- REVIEW: native ES review pending on disclaimer_es -->
 <p class="footer-copyright">&copy; 2026</p>
 <nav class="footer-policy-links" aria-label="Políticas del sitio"><a href="https://giready.com/es/privacidad/">Política de Privacidad</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/es/terminos/">Términos de Uso</a></nav>
 <aside class="medical-disclaimer" role="note" aria-label="Aviso médico">{{DISCLAIMER}}</aside>

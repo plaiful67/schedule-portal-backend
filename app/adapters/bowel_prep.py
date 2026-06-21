@@ -4,6 +4,7 @@ schedule.giready.com deep-link receiver.
 """
 from __future__ import annotations
 
+import functools
 import importlib.util
 import re
 import sys
@@ -233,6 +234,54 @@ def _location_block(location_id: str) -> dict[str, Any]:
     return loc
 
 
+# --- Calm theme ----------------------------------------------------------
+# The personalized templates are forks of the navy "color" print design. To
+# render them in the Calm visual language we swap their entire <style> for the
+# shared calm-print.css plus calm-personalized.css (the personalization-only
+# rules — .appt-*, .performing-physician, .followup-*, .meds-reference*,
+# .safety* — that calm-print.css doesn't carry). Both are read from
+# vendor/shared (the copy baked into the Cloud Run image by `make vendor-sync`),
+# with a dev fallback to ~/peds-gi-prep-system/shared. The Google-Fonts @import
+# is stripped: Newsreader + Hanken Grotesk are baked into the image (Dockerfile)
+# and a render-time network fetch would be non-deterministic on Cloud Run.
+_CALM_SHARED_DIRS = (
+    BACKEND_DIR / "vendor" / "shared",
+    Path.home() / "peds-gi-prep-system" / "shared",
+)
+_CALM_STYLE_RE = re.compile(r"<style>.*?</style>", re.S)
+_CALM_IMPORT_RE = re.compile(r"@import\s+url\([^)]*\)\s*;", re.S)
+
+
+def _read_calm_shared(name: str) -> str:
+    for d in _CALM_SHARED_DIRS:
+        p = d / name
+        if p.exists():
+            return p.read_text(encoding="utf-8")
+    return ""
+
+
+@functools.lru_cache(maxsize=1)
+def _calm_css() -> str:
+    base = _read_calm_shared("calm-print.css")
+    if not base:
+        return ""
+    base = _CALM_IMPORT_RE.sub("", base)
+    return base + "\n" + _read_calm_shared("calm-personalized.css")
+
+
+def _swap_calm(html: str) -> str:
+    """Replace the personalized template's first <style> with the Calm
+    stylesheet + personalization rules. Run on the RAW template before token
+    substitution so calm-print.css's {{PRACTICE_FOOTER}}/{{BAND_LABEL}} resolve
+    in the normal pass. No-op (keeps the old design) if the Calm CSS is missing,
+    so a missing vendor file degrades rather than 500s — the assert_calm smoke
+    is what proves Calm actually applied in production."""
+    css = _calm_css()
+    if not css:
+        return html
+    return _CALM_STYLE_RE.sub(lambda _: f"<style>\n{css}\n</style>", html, count=1)
+
+
 def render_pdf(
     *,
     band_id: str,
@@ -453,6 +502,9 @@ def render_pdf(
     # rather than suppress it — replaces the older server-side STOP_MEDS_BLOCK
     # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
+    # Calm theme: swap the forked template's navy <style> for the shared Calm
+    # stylesheet (+ personalization rules) before any token substitution.
+    html = _swap_calm(html)
     partials = skill._load_partials(lang)
     # Pass 1: expand partials FIRST so any tokens they introduce
     # (e.g. {{HTML_MIRALAX_SHOPPING}} inside the partial shopping table)

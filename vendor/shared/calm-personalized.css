@@ -1,0 +1,146 @@
+/* calm-personalized.css — personalization-only print rules for the
+   schedule.giready.com backend's FORKED personalized templates
+   (schedule-portal-backend/app/templates/bowel_prep/*print-personalized*).
+
+   Those templates each carry their own <style> with personalization classes
+   that calm-print.css does NOT define (.appt-*, .performing-physician,
+   .followup-*, .meds-reference*, .safety*, ...). The bowel_prep adapter swaps
+   that whole <style> for Calm, which would drop these rules — so they are
+   restored here, re-toned to the Calm palette, and appended AFTER
+   calm-print.css (its :root tokens are in scope).
+
+   Source of truth: ~/peds-gi-prep-system/shared/. Vendored into
+   schedule-portal-backend/vendor/shared/ by scripts/vendor_sync.py.
+   Keep in lock-step with the personalization markup in those templates;
+   scripts/check_calm_personalized_coverage.py enforces that every class a
+   template's <style> defines is covered by calm-print.css ∪ this file. */
+
+/* Performing-physician line (under the band label / cover) ----------- */
+.performing-physician {
+  font-family: var(--sans);
+  font-size: 10pt;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-top: 3pt;
+}
+/* .ui mirrors the heading font in the personalized templates' h1..h4 rule. */
+.ui { font-family: var(--serif); color: var(--teal-deep); }
+
+/* Appointment callout — boxed multi-column layout (standard family) -- */
+.appt-callout {
+  margin: 6pt 0;
+  padding: 7pt 14pt;
+  background: #ffffff;
+  border: 1pt solid var(--line);
+  border-left: 4pt solid var(--teal);
+  border-radius: 9pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+.appt-block { flex: 1 1 0; min-width: 0; }
+.appt-block.appt-block-date { flex: 2 1 0; }
+.appt-label {
+  font-family: var(--sans);
+  font-size: 8pt; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--ink-faint); font-weight: 700; margin-bottom: 1pt;
+}
+.appt-value {
+  font-family: var(--serif);
+  font-size: 13pt; font-weight: 600; color: var(--teal-deep);
+  white-space: nowrap;
+}
+/* Appointment callout — compact one-row layout (combined family) ----- */
+.appt-line { font-size: 10pt; line-height: 1.4; color: var(--ink); }
+.appt-line strong { color: var(--teal-deep); }
+.appt-sep { color: var(--line); margin: 0 5pt; }
+
+/* Compact warning (page-fit variant of calm-print.css .warning) ------ */
+.warning.compact {
+  padding: 4pt 8pt;
+  margin: 4pt 0;
+  font-size: 9pt;
+  line-height: 1.3;
+  break-before: avoid;
+}
+
+/* Follow-up appointment callout ------------------------------------- */
+.followup-callout {
+  margin: 8pt 0; padding: 6pt 12pt;
+  background: #ffffff;
+  border: 1pt solid var(--line);
+  border-left: 4pt solid var(--teal);
+  border-radius: 9pt;
+  display: flex; align-items: baseline; gap: 8pt;
+  page-break-inside: avoid;
+}
+.followup-callout .followup-label {
+  font-family: var(--sans);
+  font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--ink-faint); font-weight: 700;
+}
+.followup-callout .followup-value {
+  font-family: var(--serif);
+  font-size: 11pt; font-weight: 600; color: var(--teal-deep);
+}
+.followup-callout.fallback .followup-value {
+  font-family: var(--sans);
+  font-size: 10pt; font-weight: 400; font-style: italic; color: var(--ink-soft);
+}
+
+/* Medications-to-stop reference callout (amber, with meds.giready QR) - */
+.meds-reference {
+  margin: 10pt 0; padding: 8pt 13pt;
+  background: #ffffff;
+  border: 1pt solid var(--amber-line);
+  border-left: 5pt solid var(--amber-line);
+  border-radius: 9pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.meds-reference-row { display: flex; align-items: center; gap: 12pt; }
+.meds-reference h3 {
+  font-family: var(--sans);
+  font-size: 10pt; margin: 0 0 4pt 0; color: var(--amber-ink);
+  text-transform: uppercase; letter-spacing: 0.03em; font-weight: 700;
+}
+.meds-reference p { margin: 0; font-size: 9.5pt; color: var(--ink); }
+.meds-reference ul { margin: 4pt 0 6pt 0; padding-left: 18pt; }
+.meds-reference li { font-size: 10pt; margin: 1pt 0; color: var(--ink); }
+.meds-reference .med-note { display: block; font-size: 8.5pt; color: var(--ink-soft); font-style: italic; margin-top: 1pt; }
+.meds-reference .meds-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10pt; padding-top: 6pt; margin-top: 4pt;
+  border-top: 1pt solid var(--amber-line);
+  font-size: 8.5pt; font-style: italic; color: var(--ink-soft);
+}
+.meds-reference .meds-qr { width: 32pt; height: 32pt; flex-shrink: 0; }
+
+/* Prominent safety callout — infant saline-enema variant ------------- */
+.safety {
+  display: flex; gap: 12pt; align-items: flex-start;
+  background: #ffffff;
+  border: 2pt solid var(--coral);
+  border-radius: 9pt;
+  padding: 10pt 13pt;
+  margin: 8pt 0;
+  break-inside: avoid;
+}
+.safety .safety-icon {
+  flex: 0 0 auto; font-size: 20pt; line-height: 1;
+  color: var(--coral-deep);
+  font-family: var(--sans); font-weight: 700;
+}
+.safety .safety-body { flex: 1 1 auto; font-size: 10pt; }
+.safety .safety-title {
+  font-family: var(--sans); font-weight: 700;
+  color: var(--coral-deep);
+  font-size: 11.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+  margin-bottom: 3pt;
+}
+.safety p { margin: 2pt 0; }
+
+/* Diet-reference category column (kept for parity) ------------------- */
+table.diet-ref .col-cat {
+  width: 18%; font-family: var(--sans); font-weight: 600; color: var(--teal-deep);
+}

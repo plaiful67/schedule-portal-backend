@@ -72,6 +72,27 @@ def _inject_shared_print_css(html: str) -> str:
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
 
 
+# The Calm print design lives in ONE shared stylesheet; for --theme calm we swap
+# it in for the base template's own <style>, so every family gets the Calm look
+# without a duplicated calm/ template. Keyed to the shared print class vocabulary.
+_CALM_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "calm-print.css"
+try:
+    _CALM_PRINT_CSS = _CALM_PRINT_CSS_PATH.read_text(encoding="utf-8") if _CALM_PRINT_CSS_PATH.exists() else ""
+except OSError:
+    _CALM_PRINT_CSS = ""
+
+
+def _swap_calm_style(html: str) -> str:
+    """Replace the template's first <style>…</style> with the shared Calm CSS.
+    Run on the raw template (before token substitution) so the Calm CSS's
+    {{PRACTICE_FOOTER}} / {{BAND_LABEL}} tokens are resolved by the normal pass."""
+    if not _CALM_PRINT_CSS:
+        return html
+    return re.sub(r"<style>.*?</style>",
+                  lambda _: f"<style>\n{_CALM_PRINT_CSS}\n</style>",
+                  html, count=1, flags=re.S)
+
+
 # Shared accessibility (WCAG 2.1 AA) base for the MOBILE renders: focus
 # visibility, skip link, muted-text contrast (CSS) + keyboard/ARIA semantics
 # for the checklist, feedback FAB, and tables (JS). One source for every
@@ -534,6 +555,51 @@ def build_location_placeholders(location, lang):
     }
 
 
+def _cup_tracker_html(band, lang, drink_cup, total_oz):
+    """Build the mobile-only MiraLAX cup tracker — one tappable checkbox per
+    cup so a teen can keep count of how many they've finished.
+
+    Cup size is the band's own `drink_cup` increment (3/5/7/8 oz across the
+    standard bands), not a flat 4/8. Cup count = ceil(total Gatorade ÷ cup oz).
+    The token is referenced ONLY by the mobile templates, so it never reaches
+    the print PDF. Interactivity (toggle + localStorage persistence) is layered
+    on by the shared mobile-a11y.js; the bare checkboxes still toggle without JS.
+    """
+    m = re.search(r"(\d+)\s*oz", drink_cup or "")
+    cup_oz = int(m.group(1)) if m else 8
+    try:
+        cups = max(1, -(-int(total_oz) // cup_oz))  # ceil division
+    except (TypeError, ValueError):
+        return ""
+    aria = "Cup {n} of {t}" if lang == "en" else "Vaso {n} de {t}"
+    cells = "".join(
+        f'<label class="cup"><input type="checkbox" aria-label="{aria.format(n=i, t=cups)}">'
+        f'<span aria-hidden="true">{i}</span></label>'
+        for i in range(1, cups + 1)
+    )
+    key = f"giready-cups-{band['id']}-{lang}"
+    if lang == "en":
+        head = (f'\U0001F964 <strong>Cup tracker</strong> &mdash; tap each cup as your child '
+                f'finishes it. Aim for about <strong>{cups} cups</strong> (~{cup_oz} oz each), '
+                f'one every 30 minutes.')
+        # aria-live progress template; mobile-a11y.js fills %n%/%t%. Localized
+        # here (the shared JS is language-agnostic) so the announced count
+        # matches the page language instead of always reading English.
+        prog_tmpl = "%n% of %t% cups done"
+    else:
+        head = (f'\U0001F964 <strong>Contador de vasos</strong> &mdash; toque cada vaso cuando '
+                f'su niño lo termine. La meta es aproximadamente <strong>{cups} vasos</strong> '
+                f'(~{cup_oz} oz cada uno), uno cada 30 minutos.')
+        prog_tmpl = "%n% de %t% vasos completados"
+    return (
+        f'<div class="cup-tracker" data-cup-key="{key}" data-total="{cups}" data-progress-tmpl="{prog_tmpl}">\n'
+        f'  <div class="cup-tracker-head">{head}</div>\n'
+        f'  <div class="cup-grid">{cells}</div>\n'
+        f'  <p class="cup-progress" aria-live="polite"></p>\n'
+        '</div>'
+    )
+
+
 def build_strings(band, lang, location=None):
     """Return a dict of placeholder → rendered string for a standard-protocol band.
 
@@ -706,59 +772,41 @@ def build_strings(band, lang, location=None):
     # split schedule (Dulcolax 12 PM, MiraLAX 1 PM) as two separate boxes.
     miralax_dose_phrase = _miralax_dose_phrase(band, lang)
 
-    if dayof_time == miralax_time and dayof_tabs > 0:
-        if lang == "en":
-            html_prep_medicine_block = (
-                '<div class="time-box">\n'
-                f'  <div class="when">{miralax_time}</div>\n'
-                '  <div class="what">\n'
-                f'    Give {_dulcolax_label_en(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water,<br>\n'
-                f'    then start the MiraLAX solution &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; from the fridge.<br>\n'
-                f'    Have your child drink <strong>{drink_cup} every 30 minutes</strong> until finished.\n'
-                '  </div>\n'
-                '</div>'
-            )
-        else:
-            html_prep_medicine_block = (
-                '<div class="time-box">\n'
-                f'  <div class="when">{miralax_time}</div>\n'
-                '  <div class="what">\n'
-                f'    Dé {_dulcolax_label_es(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua,<br>\n'
-                f'    luego comience la solución de MiraLAX &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; del refrigerador.<br>\n'
-                f'    Haga que su niño beba <strong>{drink_cup} cada 30 minutos</strong> hasta terminar.\n'
-                '  </div>\n'
-                '</div>'
-            )
+    # Day-of meds in two sequenced time-boxes: Dulcolax first, then the MiraLAX.
+    # When both fall at the same clock time (and there are tablets to give) the
+    # second box reads "Then"/"Luego" instead of repeating the identical time;
+    # otherwise it carries the MiraLAX clock time (e.g. the 15-20 kg split).
+    sequenced = dayof_time == miralax_time and dayof_tabs > 0
+    if lang == "en":
+        when2 = "Then" if sequenced else miralax_time
+        html_prep_medicine_block = (
+            '<div class="time-box">\n'
+            f'  <div class="when">{dayof_time}</div>\n'
+            f'  <div class="what">Give {_dulcolax_label_en(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water.</div>\n'
+            '</div>\n'
+            '<div class="time-box">\n'
+            f'  <div class="when">{when2}</div>\n'
+            '  <div class="what">\n'
+            f'    Start the MiraLAX solution &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; from the fridge.<br>\n'
+            f'    Have your child drink <strong>{drink_cup} every 30 minutes</strong> until finished.\n'
+            '  </div>\n'
+            '</div>'
+        )
     else:
-        # Times differ (15-20 kg) — render two separate time-boxes.
-        if lang == "en":
-            html_prep_medicine_block = (
-                '<div class="time-box">\n'
-                f'  <div class="when">{dayof_time}</div>\n'
-                f'  <div class="what">Give {_dulcolax_label_en(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; with a sip of water.</div>\n'
-                '</div>\n'
-                '<div class="time-box">\n'
-                f'  <div class="when">{miralax_time}</div>\n'
-                '  <div class="what">\n'
-                f'    Start the MiraLAX solution &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; from the fridge.<br>\n'
-                f'    Have your child drink <strong>{drink_cup} every 30 minutes</strong> until finished.\n'
-                '  </div>\n'
-                '</div>'
-            )
-        else:
-            html_prep_medicine_block = (
-                '<div class="time-box">\n'
-                f'  <div class="when">{dayof_time}</div>\n'
-                f'  <div class="what">Dé {_dulcolax_label_es(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua.</div>\n'
-                '</div>\n'
-                '<div class="time-box">\n'
-                f'  <div class="when">{miralax_time}</div>\n'
-                '  <div class="what">\n'
-                f'    Comience la solución de MiraLAX &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; del refrigerador.<br>\n'
-                f'    Haga que su niño beba <strong>{drink_cup} cada 30 minutos</strong> hasta terminar.\n'
-                '  </div>\n'
-                '</div>'
-            )
+        when2 = "Luego" if sequenced else miralax_time
+        html_prep_medicine_block = (
+            '<div class="time-box">\n'
+            f'  <div class="when">{dayof_time}</div>\n'
+            f'  <div class="what">Dé {_dulcolax_label_es(dayof_tabs)} &mdash; <strong>{html_dulcolax_dayof_short}</strong> &mdash; con un sorbo de agua.</div>\n'
+            '</div>\n'
+            '<div class="time-box">\n'
+            f'  <div class="when">{when2}</div>\n'
+            '  <div class="what">\n'
+            f'    Comience la solución de MiraLAX &mdash; <strong>{miralax_dose_phrase}</strong> &mdash; del refrigerador.<br>\n'
+            f'    Haga que su niño beba <strong>{drink_cup} cada 30 minutos</strong> hasta terminar.\n'
+            '  </div>\n'
+            '</div>'
+        )
 
     return {
         # HTML placeholders
@@ -772,6 +820,9 @@ def build_strings(band, lang, location=None):
         "{{HTML_DRINK_CUP}}": drink_cup,
         "{{HTML_TWO_DAYS_BEFORE_BLOCK}}": html_two_days_before,
         "{{HTML_PREP_MEDICINE_BLOCK}}": html_prep_medicine_block,
+        # Mobile-only MiraLAX cup tracker (referenced only by the mobile
+        # templates, so it never reaches the print PDF).
+        "{{HTML_CUP_TRACKER}}": _cup_tracker_html(band, lang, drink_cup, oz),
         "{{HTML_MIRALAX_SHORT}}": html_miralax_short,
         "{{HTML_MIRALAX_SHORT_PLAIN}}": html_miralax_short_plain,        # shopping total: big prep + rescue
         "{{HTML_MIRALAX_SHOPPING_NOTE}}": shopping_note,                 # per-band bottle-size hint
@@ -2076,20 +2127,60 @@ def _scc_maps_url_base():
     return _practice()["template_defaults"]["scc_maps_url"]
 
 
-def build_practice_placeholders(lang):
-    """Return {{PRACTICE_*}} placeholders sourced from practice.yaml for the given language."""
+def _doctors_block_html(lang):
+    """Render the all-partners doctor block for the INTERNAL Drive binder only.
+
+    Never used on the public website PDFs (deliberate liability decision — the
+    public handouts carry no doctor names). Sourced from practice.yaml `doctors:`.
+    """
+    docs = _practice()["practice"].get("doctors", []) or []
+    names = [d.get("name_short", "").strip() for d in docs if d.get("name_short")]
+    if not names:
+        return ""
+    heading = ("Our Pediatric Gastroenterologists" if lang == "en"
+               else "Nuestros Gastroenterólogos Pediátricos")
+    items = "".join(f"<li>{n}</li>" for n in names)
+    return (
+        '<section class="doctors-block">\n'
+        f'  <h2 class="doctors-heading">{heading}</h2>\n'
+        f'  <ul class="doctors-list">{items}</ul>\n'
+        '</section>'
+    )
+
+
+def _strip_legal_footer(html):
+    """Remove the footer block (copyright + privacy/terms links + medical
+    disclaimer) for the legal=off fork. Mirrors the scheduler's de-personalized
+    strip so static + scheduler behave identically. The doctors block sits above
+    this block and is preserved."""
+    return re.sub(r'\s*<p class="footer-copyright">.*?</aside>', '', html, flags=re.S)
+
+
+def build_practice_placeholders(lang, logo="giready", doctors="none"):
+    """Return {{PRACTICE_*}} placeholders sourced from practice.yaml for the given language.
+
+    `logo`: "giready" (default, public brand) or "pmch" (internal Drive binder).
+    `doctors`: "none" (default — public website carries no doctor names) or "all"
+    (internal Drive binder lists every partner).
+    """
     p = _practice()["practice"]
     stack = p.get(f"cover_stack_{lang}") or p.get("cover_stack_en") or ["", "", ""]
     # Normalize to exactly 3 lines
     stack = (stack + ["", "", ""])[:3]
+    logo_file = p.get("logo_filename", "")
+    logo_alt = p.get("logo_alt", "")
+    if logo == "pmch":
+        logo_file = "logo-pmch.png"
+        logo_alt = "Peyton Manning Children's Hospital"
     return {
         "{{PRACTICE_STACK_LINE_1}}": stack[0],
         "{{PRACTICE_STACK_LINE_2}}": stack[1],
         "{{PRACTICE_STACK_LINE_3}}": stack[2],
         "{{PRACTICE_FOOTER}}":       p.get(f"footer_{lang}") or p.get("footer_en") or "",
         "{{DISCLAIMER}}":            p.get(f"disclaimer_{lang}") or p.get("disclaimer_en") or "",
-        "{{PRACTICE_LOGO_FILE}}":    p.get("logo_filename", ""),
-        "{{PRACTICE_LOGO_ALT}}":     p.get("logo_alt", ""),
+        "{{PRACTICE_LOGO_FILE}}":    logo_file,
+        "{{PRACTICE_LOGO_ALT}}":     logo_alt,
+        "{{DOCTORS_BLOCK}}":         _doctors_block_html(lang) if doctors == "all" else "",
     }
 
 
@@ -2227,7 +2318,7 @@ def _inject_qr_into_imgs(html, qr_uris):
 
 def render_pdf_print(template_path, replacements, out_path,
                       mobile_path=None, lang="en", location=None, theme="color",
-                      variant="standard"):
+                      variant="standard", logo="giready", legal="on", doctors="none"):
     """Render a polished print PDF via WeasyPrint.
 
     Mirrors render_html's substitution logic but additionally:
@@ -2252,6 +2343,11 @@ def render_pdf_print(template_path, replacements, out_path,
 
     with open(template_path, encoding="utf-8") as f:
         html = f.read()
+
+    # Calm theme: swap the base template's <style> for the shared Calm stylesheet
+    # (before substitution, so the Calm CSS's {{...}} tokens resolve below).
+    if theme == "calm":
+        html = _swap_calm_style(html)
 
     # Compute the URLs each QR encodes — also exposed as text placeholders so the
     # print template can wrap captions in <a href> for clickable PDFs.
@@ -2309,13 +2405,19 @@ def render_pdf_print(template_path, replacements, out_path,
         "{{GIKIDS_URL}}":           gikids_url,
         "{{LOCATION_PHONE_TEL}}":   location_phone_tel,
     }
-    practice_replacements = build_practice_placeholders(lang)
+    practice_replacements = build_practice_placeholders(lang, logo=logo, doctors=doctors)
     # Partials must be merged FIRST so any per-band/QR/practice placeholders that
     # live inside the partial markup are still substituted by the regular pass.
     partials_replacements = _load_partials(lang)
     all_replacements = {**partials_replacements, **replacements, **qr_replacements, **practice_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, value)
+
+    # Legal fork: strip the footer block (copyright + privacy/terms + disclaimer)
+    # for the internal Drive binder. Done after substitution so {{DISCLAIMER}} is
+    # already resolved; the doctors block above the footer is preserved.
+    if legal == "off":
+        html = _strip_legal_footer(html)
 
     # id-based <img> src rewrite (polished templates that don't use the data-URI tokens).
     html = _inject_qr_into_imgs(html, qr_uris)
@@ -2338,13 +2440,15 @@ def render_pdf_print(template_path, replacements, out_path,
     # design tokens + feedback-cell fallbacks for future migration.
     html = _inject_shared_print_css(html)
 
-    # Resolve relative URLs (e.g. local stub images) against the template directory.
+    # Resolve relative URLs (logos, maps, stub images) against the templates/
+    # root, not the template's own directory — so templates in subfolders
+    # (e.g. calm/) still resolve shared assets like giready-logo.png.
     # Tagged PDF/UA-1 output (deterministic) — see scripts/pdf_tagging.py.
     from pdf_tagging import write_pdf_tagged
-    write_pdf_tagged(HTML(string=html, base_url=str(Path(template_path).parent)), str(out_path))
+    write_pdf_tagged(HTML(string=html, base_url=str(TEMPLATES)), str(out_path))
 
 
-def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id="scc", theme="color", variant="standard"):
+def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id="scc", theme="color", variant="standard", logo="giready", legal="on", doctors="none"):
     """Render one (band, language, format) combination.
 
     `location` is the locations.<id> block from dosing.yaml; substituted into LOCATION_* placeholders.
@@ -2379,7 +2483,7 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
     # DOCX paths need them merged here so {{DISCLAIMER}} resolves in the band
     # mobile pages and DOCX outputs.
     replacements = {**replacements, **build_location_placeholders(location, lang),
-                    **build_practice_placeholders(lang)}
+                    **build_practice_placeholders(lang, logo=logo, doctors=doctors)}
 
     lang_suffix = "" if lang == "en" else f"-{lang}"
     loc_suffix = "SCC" if location_id == "scc" else location_id.upper()
@@ -2428,12 +2532,16 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
             template = TEMPLATES / f"clenpiq-standard-print.{lang}.html"
         else:
             template = TEMPLATES / f"{protocol}-print.{lang}.html"
+        # Calm theme reuses the base per-protocol/variant template and swaps in
+        # the shared Calm stylesheet inside render_pdf_print — no separate
+        # calm/ template files. Works for every family that shares the print
+        # class vocabulary.
         theme_suffix = "" if theme == "color" else f"-{theme}"
         variant_suffix = "-combined" if variant == "combined" else ""
         out = target_dir / f"bowel-prep-{stem}-{loc_suffix}{lang_suffix}-print{theme_suffix}{variant_suffix}.pdf"
         render_pdf_print(template, replacements, out,
                          mobile_path=band.get("mobile_path"), lang=lang, location=location, theme=theme,
-                         variant=variant)
+                         variant=variant, logo=logo, legal=legal, doctors=doctors)
     else:
         raise ValueError(f"Unknown format: {fmt}")
     return out
@@ -2761,8 +2869,9 @@ def main():
                          "bowel-prep-cheatsheet.pdf (internal staff reference) and "
                          "ignores --band/--lang/--theme/--variant.")
     ap.add_argument("--location", default="scc", help="Location id (scc or pmch). Default: scc")
-    ap.add_argument("--theme", default="color", choices=["color", "print-light"],
-                    help="Color theme for pdf-print: 'color' (default) or 'print-light' (toner-friendly).")
+    ap.add_argument("--theme", default="color", choices=["color", "print-light", "calm"],
+                    help="Color theme for pdf-print: 'color' (default), 'print-light' (toner-friendly), "
+                         "or 'calm' (Calm visual language — Phase A pilot, standard colonoscopy only).")
     ap.add_argument("--variant", default="standard", choices=["standard", "combined"],
                     help="Document family for pdf-print: 'standard' (colonoscopy-only, default) "
                          "or 'combined' (EGD + colonoscopy back-to-back). 'combined' renders all "
@@ -2772,6 +2881,15 @@ def main():
     ap.add_argument("--flat", action="store_true",
                     help="Write all files directly into --out instead of nesting "
                          "under Language/Weight-band subfolders")
+    # Fork toggles (print PDFs). Defaults = public-website behavior.
+    ap.add_argument("--logo", default="giready", choices=["giready", "pmch"],
+                    help="Cover logo: 'giready' (default, public brand) or 'pmch' (internal Drive binder).")
+    ap.add_argument("--legal", default="on", choices=["on", "off"],
+                    help="Legal footer (disclaimer + privacy/terms): 'on' (default) or 'off' "
+                         "(internal Drive binder / scheduler).")
+    ap.add_argument("--doctors", default="none", choices=["none", "all"],
+                    help="Doctor names: 'none' (default — public PDFs carry no doctor names) or "
+                         "'all' (internal Drive binder lists every partner).")
     args = ap.parse_args()
 
     out_dir = Path(args.out)
@@ -2829,7 +2947,8 @@ def main():
             for fmt in formats:
                 out = render_band(band, lang, fmt, out_dir, flat=args.flat,
                                   location=location, location_id=args.location, theme=args.theme,
-                                  variant=args.variant)
+                                  variant=args.variant, logo=args.logo, legal=args.legal,
+                                  doctors=args.doctors)
                 # render_band returns None when a band/format combination is
                 # intentionally skipped (e.g. lactulose protocols only ship
                 # mobile HTML in Phase 1; combined variant skips lactulose).

@@ -247,9 +247,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     if (!b) {
       b = document.createElement('div'); b.id = 'pz-banner'; b.className = 'pz-banner';
       var c = document.querySelector('.container');
-      var loc = c.querySelector('.location');
-      if (loc && loc.nextSibling) c.insertBefore(b, loc.nextSibling);
-      else c.appendChild(b);
+      var loc = c ? c.querySelector('.location') : null;
+      var host = loc ? loc.parentNode : c;
+      if (loc && loc.nextSibling) host.insertBefore(b, loc.nextSibling);
+      else if (host) host.appendChild(b);
     }
     return b;
   }
@@ -300,9 +301,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     btn.textContent = STR.customizeBtn;
     btn.onclick = openForm;
     var c = document.querySelector('.container');
-    var loc = c.querySelector('.location');
-    if (loc && loc.nextSibling) c.insertBefore(btn, loc.nextSibling);
-    else c.appendChild(btn);
+    var loc = c ? c.querySelector('.location') : null;
+    var host = loc ? loc.parentNode : c;
+    if (loc && loc.nextSibling) host.insertBefore(btn, loc.nextSibling);
+    else if (host) host.appendChild(btn);
   }
 
   function buildTimeOptions(defaultVal) {
@@ -367,7 +369,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         '<p>' + STR.qrFooterPrompt + '</p>' +
         '<p class="pz-url"><code></code></p>' +
         '</div>';
-      document.querySelector('.container').appendChild(f);
+      var loc = document.querySelector('.location');
+      (loc ? loc.parentNode : document.querySelector('.container')).appendChild(f);
     }
     f.querySelector('.pz-url code').textContent = location.href;
     renderQr();

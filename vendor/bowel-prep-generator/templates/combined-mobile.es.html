@@ -104,7 +104,7 @@ table.avoid-allowed th.col-allowed{background:var(--green-tint);color:var(--gree
 .meals{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
 @media(min-width:560px){.meals{grid-template-columns:1fr 1fr 1fr}}
 .meal{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;font-size:15px}
-.meal h4{font-family:var(--sans);font-size:13px;font-weight:700;margin:0 0 4px;color:var(--coral-deep)}
+.meal h3,.meal h4{font-family:var(--sans);font-size:13px;font-weight:700;margin:0 0 4px;color:var(--coral-deep)}
 .meal ul{margin:0 0 0 18px}
 .meal li{font-size:15px}
 .resources{display:flex;flex-direction:column;gap:8px;margin:10px 0 0}
@@ -342,7 +342,7 @@ details.post-procedure strong{color:var(--ink)}
 <p>Ideas de comidas para la dieta baja en residuos (también llamada dieta &ldquo;blanca&rdquo;). Continúe esta dieta durante los 3 días antes del procedimiento, hasta el almuerzo del día anterior. Después de las 2:00 PM del día anterior, cambie a solo líquidos claros — sin lácteos.</p>
 <div class="meals">
   <div class="meal">
-    <h4>Desayuno (mañana)</h4>
+    <h3>Desayuno (mañana)</h3>
     <ul>
       <li>Huevos revueltos</li>
       <li>Pan blanco tostado con mantequilla</li>
@@ -352,7 +352,7 @@ details.post-procedure strong{color:var(--ink)}
     </ul>
   </div>
   <div class="meal">
-    <h4>Almuerzo (~mediodía)</h4>
+    <h3>Almuerzo (~mediodía)</h3>
     <ul>
       <li>Sándwich de pollo simple en pan blanco (sin verduras)</li>
       <li>Macarrones con queso</li>
@@ -363,7 +363,7 @@ details.post-procedure strong{color:var(--ink)}
     </ul>
   </div>
   <div class="meal">
-    <h4>Después del almuerzo (~2:00 PM en adelante)</h4>
+    <h3>Después del almuerzo (~2:00 PM en adelante)</h3>
     <ul>
       <li>Solo líquidos claros (vea las bebidas permitidas arriba)</li>
       <li>No más lácteos — leche, yogur, helado, etc.</li>
@@ -408,6 +408,8 @@ details.post-procedure strong{color:var(--ink)}
   <div class="tip-title">💡 Consejos para tomar el MiraLAX</div>
   <p>Que su niño tome cada vaso <strong>rápido</strong> (no sorbos lentos — beber rápido ayuda al estómago a vaciarse y reduce las náuseas). Frío es más fácil — por eso lo refrigeramos la noche anterior. Si su niño no puede seguir el ritmo, pause 30 minutos y reanude. Si su niño vomita, espere 30 minutos y reinicie a un ritmo más lento.</p>
 </div>
+
+{{HTML_CUP_TRACKER}}
 
 <ul>
   <li><strong>Espere diarrea</strong> — esto es normal y significa que la preparación está funcionando. Las heces se irán aclarando hasta un color claro o amarillo (teñido por el color del Gatorade) — esa es la señal de que el colon se está limpiando.</li>

@@ -104,7 +104,7 @@ table.avoid-allowed th.col-allowed{background:var(--green-tint);color:var(--gree
 .meals{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
 @media(min-width:560px){.meals{grid-template-columns:1fr 1fr 1fr}}
 .meal{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 13px;font-size:15px}
-.meal h4{font-family:var(--sans);font-size:13px;font-weight:700;margin:0 0 4px;color:var(--coral-deep)}
+.meal h3,.meal h4{font-family:var(--sans);font-size:13px;font-weight:700;margin:0 0 4px;color:var(--coral-deep)}
 .meal ul{margin:0 0 0 18px}
 .meal li{font-size:15px}
 .resources{display:flex;flex-direction:column;gap:8px;margin:10px 0 0}
@@ -342,7 +342,7 @@ details.post-procedure strong{color:var(--ink)}
 <p>Meal ideas for the low-residue (&ldquo;white&rdquo;) diet. Continue this diet for the 3 days before the procedure, through lunch the day before. After 2:00 PM the day before, switch to clear liquids only — no dairy.</p>
 <div class="meals">
   <div class="meal">
-    <h4>Breakfast (morning)</h4>
+    <h3>Breakfast (morning)</h3>
     <ul>
       <li>Scrambled eggs</li>
       <li>White toast with butter</li>
@@ -352,7 +352,7 @@ details.post-procedure strong{color:var(--ink)}
     </ul>
   </div>
   <div class="meal">
-    <h4>Lunch (~noon)</h4>
+    <h3>Lunch (~noon)</h3>
     <ul>
       <li>Plain chicken sandwich on white bread (no veggies)</li>
       <li>Mac and cheese</li>
@@ -363,7 +363,7 @@ details.post-procedure strong{color:var(--ink)}
     </ul>
   </div>
   <div class="meal">
-    <h4>After lunch (~2:00 PM onward)</h4>
+    <h3>After lunch (~2:00 PM onward)</h3>
     <ul>
       <li>Clear liquids only (see allowed drinks above)</li>
       <li>No more dairy — milk, yogurt, ice cream, etc.</li>
@@ -408,6 +408,8 @@ details.post-procedure strong{color:var(--ink)}
   <div class="tip-title">💡 Tips for drinking the MiraLAX</div>
   <p>Drink each cup <strong>fast</strong> (don't sip slowly — quick drinking helps the stomach empty and reduces nausea). Cold is easier — that's why we refrigerated it overnight. If your child can't keep up, pause 30 minutes and resume. If your child vomits, wait 30 minutes and restart at a slower rate.</p>
 </div>
+
+{{HTML_CUP_TRACKER}}
 
 <ul>
   <li><strong>Expect diarrhea</strong> — this is normal and means the prep is working. Stool will turn light-colored or yellow (tinted by the Gatorade) — that's the sign the colon is clearing.</li>

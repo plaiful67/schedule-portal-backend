@@ -1,0 +1,492 @@
+/* calm-print.css — the Calm print design, swapped in for --theme calm by each
+   skill's render.py (replaces the template's own <style>). Single source of
+   the Calm palette/typography/components; keyed to the shared print class
+   vocabulary (h2.step, .time-box, .callout, .meals, .avoid-allowed, .location,
+   .cover, .doctors-block, ...). Carries the {{PRACTICE_FOOTER}}/{{BAND_LABEL}}
+   tokens (substituted at render time). See docs/PDF_ACCESSIBILITY.md. */
+/* ---------------------------------------------------------------
+     CALM print stylesheet (Phase A pilot) for WeasyPrint.
+     Same DOM + tokens + partials as standard-print.en.html — only the
+     presentation layer changes: Newsreader (serif) + Hanken Grotesk
+     (sans), teal/coral/warm palette, white cards with thin coloured
+     rules. Keyed to the existing class names so the shared partials
+     render unchanged.
+     - Letter paper, narrow medical-handout margins.
+     - Running header repeats the band label; footer = practice + page X/Y.
+     --------------------------------------------------------------- */
+  @import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+
+  :root{
+    --paper:#FBF7F1; --card:#FFFFFF;
+    --ink:#22323D; --ink-soft:#5D6B76; --ink-faint:#6B7580; /* 4.69:1 on white — WCAG AA */
+    --line:#E6DCCB; --line-soft:#EFE7DA;
+    --teal:#2E7C8A; --teal-deep:#1E5663; --teal-tint:#E3F0F0;
+    --coral:#DD6B45; --coral-soft:#FBEAE0; --coral-deep:#A8482A; /* AA on coral-soft */
+    --green:#4F9A6B; --green-tint:#E7F1E8; --green-deep:#347A4F;
+    --amber-tint:#FBF1DA; --amber-line:#E8CB80; --amber-ink:#876514;
+    --sans:'Hanken Grotesk', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --serif:'Newsreader', Georgia, "Times New Roman", Times, serif;
+  }
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.62in 0.5in 0.62in;
+    @bottom-left {
+      content: "{{PRACTICE_FOOTER}}";
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+      font-size: 8pt;
+      color: #6B7580;
+    }
+    @bottom-right {
+      content: counter(page) " of " counter(pages);
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+      font-size: 8pt;
+      color: #6B7580;
+    }
+  }
+  /* First page: no running header (the cover already shows the band). */
+  @page :first {
+    @top-center { content: ""; }
+  }
+  /* Inside-page running header shows the weight band, Calm teal. */
+  @page {
+    @top-center {
+      content: string(band-label);
+      font-family: "Hanken Grotesk", system-ui, sans-serif;
+      font-size: 8.5pt;
+      font-weight: 700;
+      color: #1E5663;
+      letter-spacing: 0.04em;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { font-size: 10.5pt; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    line-height: 1.45;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  img { max-width: 100%; }
+  .serif { font-family: var(--serif); }
+
+  /* Typography ------------------------------------------------------ */
+  h1, h2, h3, h4 {
+    font-family: var(--serif);
+    color: var(--teal-deep);
+    font-weight: 600;
+  }
+  h1 { font-size: 23pt; line-height: 1.05; letter-spacing: -0.02em; font-weight: 500; margin: 0 0 3pt 0; }
+  h2 { font-size: 16pt; margin: 12pt 0 4pt 0; break-after: avoid; }
+  h3 { font-size: 12.5pt; margin: 7pt 0 2pt 0; break-after: avoid; }
+  p { margin: 4pt 0; orphans: 2; widows: 2; font-size: 11pt; }
+  ul, ol { margin: 4pt 0 4pt 16pt; padding: 0; }
+  li { margin: 2pt 0; font-size: 11pt; }
+  strong { font-weight: 700; }
+  a { color: var(--teal-deep); text-decoration: underline; text-decoration-color: #B7CDD0; text-underline-offset: 1.5pt; }
+  a.qr-caption { color: inherit; text-decoration: none; }
+  .qr-block { display: block; color: inherit; text-decoration: none; }
+  a.resource-card { color: inherit; text-decoration: none; }
+  a.qr-caption:hover { text-decoration: underline; }
+  .location-text a { color: inherit; text-decoration: none; }
+  .location-text a:hover { text-decoration: underline; }
+
+  /* Cover / brand bar (page 1) -------------------------------------- */
+  .cover {
+    string-set: band-label "{{BAND_LABEL}}";
+    margin-bottom: 12pt;
+  }
+  .cover-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12pt;
+    padding-bottom: 10pt;
+    border-bottom: 2pt solid var(--teal-deep);
+    margin-bottom: 12pt;
+  }
+  .practice-logo { height: 0.5in; width: auto; flex: 0 0 auto; }
+  .practice-stack {
+    flex: 1 1 auto;
+    text-align: center;
+    font-family: var(--serif);
+    font-size: 12pt;
+    font-weight: 600;
+    color: var(--teal-deep);
+    line-height: 1.2;
+  }
+  .practice-stack .phone {
+    margin-top: 2pt;
+    font-family: var(--sans);
+    font-size: 9.5pt;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-flex; align-items: center; }
+  .cover-qr a.qr-block img {
+    width: 0.62in; height: 0.62in;
+    border-radius: 6pt; border: 1pt solid var(--line);
+    vertical-align: middle;
+  }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.8in; text-align: right;
+    font-family: var(--sans);
+    font-size: 7.5pt; color: var(--ink-soft); line-height: 1.2;
+    white-space: normal; margin-right: 5pt;
+  }
+  .cover-title-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14pt;
+  }
+  .practice {
+    font-family: var(--sans);
+    font-size: 8.5pt;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2pt;
+  }
+  .doc-title {
+    font-family: var(--serif);
+    font-size: 23pt;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  /* Weight badge — outlined chip, not a solid fill (toner-light). */
+  .band-label {
+    flex: 0 0 auto;
+    text-align: center;
+    background: #ffffff;
+    color: var(--teal-deep);
+    border: 1.5pt solid var(--teal);
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 15pt;
+    border-radius: 10pt;
+    padding: 6pt 14pt;
+    line-height: 1;
+  }
+
+  /* Location strip -------------------------------------------------- */
+  .location {
+    display: flex;
+    gap: 12pt;
+    align-items: center;
+    border: 1pt solid var(--line);
+    border-left: 4pt solid var(--teal);
+    background: #ffffff;
+    border-radius: 9pt;
+    padding: 8pt 13pt;
+    margin-bottom: 10pt;
+    break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; }
+  .location-text .label {
+    font-family: var(--sans);
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    font-weight: 700;
+    margin-bottom: 2pt;
+  }
+  .location-text .name { font-family: var(--serif); font-weight: 600; font-size: 13pt; color: var(--teal-deep); line-height: 1.15; }
+  .location-text .addr { margin-top: 2pt; font-size: 10pt; color: var(--ink-soft); }
+  .location-text .arrival {
+    margin-top: 4pt;
+    font-family: var(--sans);
+    font-weight: 700;
+    color: var(--coral-deep);
+    font-size: 10.5pt;
+  }
+  .location-qr { flex: 0 0 auto; }
+  .location-qr a.qr-block { white-space: nowrap; display: inline-flex; align-items: center; }
+  .location-qr a.qr-block img {
+    width: 0.6in; height: 0.6in;
+    border-radius: 6pt; border: 1pt solid var(--line);
+    vertical-align: middle;
+  }
+  .location-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: var(--sans);
+    font-size: 7.5pt; color: var(--ink-soft); line-height: 1.2;
+    white-space: normal; margin-right: 5pt;
+  }
+
+  /* Section headings — Calm serif with a quiet rule, no fill -------- */
+  h2.step, h2.section-heading {
+    font-family: var(--serif);
+    color: var(--teal-deep);
+    font-weight: 600;
+    font-size: 16pt;
+    margin: 14pt 0 6pt 0;
+    padding-bottom: 5pt;
+    border-bottom: 1pt solid var(--line);
+    break-after: avoid;
+  }
+  h2.step .icon, h2.section-heading .icon {
+    display: inline-block;
+    margin-right: 6pt;
+  }
+  h2.step.big-prep { margin-top: 18pt; color: var(--coral-deep); border-bottom-color: #EDC4B3; }
+  h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
+  p.note {
+    font-size: 9.5pt;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin: 3pt 0 0 0;
+  }
+  h3.sub {
+    font-family: var(--serif);
+    color: var(--teal-deep);
+    border-bottom: 1pt solid var(--line);
+    padding-bottom: 1pt;
+    break-after: avoid;
+  }
+
+  /* Tables ---------------------------------------------------------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 5pt 0 9pt 0;
+    font-size: 10pt;
+    break-inside: auto;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  th {
+    font-family: var(--sans);
+    font-size: 9pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    text-align: left;
+    padding: 6pt 8pt;
+    border-bottom: 2pt solid var(--line);
+    background: var(--paper);
+  }
+  td {
+    padding: 6pt 8pt;
+    border-bottom: 1pt solid var(--line-soft);
+    vertical-align: top;
+    font-size: 10.5pt;
+  }
+  tr { break-inside: avoid; }
+
+  /* Shopping table — rounded card feel */
+  table.keep-together { border: 1pt solid var(--line); border-radius: 9pt; overflow: hidden; background: #fff; }
+  table.keep-together th { background: var(--paper); }
+  table.keep-together td:last-child { color: var(--teal-deep); font-weight: 700; }
+
+  /* Avoid / OK two-column table */
+  table.avoid-allowed {
+    border: 1pt solid var(--line);
+    border-radius: 9pt;
+    overflow: hidden;
+  }
+  table.avoid-allowed td { width: 50%; background: #ffffff; }
+  table.avoid-allowed td.col-avoid { border-right: 1pt solid var(--line-soft); }
+  table.avoid-allowed th { background: #ffffff; }
+  table.avoid-allowed th.col-avoid {
+    color: var(--coral-deep); border-bottom: 2pt solid var(--coral);
+  }
+  table.avoid-allowed th.col-allowed {
+    color: var(--green-deep); border-bottom: 2pt solid var(--green); border-left: 1pt solid var(--line-soft);
+  }
+
+  /* Time-boxed dose lines ------------------------------------------- */
+  .time-box {
+    display: block;
+    box-sizing: border-box; width: 100%;
+    background: #ffffff;
+    border: 1pt solid var(--line);
+    border-left: 4pt solid var(--teal);
+    border-radius: 8pt;
+    padding: 7pt 12pt;
+    margin: 5pt 0;
+    break-inside: avoid;
+    font-size: 10.5pt;
+  }
+  /* Time pill — light tint + outline, not a solid fill (toner-light). */
+  .time-box .when {
+    display: inline-block;
+    background: var(--teal-tint);
+    color: var(--teal-deep);
+    border: 0.75pt solid #AECBD0;
+    font-family: var(--sans);
+    font-weight: 700;
+    padding: 2pt 7pt;
+    border-radius: 5pt;
+    font-size: 9.5pt;
+    margin-right: 7pt;
+  }
+  .time-box .what { display: inline; }
+
+  /* Callouts & warnings — white cards, coloured left rule ----------- */
+  .callout {
+    display: block;
+    background: #ffffff;
+    border: 1pt solid var(--amber-line);
+    border-left: 5pt solid var(--amber-line);
+    border-radius: 9pt;
+    padding: 9pt 13pt;
+    margin: 8pt 0;
+    break-inside: avoid;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .callout-title {
+    font-family: var(--sans);
+    font-weight: 700;
+    color: var(--amber-ink);
+    margin-bottom: 3pt;
+  }
+  .callout p, .callout li { font-size: 11pt; line-height: 1.45; }
+  .warning {
+    background: #ffffff;
+    border: 1pt solid var(--coral);
+    border-left: 5pt solid var(--coral);
+    border-radius: 9pt;
+    padding: 8pt 13pt;
+    margin: 8pt 0;
+    break-inside: avoid;
+    font-weight: 700;
+    color: var(--coral-deep);
+  }
+
+  /* Tip / rescue boxes ---------------------------------------------- */
+  .tip {
+    background: #ffffff; border: 1pt solid #9FC9CF; border-left: 5pt solid var(--teal);
+    border-radius: 8pt; padding: 7pt 13pt; margin: 6pt 0 8pt;
+    font-size: 9.5pt; line-height: 1.45;
+    break-inside: avoid;
+  }
+  .tip-title { font-family: var(--sans); font-weight: 700; color: var(--teal-deep); margin-bottom: 2pt; font-size: 9.5pt; }
+  .tip p, .tip li { font-size: 9.5pt; line-height: 1.45; margin: 0; }
+  .tip.rescue { border-color: #9FD0AC; border-left-color: var(--green); }
+  .tip.rescue .contingency-lead { margin: 0 0 3pt 0; }
+  .tip.rescue .rescue-heading {
+    display: inline-block;
+    background: var(--green-deep); color: white;
+    font-size: 8.5pt; font-weight: 700;
+    padding: 1pt 6pt; border-radius: 4pt;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-right: 3pt;
+  }
+  .tip.rescue .contingency-body ul { margin: 0; padding-left: 13pt; }
+  .tip.rescue ul { margin: 2pt 0 0; padding-left: 14pt; }
+  .tip.rescue li { font-size: 8.5pt; line-height: 1.35; margin: 0; }
+  .tip.rescue strong { color: var(--ink); }
+
+  /* Two-column resources -------------------------------------------- */
+  .two-col {
+    display: flex;
+    gap: 10pt;
+    align-items: stretch;
+    margin: 7pt 0;
+  }
+  .two-col > * { flex: 1 1 0; }
+  .resource-card {
+    display: flex;
+    align-items: center;
+    gap: 7pt;
+    border: 1pt solid var(--line);
+    border-radius: 9pt;
+    padding: 8pt 10pt;
+    background: #ffffff;
+    break-inside: avoid;
+  }
+  .resource-card img {
+    width: 0.55in; height: 0.55in;
+    flex: 0 0 auto;
+    border-radius: 5pt;
+  }
+  .resource-card .label {
+    font-family: var(--sans);
+    font-size: 8.5pt;
+    color: var(--ink-soft);
+    line-height: 1.3;
+    flex: 1 1 auto;
+  }
+  .resource-card .label strong { color: var(--teal-deep); }
+
+  /* Diet-reference table (kept for parity; not used by standard body) */
+  table.diet-ref { border: 1pt solid var(--line); border-radius: 9pt; overflow: hidden; font-size: 9pt; }
+  table.diet-ref th { background: var(--paper); }
+  table.diet-ref th.col-ok { color: var(--green-deep); border-bottom: 2pt solid var(--green); }
+  table.diet-ref th.col-avoid { color: var(--coral-deep); border-bottom: 2pt solid var(--coral); }
+
+  /* Sample meals grid ----------------------------------------------- */
+  .meals { display: flex; gap: 10pt; margin: 6pt 0; }
+  .meals .meal {
+    flex: 1 1 0;
+    background: #ffffff;
+    border: 1pt solid var(--line);
+    border-radius: 9pt;
+    padding: 9pt 12pt;
+    break-inside: avoid;
+    font-size: 10pt;
+  }
+  .meals .meal h3, .meals .meal h4 {
+    font-family: var(--serif);
+    font-size: 12.5pt;
+    font-weight: 600;
+    margin: 0 0 4pt 0;
+    color: var(--teal-deep);
+    border-bottom: 1pt solid var(--teal-tint);
+    padding-bottom: 3pt;
+  }
+  .meals .meal ul { margin: 4pt 0 0 14pt; }
+  .meals .meal li { font-size: 10pt; margin: 2pt 0; }
+
+  /* Misc ------------------------------------------------------------ */
+  .fineprint { font-size: 8.5pt; color: var(--ink-faint); font-style: italic; }
+  .page-break { break-before: page; }
+  .keep-together { break-inside: avoid; }
+
+  /* All-partners block (internal Drive binder only; never on public PDFs) */
+  .doctors-block { margin: 14pt 0 4pt; padding-top: 10pt; border-top: 1pt solid var(--line); break-inside: avoid; }
+  .doctors-heading { font-family: var(--serif); font-size: 13pt; color: var(--teal-deep); margin: 0 0 5pt 0; }
+  .doctors-list { display: flex; flex-wrap: wrap; gap: 5pt 18pt; margin: 0; padding: 0; list-style: none; }
+  .doctors-list li { font-size: 10.5pt; color: var(--ink); font-weight: 600; }
+
+  .medical-disclaimer {
+    margin-top: 14pt;
+    padding-top: 10pt;
+    border-top: 1pt solid var(--line);
+    font-size: 8.5pt;
+    line-height: 1.5;
+    color: var(--ink-faint);
+  }
+  .footer-policy-links {
+    margin: 12pt 0 6pt;
+    text-align: center;
+    font-size: 8.5pt;
+  }
+  .footer-policy-links a { color: var(--teal-deep); text-decoration: none; }
+  .footer-policy-links a:hover { text-decoration: underline; }
+  .footer-policy-links .sep { color: var(--ink-faint); margin: 0 6pt; }
+  .footer-copyright {
+    margin: 6pt 0 4pt;
+    text-align: center;
+    font-size: 8pt;
+    color: var(--ink-faint);
+  }
+  .topbar-logo { height: 48px; width: auto; flex: 0 0 auto; display: block; }
+  .topbar-logo-link { display: inline-flex; align-items: center; flex: 0 0 auto; text-decoration: none; }
+
+  /* Variant cover bits: infant/combined wrap the title in .titles and add an
+     .option-tag subtitle (e.g. "MiraLAX Prep Option"). Match the Calm look. */
+  .cover-title-row .titles { flex: 1 1 auto; }
+  .option-tag { font-family: var(--sans); font-size: 10pt; font-weight: 600; color: var(--teal); margin-top: 3pt; }

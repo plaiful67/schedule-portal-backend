@@ -76,4 +76,47 @@
   [].slice.call(document.querySelectorAll('[data-open-survey][role="button"]')).forEach(function (el) {
     el.addEventListener("keydown", activate(el));
   });
+
+  /* --- MiraLAX cup tracker: persist tap state so a teen keeps count -------
+   * Mobile-only (the print PDF never includes .cup-tracker). The bare
+   * checkboxes already toggle without JS; this layer restores progress on
+   * reload via localStorage, marks done chips, and announces a running count
+   * (4.1.3 status messages via the aria-live .cup-progress line). */
+  try {
+    [].slice.call(document.querySelectorAll(".cup-tracker")).forEach(function (tracker) {
+      var key = tracker.getAttribute("data-cup-key");
+      var total = parseInt(tracker.getAttribute("data-total"), 10) || 0;
+      // Localized progress template ("%n% of %t% cups done" / Spanish equivalent);
+      // render.py emits it per page language so the aria-live count isn't
+      // hardcoded English. Falls back to English if the attribute is absent.
+      var progTmpl = tracker.getAttribute("data-progress-tmpl") || "%n% of %t% cups done";
+      var boxes = [].slice.call(tracker.querySelectorAll('input[type="checkbox"]'));
+      var progress = tracker.querySelector(".cup-progress");
+      var store = null;
+      try { store = window.localStorage; } catch (e) {}
+
+      function persist() {
+        if (!store || !key) return;
+        var on = [];
+        boxes.forEach(function (b, i) { if (b.checked) on.push(i); });
+        try { store.setItem(key, JSON.stringify(on)); } catch (e) {}
+      }
+      function render() {
+        var n = boxes.filter(function (b) { return b.checked; }).length;
+        if (progress) progress.textContent = progTmpl.replace("%n%", n).replace("%t%", (total || boxes.length));
+        boxes.forEach(function (b) {
+          var chip = b.closest(".cup");
+          if (chip) chip.classList.toggle("is-done", b.checked);
+        });
+      }
+
+      var saved = [];
+      if (store && key) { try { saved = JSON.parse(store.getItem(key) || "[]"); } catch (e) {} }
+      boxes.forEach(function (b, i) { if (saved.indexOf(i) !== -1) b.checked = true; });
+      boxes.forEach(function (b) {
+        b.addEventListener("change", function () { persist(); render(); });
+      });
+      render();
+    });
+  } catch (e) {}
 })();
