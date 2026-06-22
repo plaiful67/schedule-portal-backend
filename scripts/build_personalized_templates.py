@@ -268,8 +268,8 @@ def patch_combined_print_en(canonical: str) -> str:
     # 4. Bowel-Prep paragraph: wrap "the day before" inline.
     out = _replace_unique(
         out,
-        "The medicines below empty it over the day before.",
-        'The medicines below empty it over <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>.',
+        "The medicines below clean the colon (empty it) over the day before.",
+        'The medicines below clean the colon (empty it) over <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>.',
         where="combined en: bowel prep 'day before' wrap",
     )
 
@@ -342,8 +342,8 @@ def patch_combined_print_es(canonical: str) -> str:
 
     out = _replace_unique(
         out,
-        "Los medicamentos a continuación lo vacían el día anterior.",
-        'Los medicamentos a continuación lo vacían <span class="pz-only" data-pz-day="-1" data-pz-template="el día anterior ({date})">el día anterior</span>.',
+        "Los medicamentos a continuación limpian el colon (lo vacían) el día anterior.",
+        'Los medicamentos a continuación limpian el colon (lo vacían) <span class="pz-only" data-pz-day="-1" data-pz-template="el día anterior ({date})">el día anterior</span>.',
         where="combined es: bowel prep 'day before' wrap",
     )
 

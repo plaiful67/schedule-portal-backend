@@ -2655,10 +2655,16 @@ def render_cheatsheet(dosing_data, out_dir):
             f'<td class="muted">{t["mix_in_en"]}</td>'
             f'</tr>'
         )
+    # Explicit 4 cells (no colspan) — a colspan cell trips WeasyPrint's tagged-PDF
+    # output (the tag tree omits /ColSpan, so veraPDF reads a ragged row → PDF/UA
+    # clause 7.2-43). MiraLAX caps / Tot. g are N/A for a saline enema (em-dash);
+    # the note rides in the wide "Mix in" column like the tier rows above.
     infant_rows.append(
         '          <tr>'
         '<td class="band">Saline enema</td>'
-        '<td class="muted" colspan="3">10 mL/kg — evening at home if directed, otherwise by staff at facility</td>'
+        '<td class="num">—</td>'
+        '<td class="num">—</td>'
+        '<td class="muted">10 mL/kg — evening at home if directed, otherwise by staff at facility</td>'
         '</tr>'
     )
     infant_rows_html = "\n".join(infant_rows)

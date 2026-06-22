@@ -356,15 +356,19 @@ def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph
         if appt_dt is not None:
             target_date = appt_dt.date() - _dt.timedelta(days=stop_days)
             label_text = "antes del" if lang == "es" else "by"
+            # Inline (<br>+<span>), never a block <div>: a block-level child mixed
+            # with inline content in a <td> makes WeasyPrint emit an anonymous block
+            # that its tagged-PDF writer renders as a nested TD-in-TD → PDF/UA clause
+            # 7.2-9 ("TD shall be contained in TR"). Keeping the cell all-inline avoids it.
             date_line = (
-                f"<div class=\"med-stop-date\">"
+                f"<br><span class=\"med-stop-date\">"
                 f"{label_text} {_format_short_date(target_date, lang)}"
-                f"</div>"
+                f"</span>"
             )
         rows.append(
             "<tr>"
             f"<td><strong>{label}</strong>"
-            f"<div class=\"med-examples\">{examples}</div></td>"
+            f"<br><span class=\"med-examples\">{examples}</span></td>"
             f"<td class=\"col-stop\"><span class=\"stop-hours\">{stop}</span>{date_line}</td>"
             "</tr>"
         )

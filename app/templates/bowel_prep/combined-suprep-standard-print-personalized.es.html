@@ -527,7 +527,6 @@
   </div>
 </section>
 
-
 <!-- ============================================================= -->
 <!-- APPOINTMENT CALLOUT (personalized handout only)               -->
 <!-- ============================================================= -->
@@ -573,14 +572,32 @@
 <p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>
 
 <h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>
-<p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. Los medicamentos a continuación lo vacían <span class="pz-only" data-pz-day="-1" data-pz-template="el día anterior ({date})">el día anterior</span>. La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>
+<p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. Los medicamentos a continuación limpian el colon (lo vacían) <span class="pz-only" data-pz-day="-1" data-pz-template="el día anterior ({date})">el día anterior</span>. La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>
+
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
+        {{HTML_SUPREP_DRUG_INTERACTION_NOTE}}<br>
+        No dé otros medicamentos orales dentro de la <strong>{{HTML_SUPREP_ORAL_MEDS_BLACKOUT_HOURS}} hora</strong> antes de comenzar cada dosis de SUPREP.<br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+{{HTML_PRECLEANOUT_BLOCK}}
 
 <!-- ============================================================= -->
 <!-- PLANIFIQUE CON ANTICIPACIÓN                                   -->
 <!-- ============================================================= -->
-<h2 class="step"><span class="icon">&#9989;</span> Planifique con Anticipación (compre al menos 2 días antes<span class="pz-only" data-pz-day="-2" data-pz-template=", o antes del {date}"></span>)</h2>
+<h2 class="step"><span class="icon">&#9989;</span> Medicamentos y Suministros necesarios</h2>
 
-<p>Compre estos artículos al menos 2 días antes del procedimiento.</p>
+<p>Recoja cualquier receta lo antes posible después de programar la cita. Compre todos los demás artículos al menos 5 días antes del procedimiento<span class="pz-only" data-pz-day="-5" data-pz-template=" (para el {date})"></span>.</p>
 <table class="keep-together">
   <thead>
     <tr><th scope="col" style="width: 68%;">Ingrediente activo / Artículo</th><th scope="col" style="text-align: right;">Qué comprar</th></tr>
@@ -601,24 +618,6 @@
   </tbody>
 </table>
 <div class="warning">&#9888;&#65039; <strong>NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación.</strong> SUPREP ya contiene sales estimulantes de sulfato; combinar laxantes estimulantes puede aumentar el riesgo de daño mucoso o colitis isquémica.</div>
-
-<div class="callout">
-  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <div style="display:flex;align-items:flex-start;gap:10px;">
-    <div style="flex:1;">
-      <p style="margin: 0;">
-        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
-        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
-        {{HTML_SUPREP_DRUG_INTERACTION_NOTE}}<br>
-        No dé otros medicamentos orales dentro de la <strong>{{HTML_SUPREP_ORAL_MEDS_BLACKOUT_HOURS}} hora</strong> antes de comenzar cada dosis de SUPREP.<br>
-        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
-      </p>
-    </div>
-    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
-  </div>
-</div>
-
-{{HTML_PRECLEANOUT_BLOCK}}
 
 <!-- ============================================================= -->
 <!-- 3 DÍAS ANTES                                                  -->

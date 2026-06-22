@@ -665,12 +665,31 @@
 <h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
 <p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por el ano para examinar el intestino grueso. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>20–45 minutos</strong>, pero planee estar en el centro varias horas en total. El colon debe estar limpio para que la cámara pueda ver bien — para eso son los medicamentos a continuación.</p>
 
+<!-- Medicamentos específicos para SUPREP -->
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
+        {{HTML_SUPREP_DRUG_INTERACTION_NOTE}}<br>
+        No dé otros medicamentos orales dentro de la <strong>{{HTML_SUPREP_ORAL_MEDS_BLACKOUT_HOURS}} hora</strong> antes de comenzar cada dosis de SUPREP.<br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+{{PARTIAL_PRECLEANOUT_CALLOUT}}
+
 <!-- ============================================================= -->
 <!-- PLANIFIQUE CON ANTICIPACIÓN                                   -->
 <!-- ============================================================= -->
 <!-- Plan Ahead específico para SUPREP (en línea; el partial _shopping_table es específico para MiraLAX) -->
-<h2 class="step"><span class="icon">&#9989;</span> Planifique con anticipación (compre al menos 2 días antes<span class="pz-only" data-pz-day="-2" data-pz-template=", o antes del {date}"></span>)</h2>
-<p>Compre estos artículos al menos 2 días antes del procedimiento.</p>
+<h2 class="step"><span class="icon">&#9989;</span> Medicamentos y Suministros necesarios</h2>
+<p>Recoja cualquier receta lo antes posible después de programar la cita. Compre todos los demás artículos al menos 5 días antes del procedimiento<span class="pz-only" data-pz-day="-5" data-pz-template=" (para el {date})"></span>.</p>
 <table class="keep-together">
   <thead>
     <tr><th scope="col" style="width: 68%;">Ingrediente activo / Artículo</th><th scope="col" style="text-align: right;">Qué comprar</th></tr>
@@ -691,25 +710,6 @@
   </tbody>
 </table>
 <div class="warning">&#9888;&#65039; <strong>NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación.</strong> SUPREP ya contiene sales estimulantes de sulfato; combinar laxantes estimulantes puede aumentar el riesgo de daño mucoso o colitis isquémica.</div>
-
-<!-- Medicamentos específicos para SUPREP -->
-<div class="callout">
-  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
-  <div style="display:flex;align-items:flex-start;gap:10px;">
-    <div style="flex:1;">
-      <p style="margin: 0;">
-        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
-        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
-        {{HTML_SUPREP_DRUG_INTERACTION_NOTE}}<br>
-        No dé otros medicamentos orales dentro de la <strong>{{HTML_SUPREP_ORAL_MEDS_BLACKOUT_HOURS}} hora</strong> antes de comenzar cada dosis de SUPREP.<br>
-        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
-      </p>
-    </div>
-    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
-  </div>
-</div>
-
-{{PARTIAL_PRECLEANOUT_CALLOUT}}
 
 <!-- ============================================================= -->
 <!-- 3 DÍAS ANTES                                                  -->
@@ -835,14 +835,12 @@
 <!-- ============================================================= -->
 {{PARTIAL_HELPFUL_RESOURCES}}
 
-
 <!-- REVIEW: native ES review pending on disclaimer_es -->
 {{DOCTORS_BLOCK}}
 
 <p class="footer-copyright">&copy; 2026</p>
 <nav class="footer-policy-links" aria-label="Políticas del sitio"><a href="https://giready.com/es/privacidad/">Política de Privacidad</a><span class="sep" aria-hidden="true">·</span><a href="https://giready.com/es/terminos/">Términos de Uso</a></nav>
 <aside class="medical-disclaimer" role="note" aria-label="Aviso médico">{{DISCLAIMER}}</aside>
-
 
 </body>
 </html>
