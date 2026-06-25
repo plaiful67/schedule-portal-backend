@@ -1,0 +1,165 @@
+{
+  "_doc": "Provenance for scheduler personalized print templates. canonical_sha256 = sha of the vendored canonical at last sync. check_personalized_drift.py FAILS when a canonical changes since this baseline (NEW drift). Pre-existing fork staleness is a separate backlog: docs/PERSONALIZED_TEMPLATE_DRIFT.md. Re-baseline with --update after reviewing + syncing the affected fork.",
+  "templates": {
+    "bowel_prep/clenpiq-standard-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.en.html",
+      "canonical_sha256": "0fbc91cdf39ac1b194d862a0eefebefc703db20f9c07fed13429311ec5f7ca8a",
+      "status": "forked"
+    },
+    "bowel_prep/clenpiq-standard-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.es.html",
+      "canonical_sha256": "09cd18f264d968268f3d3a7319c69685b0d9a1cdba04d072eb6dccf474a124ab",
+      "status": "forked"
+    },
+    "bowel_prep/combined-clenpiq-standard-print-personalized.en.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-clenpiq-standard-print-personalized.es.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-infant-enema-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/combined-infant-enema-print.en.html",
+      "canonical_sha256": "7b02c77d35ef3d810d8a3f07b193088bbeb7773089e749b5395f748bd4166cd9",
+      "status": "forked"
+    },
+    "bowel_prep/combined-infant-enema-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/combined-infant-enema-print.es.html",
+      "canonical_sha256": "b6223641cfc717d087b438da700de84638917ab19d5c3eb1f267bec004f6f618",
+      "status": "forked"
+    },
+    "bowel_prep/combined-infant-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/combined-infant-print.en.html",
+      "canonical_sha256": "8e83a547c733ca9de813fcf3719a2ebdad90ae6cda23d14e40ebc1b89dd98372",
+      "status": "forked"
+    },
+    "bowel_prep/combined-infant-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/combined-infant-print.es.html",
+      "canonical_sha256": "5641e585362168f9d4e35819a21c3c1b2c972c0c24a85de72989ce7cbf93eef9",
+      "status": "forked"
+    },
+    "bowel_prep/combined-lactulose-infant-print-personalized.en.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-lactulose-infant-print-personalized.es.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-lactulose-standard-print-personalized.en.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-lactulose-standard-print-personalized.es.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/combined-print.en.html",
+      "canonical_sha256": "7dd7c703e9ec622c98d6320e7be43bc50b38fdeeb9508439e58a7af4de3a76dd",
+      "status": "forked"
+    },
+    "bowel_prep/combined-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/combined-print.es.html",
+      "canonical_sha256": "d9e9db621f704ee108621684ac5b2699f646fac4929e1659a5226d8b9f3e2ae9",
+      "status": "forked"
+    },
+    "bowel_prep/combined-suprep-standard-print-personalized.en.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/combined-suprep-standard-print-personalized.es.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "bowel_prep/infant-enema-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/infant-enema-print.en.html",
+      "canonical_sha256": "62997b9b93a6089dc7bb1473618ce1d522866f7f199547ae44af08d5dac15249",
+      "status": "forked"
+    },
+    "bowel_prep/infant-enema-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/infant-enema-print.es.html",
+      "canonical_sha256": "eed1f55f73c4343c7a0dfa6bcb01215fd3ed6784c02b7848677b185656063cfc",
+      "status": "forked"
+    },
+    "bowel_prep/infant-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/infant-print.en.html",
+      "canonical_sha256": "bfcfeff4562055748e0f9912d1cfff23ce8922700f48a4bbe2be48aaf57279d2",
+      "status": "forked"
+    },
+    "bowel_prep/infant-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/infant-print.es.html",
+      "canonical_sha256": "bdf77b19d01ce7a4609a267c2cd516d4863b5aa80a7b0cf1c71aff7153633e11",
+      "status": "forked"
+    },
+    "bowel_prep/lactulose-infant-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/lactulose-infant-print.en.html",
+      "canonical_sha256": "0b0675130ebfbdb265335e54ca6978b4afc413c630ca6d5f5e6ecf848a70d039",
+      "status": "forked"
+    },
+    "bowel_prep/lactulose-infant-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/lactulose-infant-print.es.html",
+      "canonical_sha256": "6a0c5cdbbac67675e32eff778f8b8b1c2aefe4110957ef50d6cc52221df9f4c4",
+      "status": "forked"
+    },
+    "bowel_prep/lactulose-standard-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/lactulose-standard-print.en.html",
+      "canonical_sha256": "792d797b8f0e351c2e9f68e072e9249c29c885a59d3bdb362e979d49bd29fff8",
+      "status": "forked"
+    },
+    "bowel_prep/lactulose-standard-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/lactulose-standard-print.es.html",
+      "canonical_sha256": "354fa2bd28b2b88755b1e1d66eeaf82c94f11ed0678cbd87bfa8961baf09dd0e",
+      "status": "forked"
+    },
+    "bowel_prep/print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/standard-print.en.html",
+      "canonical_sha256": "fea68858121b70dc1accb91cf75d4425c7d85ff2278e5ecf8df6fc72ab239dfb",
+      "status": "forked"
+    },
+    "bowel_prep/print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/standard-print.es.html",
+      "canonical_sha256": "76e0a18acccb83361b3c6a6c848c1e607855ec637c328248c2e37aa3e9479443",
+      "status": "forked"
+    },
+    "bowel_prep/suprep-standard-print-personalized.en.html": {
+      "canonical": "bowel-prep-generator/templates/suprep-standard-print.en.html",
+      "canonical_sha256": "3d56946613c814da074259ab37716144c8a22271fd365308069e0b4c0cb4dd09",
+      "status": "forked"
+    },
+    "bowel_prep/suprep-standard-print-personalized.es.html": {
+      "canonical": "bowel-prep-generator/templates/suprep-standard-print.es.html",
+      "canonical_sha256": "0317f2d61afb8c0500362f1371c43c556269ef2734665201ac01596b65b4ab21",
+      "status": "forked"
+    },
+    "egd/print-personalized.en.html": {
+      "canonical": "egd-handout-generator/templates/egd-print.en.html",
+      "canonical_sha256": "6cceab00d80f39d2cfdb3a3c5dde505c59ae9fef3e0974c1f9e8e4981633a0e5",
+      "status": "forked"
+    },
+    "egd/print-personalized.es.html": {
+      "canonical": "egd-handout-generator/templates/egd-print.es.html",
+      "canonical_sha256": "f967b12bea3b47dd54ec43712fa48bb12a54c9f462d39be12bb1d6b54dfbdecf",
+      "status": "forked"
+    },
+    "egd_phmii/print-personalized.en.html": {
+      "canonical": "egd-handout-generator/templates/egdph-print.en.html",
+      "canonical_sha256": "d0432bc91b673d7ec40a36a369cb77058bb05dd1db75d880a517a6e69f49c60c",
+      "status": "forked"
+    },
+    "egd_phmii/print-personalized.es.html": {
+      "canonical": "egd-handout-generator/templates/egdph-print.es.html",
+      "canonical_sha256": "23a2e48bffdbe2dd65ad195ea63ce2af40d0bd94e6ca89bfacbea8bc534e62ab",
+      "status": "forked"
+    }
+  }
+}

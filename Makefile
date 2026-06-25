@@ -38,6 +38,7 @@ dev:
 
 drift-check:
 	$(PY) scripts/check_template_drift.py
+	$(PY) scripts/check_personalized_drift.py
 
 smoke:
 	curl -sS -X POST http://127.0.0.1:8000/render \
