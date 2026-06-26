@@ -191,7 +191,9 @@ def _render_impl(req: RenderRequest):
         pdf_bytes = egd_phmii.render_pdf(**common)
     elif req.procedure_type == "composed":
         pdf_bytes = composed.render_pdf(
-            add_ons=req.add_ons, knob_picks=req.knob_picks, **common
+            add_ons=req.add_ons, knob_picks=req.knob_picks,
+            base=req.base, weight_band=req.weight_band, prep_type=req.prep_type,
+            **common,
         )
     else:
         raise HTTPException(

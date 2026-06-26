@@ -35,15 +35,16 @@ def audit(registry=None):
                 if f"fragment_{lang}" not in odef:
                     problems.append(f"knob {name}.{opt}: missing fragment_{lang} key")
 
-    for aid in reg["add_ons"]:
-        for lang in LANGS:
-            try:
-                c = _c.compose("egd", [aid], {}, lang, reg)
-            except Exception as e:  # noqa: BLE001
-                problems.append(f"compose egd+{aid} ({lang}) raised: {e!r}")
-                continue
-            if "{{" in c.title or "{{" in c.blurbs_html:
-                problems.append(f"compose egd+{aid} ({lang}) left an unresolved token")
+    for base in reg["bases"]:
+        for aid in reg["add_ons"]:
+            for lang in LANGS:
+                try:
+                    c = _c.compose(base, [aid], {}, lang, reg)
+                except Exception as e:  # noqa: BLE001
+                    problems.append(f"compose {base}+{aid} ({lang}) raised: {e!r}")
+                    continue
+                if "{{" in c.title or "{{" in c.blurbs_html:
+                    problems.append(f"compose {base}+{aid} ({lang}) left an unresolved token")
     return problems
 
 

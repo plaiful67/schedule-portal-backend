@@ -9,6 +9,12 @@ bases:
   egd:
     title_fragment_en: "Upper Endoscopy (EGD)"
     title_fragment_es: "Endoscopia Superior (EGD)"
+  colonoscopy:
+    title_fragment_en: "Colonoscopy"
+    title_fragment_es: "Colonoscopia"  # ES-REVIEW
+  combined:
+    title_fragment_en: "Upper Endoscopy (EGD) and Colonoscopy"
+    title_fragment_es: "Endoscopia Superior (EGD) y Colonoscopia"  # ES-REVIEW
 
 # Add-ons are prep-neutral overlays. `specialty` links to a generic tier. `knobs` lists
 # knob ids this add-on owns. The `*_generic` add-ons carry only the specialty generic blurb.

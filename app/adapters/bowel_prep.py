@@ -253,6 +253,8 @@ def render_pdf(
     variant: Literal["standard", "combined"] = "standard",
     prep_type: Literal["miralax", "lactulose", "clenpiq", "suprep"] = "miralax",
     include_directions: bool = True,
+    addon_blurbs_html: str = "",
+    composed_title: str = "",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -438,7 +440,11 @@ def render_pdf(
         "{{APPT_TIME}}":            appt_time_display,
         "{{ARRIVAL_TIME}}":         arrival_time_display,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
+        "{{ADDON_BLURBS}}":         addon_blurbs_html,
     }
+    if composed_title:
+        personalization_replacements["{{HTML_TITLE}}"] = composed_title
+        personalization_replacements["{{PROCEDURE_LABEL}}"] = composed_title
     # Forward-compat: the canonical bowel-prep skill has removed the
     # contingency / shopping-quantity helpers, but the scheduler's
     # personalized templates still reference those tokens. When the adapter
@@ -459,6 +465,15 @@ def render_pdf(
     # rather than suppress it — replaces the older server-side STOP_MEDS_BLOCK
     # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
+    # Composed-overlay guard: add-on blurbs requested but the selected base
+    # template has no {{ADDON_BLURBS}} slot → FAIL LOUDLY, never silently drop
+    # the add-ons (the EGD-feedback-bar regression class). Only the canonical
+    # miralax standard + combined templates carry the slot this increment.
+    if addon_blurbs_html and "{{ADDON_BLURBS}}" not in html:
+        raise RuntimeError(
+            f"composed add-ons requested but template {template_path.name!r} "
+            f"has no {{{{ADDON_BLURBS}}}} slot (prep_type={prep_type!r}); "
+            f"this base/prep combo is not yet add-on-enabled")
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization rules) before any token substitution.
     html = swap_calm(html)

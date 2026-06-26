@@ -134,8 +134,29 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     include_directions: bool = True,
+    base: str = "egd",
+    weight_band: str | None = None,
+    prep_type: str = "miralax",
 ) -> bytes:
-    """Produce a personalized EGD + add-ons combo PDF as bytes."""
+    """Produce a personalized composed PDF as bytes.
+
+    base="egd": EGD + add-ons only (original Task-3 path).
+    base="colonoscopy"/"combined": bowel-prep base + add-ons overlay.
+    """
+    if base in ("colonoscopy", "combined"):
+        if weight_band is None:
+            raise ValueError(f"weight_band required for base={base!r}")
+        comp = compose_module.compose(base, add_ons, knob_picks, lang)
+        from . import bowel_prep
+        variant = "combined" if base == "combined" else "standard"
+        return bowel_prep.render_pdf(
+            band_id=weight_band, location_id=location_id, lang=lang,
+            physician_id=physician_id, appt_date_human=appt_date_human,
+            appt_time_display=appt_time_display, arrival_time_display=arrival_time_display,
+            followup_block_html=followup_block_html, appt_dt=appt_dt,
+            variant=variant, prep_type=prep_type, include_directions=include_directions,
+            addon_blurbs_html=comp.blurbs_html, composed_title=comp.title)
+    # base == "egd": existing Task-3 EGD body follows unchanged.
     from weasyprint import HTML
 
     _reset_caches_for_live_dev()

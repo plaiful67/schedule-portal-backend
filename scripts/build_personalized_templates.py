@@ -300,6 +300,22 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: clear-liquids inline",
     )
 
+    # 7. Add-on blurbs slot — immediately after the bowel-prep intro </p> and
+    #    before the MEDICATIONS section comment. This is the injection point for
+    #    composed add-on blurbs when base="combined". Non-composed renders fill
+    #    the slot with "" (empty) via bowel_prep.render_pdf's personalization dict.
+    out = _replace_unique(
+        out,
+        'The EGD itself does not need bowel prep &mdash; only the fasting times.</p>\n\n'
+        '<!-- ============================================================= -->\n'
+        '<!-- MEDICATIONS + PRE-CLEANOUT CALLOUTS (right after About)       -->',
+        'The EGD itself does not need bowel prep &mdash; only the fasting times.</p>\n'
+        '{{ADDON_BLURBS}}\n'
+        '<!-- ============================================================= -->\n'
+        '<!-- MEDICATIONS + PRE-CLEANOUT CALLOUTS (right after About)       -->',
+        where="combined en: ADDON_BLURBS slot after bowel-prep intro",
+    )
+
     # (The old standalone "Sample Meals" box was removed from the canonical
     #  template; its food examples now live in the 3-Days-Before AVOID/OK table
     #  and the clear-liquids/no-dairy note moved into the 1-Day-Before line, so
@@ -366,6 +382,20 @@ def patch_combined_print_es(canonical: str) -> str:
         "<strong>Solo líquidos claros después de las 2 PM del día anterior.</strong>",
         '<strong>Solo líquidos claros después de las 2 PM <span class="pz-only" data-pz-day="-1" data-pz-template="del día ({date})">del día anterior</span>.</strong>',
         where="combined es: clear-liquids inline",
+    )
+
+    # 7. Add-on blurbs slot — immediately after the bowel-prep intro </p> and
+    #    before the CALLOUTS section comment. Mirrors the EN patch (step 7).
+    out = _replace_unique(
+        out,
+        'La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>\n\n'
+        '<!-- ============================================================= -->\n'
+        '<!-- CALLOUTS: MEDICAMENTOS + PRE-LIMPIEZA (justo después de Sobre) -->',
+        'La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>\n'
+        '{{ADDON_BLURBS}}\n'
+        '<!-- ============================================================= -->\n'
+        '<!-- CALLOUTS: MEDICAMENTOS + PRE-LIMPIEZA (justo después de Sobre) -->',
+        where="combined es: ADDON_BLURBS slot after bowel-prep intro",
     )
 
     # (Caja de "Comidas de Muestra" eliminada de la plantilla canónica; ya no hay
