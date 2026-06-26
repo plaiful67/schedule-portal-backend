@@ -157,6 +157,10 @@ def render_pdf(
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization + EGD-table rules) before substitution.
     html = swap_calm(html, include_egd=True)
+    # Expand shared partials first (feedback bar / NPO table); inner tokens like
+    # {{FEEDBACK_URL}} resolve in the main pass below.
+    for token, value in skill._load_shared_partials(lang).items():
+        html = html.replace(token, str(value))
     all_replacements = {**replacements, **qr_replacements, **personalization_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, str(value))

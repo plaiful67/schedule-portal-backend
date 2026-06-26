@@ -90,6 +90,14 @@ def lint_template_placeholders():
             name = stem.split(".")[0]        # drop ".en.html" / ".es.html"
             set_keys.add("{{PARTIAL_" + name.upper() + "}}")
 
+    # Cross-skill shared partials (footer/legal, feedback bar, NPO table) live in
+    # the meta repo; render.py's _load_shared_partials() resolves them the same way.
+    shared_partials_dir = Path.home() / "peds-gi-prep-system" / "shared" / "partials"
+    if shared_partials_dir.is_dir():
+        for p in shared_partials_dir.glob("_*.html"):
+            name = p.name[1:].split(".")[0]
+            set_keys.add("{{PARTIAL_" + name.upper() + "}}")
+
     orphans = used - set_keys
     return used, set_keys, orphans, used_by_file
 

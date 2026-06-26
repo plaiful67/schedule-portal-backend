@@ -3,12 +3,12 @@
   "templates": {
     "bowel_prep/clenpiq-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.en.html",
-      "canonical_sha256": "4416c6764e5e31451cf8a7626544308a6d138537dd176fffb9891b8ad5b0c7f9",
+      "canonical_sha256": "b47354b254a73dd4f5ac60c9949020d787f59de86a994a2b354fb68007b0960f",
       "status": "forked"
     },
     "bowel_prep/clenpiq-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.es.html",
-      "canonical_sha256": "6a80606c0da0d6099e33ea9d45712175ef2168071975234ee8c8e4898e167a8a",
+      "canonical_sha256": "df51c82b777a22c061b947214c39ee8f47f867746b3b737f7f3a4df660526038",
       "status": "forked"
     },
     "bowel_prep/combined-clenpiq-standard-print-personalized.en.html": {
@@ -23,22 +23,22 @@
     },
     "bowel_prep/combined-infant-enema-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-infant-enema-print.en.html",
-      "canonical_sha256": "7b02c77d35ef3d810d8a3f07b193088bbeb7773089e749b5395f748bd4166cd9",
+      "canonical_sha256": "bc8a3ed8ed14e8cf17f1b949f991c3bf3dce4b87ef50d5855775df0606412164",
       "status": "forked"
     },
     "bowel_prep/combined-infant-enema-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/combined-infant-enema-print.es.html",
-      "canonical_sha256": "b6223641cfc717d087b438da700de84638917ab19d5c3eb1f267bec004f6f618",
+      "canonical_sha256": "a2f5c3afd22d2a28b78709e1d8d069868f8e5fe0c20fbe3616c16a565e23808a",
       "status": "forked"
     },
     "bowel_prep/combined-infant-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-infant-print.en.html",
-      "canonical_sha256": "8e83a547c733ca9de813fcf3719a2ebdad90ae6cda23d14e40ebc1b89dd98372",
+      "canonical_sha256": "9db442a22c683666646da8f9ca1a07a1ed5b7e48a75b001249170120aa87051c",
       "status": "forked"
     },
     "bowel_prep/combined-infant-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/combined-infant-print.es.html",
-      "canonical_sha256": "5641e585362168f9d4e35819a21c3c1b2c972c0c24a85de72989ce7cbf93eef9",
+      "canonical_sha256": "8a6b15bbab8e95f81f4ececc16bafdf31dccf16bc1038e8581c0253f2484e172",
       "status": "forked"
     },
     "bowel_prep/combined-lactulose-infant-print-personalized.en.html": {
@@ -63,12 +63,12 @@
     },
     "bowel_prep/combined-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.en.html",
-      "canonical_sha256": "586cb82b68917947800daa3517e8644f806b6dbfef0f0d705ba249f73c5f1c44",
+      "canonical_sha256": "174e550e78606083dd954624892ba5d2bc4d2d530640888e5174f7b13c573997",
       "status": "forked"
     },
     "bowel_prep/combined-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.es.html",
-      "canonical_sha256": "920ea598a3533669fc0047377b09dd535c2b7a3e1cb0c48749aba6fc82acc6e3",
+      "canonical_sha256": "7bef8ea5b64789010db055c487b259258e940f0cb0a3e0f2153553c11c619228",
       "status": "forked"
     },
     "bowel_prep/combined-suprep-standard-print-personalized.en.html": {
@@ -83,82 +83,82 @@
     },
     "bowel_prep/infant-enema-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/infant-enema-print.en.html",
-      "canonical_sha256": "62997b9b93a6089dc7bb1473618ce1d522866f7f199547ae44af08d5dac15249",
+      "canonical_sha256": "a5d65820c3b0f3790d5e3c9e51e4c727042ecf368d3cdbe33f73b41e4d9c5ba4",
       "status": "forked"
     },
     "bowel_prep/infant-enema-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/infant-enema-print.es.html",
-      "canonical_sha256": "eed1f55f73c4343c7a0dfa6bcb01215fd3ed6784c02b7848677b185656063cfc",
+      "canonical_sha256": "51cdb4de505d53009606a9419f5825910f19dc30f51bd0ec473ff67698508c17",
       "status": "forked"
     },
     "bowel_prep/infant-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/infant-print.en.html",
-      "canonical_sha256": "bfcfeff4562055748e0f9912d1cfff23ce8922700f48a4bbe2be48aaf57279d2",
+      "canonical_sha256": "6dc9544e21fe196385c66ac56e12020477f8ec2f94586b9284ebf41ff3529270",
       "status": "forked"
     },
     "bowel_prep/infant-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/infant-print.es.html",
-      "canonical_sha256": "bdf77b19d01ce7a4609a267c2cd516d4863b5aa80a7b0cf1c71aff7153633e11",
+      "canonical_sha256": "ee4f1a2200a839bff0e2ba8ff88a3d5aa8fc770587bae60f0aa7ae40d23daa0a",
       "status": "forked"
     },
     "bowel_prep/lactulose-infant-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-infant-print.en.html",
-      "canonical_sha256": "0b0675130ebfbdb265335e54ca6978b4afc413c630ca6d5f5e6ecf848a70d039",
+      "canonical_sha256": "6f6039337dcea911738277ef9bfa8ca1ec915a27a7eebaf6c88517d2d165d6d5",
       "status": "forked"
     },
     "bowel_prep/lactulose-infant-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-infant-print.es.html",
-      "canonical_sha256": "6a0c5cdbbac67675e32eff778f8b8b1c2aefe4110957ef50d6cc52221df9f4c4",
+      "canonical_sha256": "e56eb5d918d797b62ca58dbce0c8ff9ad6e8cb48cb134a7799f746e47b86b76e",
       "status": "forked"
     },
     "bowel_prep/lactulose-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.en.html",
-      "canonical_sha256": "f0b591610f53e0c14a7471f4a898652e3af033453e851523875c866027dc851f",
+      "canonical_sha256": "4fb47dbdcfd2752086623cb85ffdc77045d52b4d3b7c029b14d814eacc97bbe3",
       "status": "forked"
     },
     "bowel_prep/lactulose-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.es.html",
-      "canonical_sha256": "88af06d4bef407b9718a17e5aa81ae7e5d8ccd27ec2fbf057bd095f451e17159",
+      "canonical_sha256": "a5f42ef7a5951f55ce6017b0194c2abd3865cea3cd2a7c2cca0b36a23256e1cd",
       "status": "forked"
     },
     "bowel_prep/print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/standard-print.en.html",
-      "canonical_sha256": "fea68858121b70dc1accb91cf75d4425c7d85ff2278e5ecf8df6fc72ab239dfb",
+      "canonical_sha256": "472bbf35ad669c7cdce1b59040d184b9927b098846e8c5d736efe34d3f66c44c",
       "status": "forked"
     },
     "bowel_prep/print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/standard-print.es.html",
-      "canonical_sha256": "76e0a18acccb83361b3c6a6c848c1e607855ec637c328248c2e37aa3e9479443",
+      "canonical_sha256": "3053b0ff509e88536304d6ee86eeaac8d5e93da829bc8aaa7bcffb7e73061596",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.en.html",
-      "canonical_sha256": "b645719ab92c7ba2f256d4baa3596029c94600813f6b62efa79126fff71b7fd3",
+      "canonical_sha256": "305fe8d3d4353fb53d9a4f8c6e1439a97ca825a76fada4dacfe18dd801d0e232",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.es.html",
-      "canonical_sha256": "2982fcd3633935573f18e1fb23c3f11eb2ef83d40d8ef01a637508e09c6b2ddc",
+      "canonical_sha256": "b7de378b4be5630bc525fe594d04f0afaa9752862e6a5e8b35d2944223749d16",
       "status": "forked"
     },
     "egd/print-personalized.en.html": {
       "canonical": "egd-handout-generator/templates/egd-print.en.html",
-      "canonical_sha256": "6cceab00d80f39d2cfdb3a3c5dde505c59ae9fef3e0974c1f9e8e4981633a0e5",
+      "canonical_sha256": "062c26fadd9d507164ebc22e4f60de523fbe6287eede7f8215b4ad8b47a29d31",
       "status": "forked"
     },
     "egd/print-personalized.es.html": {
       "canonical": "egd-handout-generator/templates/egd-print.es.html",
-      "canonical_sha256": "f967b12bea3b47dd54ec43712fa48bb12a54c9f462d39be12bb1d6b54dfbdecf",
+      "canonical_sha256": "d4f3a4755741258a310a74397cedae7752c28cf5eb2f1ef723301c18f26feb07",
       "status": "forked"
     },
     "egd_phmii/print-personalized.en.html": {
       "canonical": "egd-handout-generator/templates/egdph-print.en.html",
-      "canonical_sha256": "d0432bc91b673d7ec40a36a369cb77058bb05dd1db75d880a517a6e69f49c60c",
+      "canonical_sha256": "e9c676bbc7ff447715c3e616bc252d3dd8f30e7b1711692866f3b051bc2e792a",
       "status": "forked"
     },
     "egd_phmii/print-personalized.es.html": {
       "canonical": "egd-handout-generator/templates/egdph-print.es.html",
-      "canonical_sha256": "23a2e48bffdbe2dd65ad195ea63ce2af40d0bd94e6ca89bfacbea8bc534e62ab",
+      "canonical_sha256": "0c6cfb98450f2e537e7b9379af3f8faaee0b19ee2d8a16c9bcca8399641e0bc9",
       "status": "forked"
     }
   }

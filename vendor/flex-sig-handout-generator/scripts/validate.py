@@ -66,6 +66,15 @@ def lint_template_placeholders():
         text = script.read_text(encoding="utf-8")
         set_keys.update(re.findall(r'"(\{\{[A-Z0-9_]+\}\})"\s*:', text))
 
+    # Cross-skill shared partials (footer/legal, feedback bar, NPO table) live in
+    # the meta repo; render.py's _load_shared_partials() resolves them dynamically,
+    # so they never appear as static dict keys.
+    shared_partials_dir = Path.home() / "peds-gi-prep-system" / "shared" / "partials"
+    if shared_partials_dir.is_dir():
+        for p in shared_partials_dir.glob("_*.html"):
+            name = p.name[1:].split(".")[0]
+            set_keys.add("{{PARTIAL_" + name.upper() + "}}")
+
     orphans = used - set_keys
     return used, set_keys, orphans, used_by_file
 

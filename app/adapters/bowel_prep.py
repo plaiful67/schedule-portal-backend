@@ -462,7 +462,8 @@ def render_pdf(
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization rules) before any token substitution.
     html = swap_calm(html)
-    partials = skill._load_partials(lang)
+    # Shared partials (feedback bar; footer is stripped here) first, local override.
+    partials = {**skill._load_shared_partials(lang), **skill._load_partials(lang)}
     # Pass 1: expand partials FIRST so any tokens they introduce
     # (e.g. {{HTML_MIRALAX_SHOPPING}} inside the partial shopping table)
     # are visible to the main substitution pass below.
