@@ -149,6 +149,13 @@ PARTNER_BAND_MAP: dict[str, dict[str, str]] = {}
 PARTNER_SUBDOMAIN: dict[str, dict[tuple[str, str], str]] = {}
 
 
+class ComposedTemplateUnsupported(RuntimeError):
+    """A composed (add-on) render targeted a base/prep template without an
+    {{ADDON_BLURBS}} slot (only miralax standard/combined are slotted this
+    increment).  The frontend gates this, but the backend raises a 422 (not
+    500) as defense-in-depth so any direct API callers get a useful error."""
+
+
 def is_partner_variant_active(physician_id: str, band_id: str | None, prep_type: str) -> bool:
     """Return True iff the partner-variant routing path applies for this
     request. Used by app/main.py to surface the flag in the analytics event.
@@ -470,7 +477,7 @@ def render_pdf(
     # the add-ons (the EGD-feedback-bar regression class). Only the canonical
     # miralax standard + combined templates carry the slot this increment.
     if addon_blurbs_html and "{{ADDON_BLURBS}}" not in html:
-        raise RuntimeError(
+        raise ComposedTemplateUnsupported(
             f"composed add-ons requested but template {template_path.name!r} "
             f"has no {{{{ADDON_BLURBS}}}} slot (prep_type={prep_type!r}); "
             f"this base/prep combo is not yet add-on-enabled")

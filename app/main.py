@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import medications
 from .adapters import bowel_prep, combined, composed, egd, egd_phmii
+from .adapters.bowel_prep import ComposedTemplateUnsupported
 from .adapters._paths import skill_source
 from .personalization import (
     build_followup_block,
@@ -190,11 +191,14 @@ def _render_impl(req: RenderRequest):
     elif req.procedure_type == "egd_phmii":
         pdf_bytes = egd_phmii.render_pdf(**common)
     elif req.procedure_type == "composed":
-        pdf_bytes = composed.render_pdf(
-            add_ons=req.add_ons, knob_picks=req.knob_picks,
-            base=req.base, weight_band=req.weight_band, prep_type=req.prep_type,
-            **common,
-        )
+        try:
+            pdf_bytes = composed.render_pdf(
+                add_ons=req.add_ons, knob_picks=req.knob_picks,
+                base=req.base, weight_band=req.weight_band, prep_type=req.prep_type,
+                **common,
+            )
+        except ComposedTemplateUnsupported as e:
+            raise HTTPException(status_code=422, detail=str(e))
     else:
         raise HTTPException(
             status_code=501,
