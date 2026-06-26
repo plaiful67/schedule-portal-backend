@@ -3,12 +3,12 @@
   "templates": {
     "bowel_prep/clenpiq-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.en.html",
-      "canonical_sha256": "0fbc91cdf39ac1b194d862a0eefebefc703db20f9c07fed13429311ec5f7ca8a",
+      "canonical_sha256": "4416c6764e5e31451cf8a7626544308a6d138537dd176fffb9891b8ad5b0c7f9",
       "status": "forked"
     },
     "bowel_prep/clenpiq-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.es.html",
-      "canonical_sha256": "09cd18f264d968268f3d3a7319c69685b0d9a1cdba04d072eb6dccf474a124ab",
+      "canonical_sha256": "6a80606c0da0d6099e33ea9d45712175ef2168071975234ee8c8e4898e167a8a",
       "status": "forked"
     },
     "bowel_prep/combined-clenpiq-standard-print-personalized.en.html": {
@@ -63,12 +63,12 @@
     },
     "bowel_prep/combined-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.en.html",
-      "canonical_sha256": "7dd7c703e9ec622c98d6320e7be43bc50b38fdeeb9508439e58a7af4de3a76dd",
+      "canonical_sha256": "586cb82b68917947800daa3517e8644f806b6dbfef0f0d705ba249f73c5f1c44",
       "status": "forked"
     },
     "bowel_prep/combined-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.es.html",
-      "canonical_sha256": "d9e9db621f704ee108621684ac5b2699f646fac4929e1659a5226d8b9f3e2ae9",
+      "canonical_sha256": "920ea598a3533669fc0047377b09dd535c2b7a3e1cb0c48749aba6fc82acc6e3",
       "status": "forked"
     },
     "bowel_prep/combined-suprep-standard-print-personalized.en.html": {
@@ -113,12 +113,12 @@
     },
     "bowel_prep/lactulose-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.en.html",
-      "canonical_sha256": "792d797b8f0e351c2e9f68e072e9249c29c885a59d3bdb362e979d49bd29fff8",
+      "canonical_sha256": "f0b591610f53e0c14a7471f4a898652e3af033453e851523875c866027dc851f",
       "status": "forked"
     },
     "bowel_prep/lactulose-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.es.html",
-      "canonical_sha256": "354fa2bd28b2b88755b1e1d66eeaf82c94f11ed0678cbd87bfa8961baf09dd0e",
+      "canonical_sha256": "88af06d4bef407b9718a17e5aa81ae7e5d8ccd27ec2fbf057bd095f451e17159",
       "status": "forked"
     },
     "bowel_prep/print-personalized.en.html": {
@@ -133,12 +133,12 @@
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.en.html",
-      "canonical_sha256": "3d56946613c814da074259ab37716144c8a22271fd365308069e0b4c0cb4dd09",
+      "canonical_sha256": "b645719ab92c7ba2f256d4baa3596029c94600813f6b62efa79126fff71b7fd3",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.es.html",
-      "canonical_sha256": "0317f2d61afb8c0500362f1371c43c556269ef2734665201ac01596b65b4ab21",
+      "canonical_sha256": "2982fcd3633935573f18e1fb23c3f11eb2ef83d40d8ef01a637508e09c6b2ddc",
       "status": "forked"
     },
     "egd/print-personalized.en.html": {

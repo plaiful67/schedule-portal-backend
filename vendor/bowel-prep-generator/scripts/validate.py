@@ -113,6 +113,23 @@ def render_combo(band_id, lang, variant, out_dir):
     return result.returncode, result.stdout, result.stderr
 
 
+# render.py builds a `combined` (EGD+colonoscopy) print ONLY for the MiraLAX-family
+# protocols — standard / infant / infant-enema (render_band, render.py ~L2518-2526).
+# The scheduler-only alternative preps (SUPREP, CLENPIQ, lactulose) have no combined
+# print template by design, so `combined × {those}` is unbuildable: render.py raises
+# "Unknown protocol for combined variant". Sweeping them produced 10 expected-red
+# failures that masked real regressions, so validate SKIPS (and logs) them instead.
+COMBINED_BUILDABLE_PROTOCOLS = ("standard", "infant", "infant-enema")
+
+
+def _combo_buildable(protocol: str, variant: str) -> bool:
+    """Mirror render.py's matrix boundary: only the MiraLAX-family protocols have a
+    combined print template. Everything is buildable in the `standard` variant."""
+    if variant == "combined":
+        return protocol in COMBINED_BUILDABLE_PROTOCOLS
+    return True
+
+
 def scan_unresolved_in_dir(directory):
     """Return {file_relpath: {placeholders found}} for any .html/.txt in dir."""
     findings = {}
@@ -764,11 +781,21 @@ def main():
         bands = [b for b in bands if b["id"] in wanted]
     variants = [v.strip() for v in args.variants.split(",") if v.strip()]
 
-    combos = [(b["id"], lang, v) for b in bands for lang in ("en", "es") for v in variants]
+    all_combos = [(b, lang, v) for b in bands for lang in ("en", "es") for v in variants]
+    combos = [(b["id"], lang, v) for (b, lang, v) in all_combos
+              if _combo_buildable(b.get("protocol", ""), v)]
+    skipped = [(b["id"], lang, v) for (b, lang, v) in all_combos
+               if not _combo_buildable(b.get("protocol", ""), v)]
     print(f"\n[4/5] Rendering {len(combos)} band\u00d7lang\u00d7variant combinations")
     print(f"      bands: {[b['id'] for b in bands]}")
     print(f"      langs: en, es")
     print(f"      variants: {variants}")
+    if skipped:
+        print(f"      ⏭  skipping {len(skipped)} unbuildable combo(s): combined × scheduler-only prep")
+        print(f"         (SUPREP/CLENPIQ/lactulose have no combined print template — by design;")
+        print(f"          render.py render_band raises 'Unknown protocol for combined variant')")
+        for band_id, lang, variant in skipped:
+            print(f"      ⏭  skip (unbuildable):   {band_id:18} {lang:2} {variant:8}")
     print()
 
     render_failures = 0

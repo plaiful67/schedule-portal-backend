@@ -1,0 +1,108 @@
+# Site build manifest for the bowel-prep skill.
+# One row per variant repo-pair. Pure data: the builder (build_websites.py)
+# turns each row into two generated site repos via its FAMILY_STRATEGY.
+# DO NOT change a `subdomain` — it is encoded in printed QR codes.
+#
+# ── Adding a new VARIANT within an existing family ──────────────────────────
+# Add one row here. That is the only required change.
+#
+# ── Adding a genuinely NEW family ───────────────────────────────────────────
+# A new family requires code changes in build_websites.py in addition to a
+# new row here:
+#   1. FAMILY_STRATEGY      — add a Strategy(...) entry
+#   2. _ANALYTICS_SITE_BY_FAMILY_LOC (~line 410) — add (family, loc) → site
+#      mappings for both locations; missing entries silently disable analytics
+#      and the feedback survey for that site.
+#   3. _PROCEDURE_BY_FAMILY (~line 432) — add family → procedure string
+#   4. _PUBLIC_FAMILIES (~line 998) — add if the new family is patient-public;
+#      omit if it is scheduler-only (public: false bands)
+#   5. Any label/note maps the new landing or band renderer needs
+#      (see _LACT_BAND_LABELS, _SINGLE_BAND_LABELS for examples)
+sites:
+  - id: colonoscopy
+    family: colonoscopy
+    landing: picker
+    bands: [under-15, under-15-enema, 15-20, 21-30, 31-40, 41-50, over-50]
+    repos:      { scc: prep-giready,    pmch: prep86-giready }
+    subdomains: { scc: prep,            pmch: prep86 }
+    titles:
+      landing_en: "Colonoscopy Bowel Prep — What to Expect"
+      landing_es: "Preparación para Colonoscopia — Qué Esperar"
+      band_en:    "Colonoscopy Prep — {label} — What to Expect"
+      band_es:    "Preparación para Colonoscopia — {label} — Qué Esperar"
+
+  - id: combined
+    family: combined
+    landing: picker
+    bands: [under-15, under-15-enema, 15-20, 21-30, 31-40, 41-50, over-50]
+    repos:      { scc: egdcolon-giready, pmch: egdcolon86-giready }
+    subdomains: { scc: egdcolon,         pmch: egdcolon86 }
+    titles:
+      landing_en: "EGD + Colonoscopy Prep — What to Expect"
+      landing_es: "Preparación para EGD y Colonoscopia — Qué Esperar"
+      band_en:    "EGD + Colonoscopy Prep — {label} — What to Expect"
+      band_es:    "Preparación para EGD y Colonoscopia — {label} — Qué Esperar"
+
+  - id: lactulose
+    family: lactulose
+    landing: picker-banner
+    bands: [under-15-lact, 15-20-lact, 21-30-lact]
+    repos:      { scc: preplact-giready, pmch: preplact86-giready }
+    subdomains: { scc: preplact,         pmch: preplact86 }
+    titles:
+      landing_en: "Colonoscopy Bowel Prep — Lactulose (Internal)"
+      landing_es: "Preparación para Colonoscopia — Lactulosa (Interno)"
+      band_en:    "Colonoscopy Prep — Lactulose — {label} — What to Expect"
+      band_es:    "Preparación para Colonoscopia — Lactulosa — {label} — Qué Esperar"
+
+  - id: lactulose_combined
+    family: lactulose-combined
+    landing: picker-banner
+    bands: [under-15-lact, 15-20-lact, 21-30-lact]
+    repos:      { scc: egdcolonlact-giready, pmch: egdcolonlact86-giready }
+    subdomains: { scc: egdcolonlact,         pmch: egdcolonlact86 }
+    titles:
+      landing_en: "EGD + Colonoscopy Prep — Lactulose (Internal)"
+      landing_es: "Preparación para EGD y Colonoscopia — Lactulosa (Interno)"
+      band_en:    "EGD + Colonoscopy Prep — Lactulose — {label} — What to Expect"
+      band_es:    "Preparación para EGD y Colonoscopia — Lactulosa — {label} — Qué Esperar"
+
+  - id: clenpiq
+    family: clenpiq
+    landing: single
+    bands: [clenpiq]
+    repos:      { scc: prepclenpiq-giready, pmch: prepclenpiq86-giready }
+    subdomains: { scc: prepclenpiq,         pmch: prepclenpiq86 }
+    titles:
+      band_en: "Colonoscopy Prep — CLENPIQ — What to Expect"
+      band_es: "Preparación para Colonoscopia — CLENPIQ — Qué Esperar"
+
+  - id: clenpiq_combined
+    family: clenpiq-combined
+    landing: single
+    bands: [clenpiq]
+    repos:      { scc: egdcolonclenpiq-giready, pmch: egdcolonclenpiq86-giready }
+    subdomains: { scc: egdcolonclenpiq,         pmch: egdcolonclenpiq86 }
+    titles:
+      band_en: "EGD + Colonoscopy Prep — CLENPIQ — What to Expect"
+      band_es: "Preparación para EGD y Colonoscopia — CLENPIQ — Qué Esperar"
+
+  - id: suprep
+    family: suprep
+    landing: single
+    bands: [suprep]
+    repos:      { scc: prepsuprep-giready, pmch: prepsuprep86-giready }
+    subdomains: { scc: prepsuprep,         pmch: prepsuprep86 }
+    titles:
+      band_en: "Colonoscopy Prep — SUPREP — What to Expect"
+      band_es: "Preparación para Colonoscopia — SUPREP — Qué Esperar"
+
+  - id: suprep_combined
+    family: suprep-combined
+    landing: single
+    bands: [suprep]
+    repos:      { scc: egdcolonsuprep-giready, pmch: egdcolonsuprep86-giready }
+    subdomains: { scc: egdcolonsuprep,         pmch: egdcolonsuprep86 }
+    titles:
+      band_en: "EGD + Colonoscopy Prep — SUPREP — What to Expect"
+      band_es: "Preparación para EGD y Colonoscopia — SUPREP — Qué Esperar"

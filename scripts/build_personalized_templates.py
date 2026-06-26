@@ -274,12 +274,9 @@ def patch_combined_print_en(canonical: str) -> str:
     )
 
     # 5. Step headings — add data-pz-day + data-pz-suffix attributes.
-    out = _replace_unique(
-        out,
-        '<h2 class="step"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>',
-        '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &mdash; Low-Residue Diet"><span class="icon">&#128197;</span> 3 Days Before &mdash; Low-Residue Diet</h2>',
-        where="combined en: 3-days-before heading",
-    )
+    #    The 3-Days-Before heading now lives in {{PARTIAL_DIET_RESIDUE_PRINT}}
+    #    and carries its own data-pz-day=-3 stamp, so it is no longer patched here
+    #    (Phase A T5: diet single-sourced via the shared partial).
     out = _replace_unique(
         out,
         '<h2 class="step"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>',
@@ -347,12 +344,8 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: bowel prep 'day before' wrap",
     )
 
-    out = _replace_unique(
-        out,
-        '<h2 class="step"><span class="icon">&#128197;</span> 3 Días Antes &mdash; Dieta Baja en Residuos</h2>',
-        '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &mdash; Dieta Baja en Residuos"><span class="icon">&#128197;</span> 3 Días Antes &mdash; Dieta Baja en Residuos</h2>',
-        where="combined es: 3-days-before heading",
-    )
+    # 3-Days-Before heading now in {{PARTIAL_DIET_RESIDUE_PRINT}} with its own
+    # data-pz-day=-3 stamp (Phase A T5); no longer patched here.
     out = _replace_unique(
         out,
         '<h2 class="step"><span class="icon">&#128197;</span> 1 Día Antes &mdash; Baja en Residuos Hasta el Almuerzo</h2>',

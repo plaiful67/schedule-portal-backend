@@ -42,7 +42,7 @@ The hook only runs the quick lint — full render-checks would slow commits unac
 ## What it doesn't (yet) check
 
 - **Visual / layout regressions** (fonts, page-breaks, spacing). Use eyeball review of the rendered PDFs.
-- **Site-build outputs**: `build_colonoscopy_websites.py` and `build_combined_websites.py` are not invoked. They write to `~/Desktop/peds-gi-system/` so they'd pollute the user's Desktop. Run them manually before pushing site repos.
+- **Site-build outputs**: `build_websites.py` is not invoked. It writes to `~/Desktop/peds-gi-system/` so it'd pollute the user's Desktop. Run `make sites` from the meta repo (`~/peds-gi-prep-system`) manually before pushing site repos.
 - **Mobile/print content drift**: not yet implemented. Could add a heuristic comparing rendered text content between the two formats for the same band.
 
 ## Why this exists

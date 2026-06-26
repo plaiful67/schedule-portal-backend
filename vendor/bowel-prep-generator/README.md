@@ -6,8 +6,8 @@ HTML, and editable DOCX — from a single source of clinical truth.
 English + Spanish, multiple weight bands, multiple procedure locations,
 location-aware QR codes, all from one render command.
 
-It also builds the four mobile-site repos (`prep`, `prep86`, `egdcolon`,
-`egdcolon86` for `giready.com`) and renders the standalone driving-directions
+It also builds all 16 mobile-site repos (MiraLAX, lactulose, CLENPIQ, and SUPREP variants
+for each family × location at `giready.com`) and renders the standalone driving-directions
 PDFs for each procedure location.
 
 ## Layout
@@ -26,11 +26,12 @@ bowel-prep-generator/
     {scc,pmch}-directions-print.html     Standalone directions PDFs
     maps/                                Saved map images for the directions PDFs
     logo-pmch.png                        Practice logo
+  data/
+    sites.yaml                      Manifest: one row per mobile-site variant (repos, bands, subdomain, titles, family)
   scripts/
     render.py                       Main renderer (DOCX + HTML + PDF, both variants)
     render_directions.py            Standalone directions-PDF renderer
-    build_colonoscopy_websites.py   Builds prep / prep86 site repos
-    build_combined_websites.py      Builds egdcolon / egdcolon86 site repos
+    build_websites.py               Single manifest-driven builder for all 16 mobile-site repos
   Makefile                          Common workflows (install, render, sites)
   requirements.txt
 ```
@@ -67,7 +68,7 @@ make render-pdf          # Colonoscopy print PDFs (color)
 make render-pdf-light    # Colonoscopy print PDFs (toner-friendly)
 make render-combined     # Combined EGD + colonoscopy print PDFs (5 standard bands)
 make render-directions   # SCC + PMCH directions PDFs to ~/Desktop/
-make sites               # Build all 4 mobile-site repos
+make sites               # Build all 16 mobile-site repos (manifest-driven)
 make render-all          # Everything: DOCX + HTML + all PDF variants + directions
 ```
 
@@ -100,10 +101,13 @@ bowel-prep-pdf-review/
 
 Each review folder is split by `English/` and `Spanish/`, then by weight band.
 
-The `make sites` target writes directly into the four website repos at
-`~/Desktop/{prep,prep86,egdcolon,egdcolon86}-giready/`. Each repo's
-GitHub Actions workflow deploys to a Cloudflare Worker named after the
-repo (e.g. `prep-giready`) on push to `main` — ≈ 30 s per repo.
+The `make sites` target runs `scripts/build_websites.py`, which reads
+`data/sites.yaml` and writes into all 16 website repos under
+`~/Desktop/peds-gi-system/`. Each repo's GitHub Actions workflow deploys
+to a Cloudflare Worker or Pages project named after the repo on push to
+`main` — ≈ 30 s per repo. To add a same-family variant, add one row to
+`data/sites.yaml`; a new family also needs a `FAMILY_STRATEGY` entry in
+`build_websites.py`.
 
 > **Don't `rm -rf` the SCC/PMCH handout folders.** Hand-exported PDFs may
 > live there alongside the DOCX files. The Makefile deliberately exposes

@@ -24,10 +24,7 @@ STAFF_OUT      := $(HOME)/Desktop/peds-gi-system/staff
 
 .PHONY: help install render-scc render-pmch render-pdf render-pdf-light \
         render-pdf-calm render-combined render-combined-calm render-directions render-cheatsheet \
-        sites-colonoscopy sites-combined \
-        sites-lactulose sites-lactulose-combined \
-        sites-clenpiq sites-clenpiq-combined \
-        sites-suprep sites-suprep-combined sites \
+        sites \
         render render-all clean-pdf-review
 
 help:
@@ -40,20 +37,12 @@ help:
 	@echo "  render-combined    Render combined EGD+colonoscopy print PDFs (color) -> $(REVIEW_OUT)/combined"
 	@echo "  render-directions  Render driving-directions PDFs for SCC and PMCH -> ~/Desktop/{loc}-directions.pdf"
 	@echo "  render-cheatsheet  Render doses.giready.com index.html + staff cheat-sheet PDF (copies to staff/)"
-	@echo "  sites-colonoscopy        Build prep / prep86 mobile-site repos (public MiraLAX colon-only)"
-	@echo "  sites-combined           Build egdcolon / egdcolon86 mobile-site repos (public MiraLAX combined)"
-	@echo "  sites-lactulose          Build preplact / preplact86 (hidden Lactulose colon-only)"
-	@echo "  sites-lactulose-combined Build egdcolonlact / egdcolonlact86 (hidden Lactulose combined)"
-	@echo "  sites-clenpiq            Build prepclenpiq / prepclenpiq86 (hidden CLENPIQ colon-only)"
-	@echo "  sites-clenpiq-combined   Build egdcolonclenpiq / egdcolonclenpiq86 (hidden CLENPIQ combined)"
-	@echo "  sites-suprep             Build prepsuprep / prepsuprep86 (hidden SUPREP colon-only)"
-	@echo "  sites-suprep-combined    Build egdcolonsuprep / egdcolonsuprep86 (hidden SUPREP combined)"
-	@echo "  sites                    All eight builders above"
+	@echo "  sites              Build all 16 mobile-site repos via manifest-driven build_websites.py"
 	@echo "  render-all         Everything: DOCX + HTML for both locations + all PDF variants"
 	@echo "  clean-pdf-review   Remove only the PDF review folder (does NOT touch SCC/PMCH dirs)"
 
 install:
-	@if [ ! -d .venv ]; then python3 -m venv .venv; fi
+	@if [ ! -d .venv ]; then python3.12 -m venv .venv 2>/dev/null || { echo "ERROR: python3.12 required — 'brew install python@3.12'. WeasyPrint segfaults on Python 3.14."; exit 1; }; fi
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
 	@echo
@@ -74,8 +63,8 @@ render-pdf-light:
 	$(RENDER) --out "$(REVIEW_OUT)/PMCH-print-light" --format pdf-print --location pmch --theme print-light
 
 # Calm visual language — colonoscopy family (standard + infant bands). This is
-# the design the website download PDFs now ship: build_colonoscopy_websites.py
-# reads {LOC}-calm-color by default (BOWEL_PREP_PDF_THEME=calm). In render-all
+# the design the website download PDFs now ship: build_websites.py reads
+# {LOC}-calm-color by default (BOWEL_PREP_PDF_THEME=calm). In render-all
 # so `make sites` always has fresh Calm PDFs to copy in.
 render-pdf-calm:
 	$(RENDER) --out "$(REVIEW_OUT)/SCC-calm-color"  --format pdf-print --location scc  --theme calm
@@ -141,36 +130,8 @@ render-cheatsheet:
 shrink-maps:
 	$(PYTHON) scripts/shrink_map_images.py
 
-sites-colonoscopy:
-	$(PYTHON) scripts/build_colonoscopy_websites.py
-
-sites-combined:
-	$(PYTHON) scripts/build_combined_websites.py
-
-# Hidden scheduler-only variants — never linked from giready.com.
-# Patients reach them only via personalized URLs from schedule.giready.com.
-sites-lactulose:
-	$(PYTHON) scripts/build_lactulose_websites.py
-
-sites-lactulose-combined:
-	$(PYTHON) scripts/build_lactulose_combined_websites.py
-
-sites-clenpiq:
-	$(PYTHON) scripts/build_clenpiq_websites.py
-
-sites-clenpiq-combined:
-	$(PYTHON) scripts/build_clenpiq_combined_websites.py
-
-sites-suprep:
-	$(PYTHON) scripts/build_suprep_websites.py
-
-sites-suprep-combined:
-	$(PYTHON) scripts/build_suprep_combined_websites.py
-
-sites: sites-colonoscopy sites-combined \
-       sites-lactulose sites-lactulose-combined \
-       sites-clenpiq sites-clenpiq-combined \
-       sites-suprep sites-suprep-combined
+sites:
+	$(PYTHON) scripts/build_websites.py
 
 render-all: render-scc render-pmch render-pdf render-pdf-light render-pdf-calm render-combined render-combined-calm render-pdf-suprep render-pdf-lactulose render-pdf-clenpiq render-directions render-cheatsheet
 

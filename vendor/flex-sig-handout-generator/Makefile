@@ -31,7 +31,7 @@ help:
 	@echo "  clean-review    Remove only the review folder"
 
 install:
-	@if [ ! -d .venv ]; then python3 -m venv .venv; fi
+	@if [ ! -d .venv ]; then python3.12 -m venv .venv 2>/dev/null || { echo "ERROR: python3.12 required — 'brew install python@3.12'. WeasyPrint segfaults on Python 3.14."; exit 1; }; fi
 	$(PIP) install --upgrade pip
 	$(PIP) install -r requirements.txt
 	@echo

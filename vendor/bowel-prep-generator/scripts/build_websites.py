@@ -1,33 +1,35 @@
 #!/usr/bin/env python3
 """
-Build the two static-site repos that back the colonoscopy-only mobile QR codes:
-  ~/Desktop/prep-giready/    -> prep.giready.com   (SCC content)
-  ~/Desktop/prep86-giready/  -> prep86.giready.com (PMCH content)
+Manifest-driven website builder for the bowel-prep skill.
 
-Layout (per repo, per language):
-  index.html                    landing page — band picker grid
-  <band_path>/index.html        per-band page (e.g. u30kg/index.html)
-  es/index.html                 Spanish landing
-  es/<band_path>/index.html     Spanish per-band page
+Replaces the 8 separate build_*_websites.py scripts with a single entry-point
+driven by data/sites.yaml via _sites_manifest.py.
 
-Each band page now contains the FULL algorithm — the same step-by-step
-schedule, dose-by-time, diet tables, and sample-meals grid that the printed
-PDF handout has. Patients should never need to flip back to the print
-handout to find a number.
-
-The script reuses `render.build_strings()` / `render.build_infant_strings()`
-to compute the dose-related placeholders (so the mobile and print outputs
-stay in lock-step and there's only one source of truth for dosing prose).
+Families wired:
+  colonoscopy         -> prep.giready.com / prep86.giready.com        (public)
+  combined            -> egdcolon.giready.com / egdcolon86.giready.com (public)
+  lactulose           -> preplact.giready.com / preplact86.giready.com (hidden)
+  lactulose-combined  -> egdcolonlact.giready.com / …86               (hidden)
+  clenpiq             -> prepclenpiq.giready.com / …86                 (hidden)
+  clenpiq-combined    -> egdcolonclenpiq.giready.com / …86             (hidden)
+  suprep              -> prepsuprep.giready.com / …86                  (hidden)
+  suprep-combined     -> egdcolonsuprep.giready.com / …86              (hidden)
 
 Usage:
-    python scripts/build_colonoscopy_websites.py
+    # Build all wired families:
+    python scripts/build_websites.py
+
+    # Build only specific manifest ids:
+    python scripts/build_websites.py colonoscopy combined
 """
 
 import os
 import re
 import shutil
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 try:
     import yaml
@@ -57,27 +59,11 @@ PDF_THEME = os.environ.get("BOWEL_PREP_PDF_THEME", "calm").strip().lower()
 # pages are guaranteed to use the same dose phrasing and the same
 # pre-rendered "2 Days Before" HTML block as the print PDF.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y  # noqa: E402
+from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y, build_clenpiq_strings, build_suprep_strings, build_lactulose_strings  # noqa: E402
 
-# Per-location target repo. The subdomain comes from `mobile_subdomain`
-# in dosing.yaml (NOT mobile_subdomain_combined, which points at the
-# combined egdcolon* sites).
-SITES = {
-    "scc":  Path.home() / "Desktop" / "peds-gi-system" / "prep-giready",
-    "pmch": Path.home() / "Desktop" / "peds-gi-system" / "prep86-giready",
-}
+from header_config import write_headers  # noqa: E402  (single source of truth)
 
-# Order of bands as they appear in the landing picker (light -> heavy,
-# infant variants first since they are the most distinct content).
-BAND_ORDER = [
-    "under-15",         # u15kgPEG  -- MiraLAX option for <15 kg
-    "under-15-enema",   # u15kgEnema -- saline enema option for <15 kg
-    "15-20",            # u20kg
-    "21-30",            # u30kg
-    "31-40",            # u40kg
-    "41-50",            # u50kg
-    "over-50",          # o50kg
-]
+from _sites_manifest import load_sites, SiteRow  # noqa: E402
 
 # Compact label shown at the top of each band page (in the H1 hero, after
 # the procedure name). Concise — the lb-equivalent appears as subtitle.
@@ -109,13 +95,6 @@ BAND_NOTE = {
     "over-50":        {"en": "", "es": ""},
 }
 
-HTML_TITLE_BAND_EN = "Colonoscopy Prep — {label} — What to Expect"
-HTML_TITLE_BAND_ES = "Preparación para Colonoscopia — {label} — Qué Esperar"
-HTML_TITLE_LANDING_EN = "Colonoscopy Bowel Prep — What to Expect"
-HTML_TITLE_LANDING_ES = "Preparación para Colonoscopia — Qué Esperar"
-
-from header_config import write_headers  # noqa: E402  (single source of truth)
-
 GITIGNORE_CONTENT = """.DS_Store
 *.swp
 .idea/
@@ -129,7 +108,7 @@ Mobile-friendly website for the **{location_name}** colonoscopy bowel-prep hando
 - Live at: **https://{subdomain}.giready.com/**
 - Spanish version: **https://{subdomain}.giready.com/es/**
 
-The HTML is generated from the [`bowel-prep-generator` skill](../../.claude/skills/bowel-prep-generator/) — edit `templates/colonoscopy-mobile*.html`, `data/dosing.yaml`, or `practice.yaml`, then re-run `python scripts/build_colonoscopy_websites.py` from the skill folder. Don't hand-edit the HTML in this repo; changes will be overwritten.
+The HTML is generated from the [`bowel-prep-generator` skill](../../.claude/skills/bowel-prep-generator/) — edit `templates/colonoscopy-mobile*.html`, `data/dosing.yaml`, or `practice.yaml`, then re-run `python scripts/build_websites.py` from the skill folder. Don't hand-edit the HTML in this repo; changes will be overwritten.
 
 The site is multi-page — one HTML per weight band, served at its own path
 (e.g. `/u30kg/`). The root `/` is a band-picker landing. QR codes printed in
@@ -623,49 +602,480 @@ def write_repo_metadata(repo_dir, location, subdomain):
     return written
 
 
-def main():
-    import render  # merged practice: shared practice-core.yaml deep-merged under local
-    practice_cfg = render._practice()
-    dosing_cfg   = _load_yaml(DOSING_PATH)
-    locations    = dosing_cfg["locations"]
-    bands_by_id  = {b["id"]: b for b in dosing_cfg["bands"]}
+# ---------------------------------------------------------------------------
+# Strategy registry (picker families)
+# ---------------------------------------------------------------------------
 
-    # Sanity check that every BAND_ORDER entry exists in the data and is
-    # marked public. Scheduler-only bands (e.g. lactulose) carry `public: false`
-    # in dosing.yaml and must never be shipped to the public mobile sites.
-    for bid in BAND_ORDER:
-        if bid not in bands_by_id:
-            sys.exit(f"band {bid!r} missing from data/dosing.yaml")
-        if not bands_by_id[bid].get("public", True):
-            sys.exit(f"band {bid!r} is marked `public: false` and must not appear in BAND_ORDER")
-    # Reverse check: warn if a public band exists in dosing.yaml but isn't listed.
-    for bid, band in bands_by_id.items():
-        if band.get("public", True) and bid not in BAND_ORDER:
-            print(f"  WARN: public band {bid!r} is in dosing.yaml but missing from BAND_ORDER")
+@dataclass
+class Strategy:
+    # Pick the per-band template for a protocol+lang. For picker families this
+    # is exactly _band_template_for(protocol, lang, family).
+    band_template: Callable           # (protocol, lang) -> Path
+    # Source-of-truth dose strings for a band+lang. Standard colon/combined use
+    # render.build_strings / build_infant_strings (already wired in render_band_page).
+    # Variant families supply their own dose_builder; None => built-in logic.
+    dose_builder: object = None
+    landing_template: Callable = None  # (lang) -> Path, or None for `single`
 
-    landing_template_en = TEMPLATES / "colonoscopy-mobile-landing.en.html"
-    landing_template_es = TEMPLATES / "colonoscopy-mobile-landing.es.html"
 
-    written_total = 0
-    for location_id, repo_dir in SITES.items():
-        if location_id not in locations:
-            sys.exit(f"location {location_id!r} missing from data/dosing.yaml")
-        location = locations[location_id]
-        subdomain = location.get("mobile_subdomain", location_id)
+# Picker families reuse the existing _band_template_for + landing templates.
+def _colon_landing(lang):    return TEMPLATES / f"colonoscopy-mobile-landing.{lang}.html"
+def _combined_landing(lang): return TEMPLATES / f"combined-mobile-landing.{lang}.html"
 
-        written = build_for_repo(
-            repo_dir, location_id, location, practice_cfg, bands_by_id, BAND_ORDER,
-            landing_template_en, landing_template_es,
-            HTML_TITLE_LANDING_EN, HTML_TITLE_LANDING_ES,
-            HTML_TITLE_BAND_EN, HTML_TITLE_BAND_ES,
-            family="colonoscopy",
+
+# ---------------------------------------------------------------------------
+# Variant-family builders — consolidated from the per-variant
+# build_<variant>_websites.py scripts. Output is byte-identical to the
+# originals (verified by tests/snapshot_sites.sh).
+# ---------------------------------------------------------------------------
+
+# Base family (colonoscopy / combined) for a variant family — used for the
+# template prefix, the calendar-events family arg, and the per-band template.
+def _base_family(family):
+    return "combined" if family.endswith("combined") else "colonoscopy"
+
+
+# --- SINGLE families (clenpiq / suprep): one band at /<mobile_path>/, no
+#     landing. Ported from build_{clenpiq,suprep}[_combined]_websites.py.
+
+# Mobile-tuned hero labels + protocol note for the single-band variants.
+# Keyed by the band id (which equals the mobile_path: "clenpiq" / "suprep").
+# Ported verbatim from build_clenpiq_websites.py / build_suprep_websites.py.
+_SINGLE_BAND_LABELS = {
+    "clenpiq": {"en": "31 kg and up", "es": "31 kg en adelante"},
+    "suprep":  {"en": "51 kg and up", "es": "51 kg en adelante"},
+}
+_SINGLE_BAND_NOTE = {
+    "clenpiq": {"en": "CLENPIQ option (oral)",
+                "es": "Opción CLENPIQ (oral)"},
+    "suprep":  {"en": "SUPREP option (oral, Rx)",
+                "es": "Opción SUPREP (oral, con receta)"},
+}
+
+
+def _single_band_template(variant, family, lang):
+    base = _base_family(family)
+    return TEMPLATES / f"{base}-mobile-{variant}-standard.{lang}.html"
+
+
+def render_single_band_page(lang, band, location, practice_cfg, qr, strat,
+                            family, logo_src, lang_toggle_href, html_title):
+    """Render the single CLENPIQ/SUPREP band page.
+
+    Ported from build_{clenpiq,suprep}[_combined]_websites.py's render_band_page:
+    no landing href, no PDF download, dose strings from strat.dose_builder,
+    lb_phrase in "plus" form, variant-local label/note maps.
+    """
+    template_path = strat.band_template(band["protocol"], lang)
+    src = template_path.read_text(encoding="utf-8")
+
+    # Inject partials first ({{PARTIAL_PERSONALIZE}} for the date/time picker).
+    for token, body in _load_partials(lang).items():
+        src = src.replace(token, body)
+
+    dose_replacements = strat.dose_builder(band, lang, location=location)
+
+    location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
+    maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
+    youtube_url = qr["youtube_url_es" if lang == "es" else "youtube_url_en"]
+    portal_url = qr["portal_url"]
+    gikids_url = qr["gikids_url"]
+
+    replacements = {
+        **build_practice_placeholders(practice_cfg, lang),
+        **build_location_placeholders(location, lang),
+        **dose_replacements,
+        "{{PZ_EVENTS_JSON}}":   build_calendar_events_json(band, lang, location, family=_base_family(family)),
+        "{{HTML_TITLE}}":         html_title,
+        "{{BAND_LABEL}}":         _SINGLE_BAND_LABELS[band["id"]][lang],
+        "{{LOGO_SRC}}":           logo_src,
+        "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
+        "{{BAND_LB}}":            lb_phrase(band, lang, "plus"),
+        "{{BAND_NOTE}}":          _SINGLE_BAND_NOTE[band["id"]][lang],
+        "{{MAPS_URL}}":           maps_url,
+        "{{YOUTUBE_URL}}":        youtube_url,
+        "{{PORTAL_URL}}":         portal_url,
+        "{{GIKIDS_URL}}":         gikids_url,
+        "{{LOCATION_PHONE_TEL}}": location_phone_tel,
+    }
+    return _do_replace(src, replacements, template_path.name)
+
+
+def build_single_site(row, repo_dir, loc_id, location, practice_cfg, bands_by_id, strat):
+    """Single-band variants (clenpiq/suprep): one band page at /<mobile_path>/, no landing."""
+    qr = practice_cfg["qr_targets"]
+    repo_dir.mkdir(parents=True, exist_ok=True)
+    clean_repo(repo_dir, row.bands, bands_by_id)
+    (repo_dir / "es").mkdir(exist_ok=True)
+    written = []
+    band = bands_by_id[row.bands[0]]
+    path = band["mobile_path"]  # "clenpiq" / "suprep"
+    family = row.family
+
+    # EN page at /<path>/index.html
+    en_dir = repo_dir / path
+    en_dir.mkdir(parents=True, exist_ok=True)
+    en_html = render_single_band_page(
+        "en", band, location, practice_cfg, qr, strat, family,
+        logo_src="../logo-pmch.png",
+        lang_toggle_href=f"../es/{path}/",
+        html_title=row.titles["band_en"],
+    )
+    p = en_dir / "index.html"
+    p.write_text(_inject_analytics(en_html, family, loc_id, "en", band["id"]), encoding="utf-8")
+    written.append(p)
+
+    # ES page at /es/<path>/index.html
+    es_dir = repo_dir / "es" / path
+    es_dir.mkdir(parents=True, exist_ok=True)
+    es_html = render_single_band_page(
+        "es", band, location, practice_cfg, qr, strat, family,
+        logo_src="../../logo-pmch.png",
+        lang_toggle_href=f"../../{path}/",
+        html_title=row.titles["band_es"],
+    )
+    p = es_dir / "index.html"
+    p.write_text(_inject_analytics(es_html, family, loc_id, "es", band["id"]), encoding="utf-8")
+    written.append(p)
+
+    if LOGO_PATH.exists():
+        shutil.copy(LOGO_PATH, repo_dir / "logo-pmch.png")
+        written.append(repo_dir / "logo-pmch.png")
+    return written
+
+
+# --- PICKER-BANNER family (lactulose): band-picker landing + internal-only
+#     banner, 3-band set, no PDF. Ported from
+#     build_lactulose[_combined]_websites.py.
+
+# Variant-local label/note maps (keyed by lactulose band id). Both the
+# colonoscopy and combined lactulose builders use identical maps.
+_LACT_BAND_LABELS = {
+    "under-15-lact": {"en": "Under 15 kg",  "es": "Menos de 15 kg"},
+    "15-20-lact":    {"en": "15–20 kg",     "es": "15–20 kg"},
+    "21-30-lact":    {"en": "21–30 kg",     "es": "21–30 kg"},
+}
+_LACT_BAND_NOTE = {
+    "under-15-lact": {"en": "Lactulose option (oral)", "es": "Opción Lactulosa (oral)"},
+    "15-20-lact":    {"en": "Lactulose option (oral)", "es": "Opción Lactulosa (oral)"},
+    "21-30-lact":    {"en": "Lactulose option (oral)", "es": "Opción Lactulosa (oral)"},
+}
+
+# Internal-only banner injected above the band picker. Wording differs per
+# family (lactulose vs lactulose-combined) and per lang — ported verbatim.
+_LACT_BANNER = {
+    "lactulose": {
+        "en": (
+            '<div style="background:#fff8e1;border:2px solid #f57c00;border-radius:6px;'
+            'padding:14px 18px;margin:16px auto;max-width:720px;font-size:15px;line-height:1.45;">'
+            '<strong>Internal — not for browsing.</strong><br>'
+            'This is the lactulose backup prep. Use the personalized link given to you by the office. '
+            'If you reached this page by accident, the standard MiraLAX prep is at '
+            '<a href="https://prep.giready.com/">prep.giready.com</a>.</div>'
+        ),
+        "es": (
+            '<div style="background:#fff8e1;border:2px solid #f57c00;border-radius:6px;'
+            'padding:14px 18px;margin:16px auto;max-width:720px;font-size:15px;line-height:1.45;">'
+            '<strong>Interno — no para navegación.</strong><br>'
+            'Esta es la preparación de respaldo con lactulosa. Use el enlace personalizado que le dio el consultorio. '
+            'Si llegó aquí por accidente, la preparación estándar con MiraLAX está en '
+            '<a href="https://prep.giready.com/es/">prep.giready.com/es/</a>.</div>'
+        ),
+    },
+    "lactulose-combined": {
+        "en": (
+            '<div style="background:#fff8e1;border:2px solid #f57c00;border-radius:6px;'
+            'padding:14px 18px;margin:16px auto;max-width:720px;font-size:15px;line-height:1.45;">'
+            '<strong>Internal — not for browsing.</strong><br>'
+            'This is the lactulose backup prep for combined EGD + colonoscopy. Use the personalized link given to you by the office. '
+            'If you reached this page by accident, the standard MiraLAX combined prep is at '
+            '<a href="https://egdcolon.giready.com/">egdcolon.giready.com</a>.</div>'
+        ),
+        "es": (
+            '<div style="background:#fff8e1;border:2px solid #f57c00;border-radius:6px;'
+            'padding:14px 18px;margin:16px auto;max-width:720px;font-size:15px;line-height:1.45;">'
+            '<strong>Interno — no para navegación.</strong><br>'
+            'Esta es la preparación de respaldo con lactulosa para EGD y colonoscopia combinados. Use el enlace personalizado que le dio el consultorio. '
+            'Si llegó aquí por accidente, la preparación estándar con MiraLAX está en '
+            '<a href="https://egdcolon.giready.com/es/">egdcolon.giready.com/es/</a>.</div>'
+        ),
+    },
+}
+
+
+def _band_template_for_lact(family, protocol, lang):
+    """Pick the lactulose mobile template by protocol (ported from the
+    _band_template_for_lact[_combined] helpers in the lactulose builders)."""
+    base = _base_family(family)
+    if protocol == "lactulose-infant":
+        return TEMPLATES / f"{base}-mobile-lactulose-infant.{lang}.html"
+    if protocol == "lactulose-standard":
+        return TEMPLATES / f"{base}-mobile-lactulose-standard.{lang}.html"
+    raise ValueError(f"Unknown lactulose protocol: {protocol!r}")
+
+
+def render_lact_band_page(lang, band, location, practice_cfg, qr, strat, family,
+                          logo_src, lang_toggle_href, landing_href, html_title):
+    """Render a single lactulose per-band page (ported from
+    build_lactulose[_combined]_websites.py render_band_page)."""
+    template_path = strat.band_template(band["protocol"], lang)
+    src = template_path.read_text(encoding="utf-8")
+
+    for token, body in _load_partials(lang).items():
+        src = src.replace(token, body)
+
+    dose_replacements = strat.dose_builder(band, lang, location=location)
+
+    location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
+    maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
+    youtube_url = qr["youtube_url_es" if lang == "es" else "youtube_url_en"]
+    portal_url = qr["portal_url"]
+    gikids_url = qr["gikids_url"]
+
+    replacements = {
+        **build_practice_placeholders(practice_cfg, lang),
+        **build_location_placeholders(location, lang),
+        **dose_replacements,
+        "{{PZ_EVENTS_JSON}}":   build_calendar_events_json(band, lang, location, family=_base_family(family)),
+        "{{HTML_TITLE}}":         html_title,
+        "{{BAND_LABEL}}":         _LACT_BAND_LABELS[band["id"]][lang],
+        "{{LOGO_SRC}}":           logo_src,
+        "{{LANG_TOGGLE_HREF}}":   lang_toggle_href,
+        "{{LANDING_HREF}}":       landing_href,
+        "{{BAND_LB}}":            lb_phrase(band, lang, "bracket"),
+        "{{BAND_NOTE}}":          _LACT_BAND_NOTE[band["id"]][lang],
+        "{{MAPS_URL}}":           maps_url,
+        "{{YOUTUBE_URL}}":        youtube_url,
+        "{{PORTAL_URL}}":         portal_url,
+        "{{GIKIDS_URL}}":         gikids_url,
+        "{{LOCATION_PHONE_TEL}}": location_phone_tel,
+        "{{PDF_BUTTON_BLOCK}}":   "",
+        "{{WARNING_WEIGHT}}":     band.get(f"warning_weight_{lang}",
+                                           band.get("warning_weight_en", "15 kg")),
+    }
+    return _do_replace(src, replacements, template_path.name)
+
+
+def render_lact_band_cards(bands_by_id, lang, band_ids):
+    """Lactulose band-picker grid — identical markup to render_band_cards but
+    sourced from the lactulose-local label/note maps (ported verbatim from the
+    lactulose builders' render_band_cards)."""
+    arrow_svg = ('<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+                 'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">'
+                 '<path d="M5 12h14M13 6l6 6-6 6"/></svg>')
+    n = len(band_ids)
+    cards = []
+    for i, bid in enumerate(band_ids):
+        path = bands_by_id[bid]["mobile_path"]
+        label = _LACT_BAND_LABELS[bid][lang]
+        lb = lb_phrase(bands_by_id[bid], lang)
+        note = _LACT_BAND_NOTE[bid][lang]
+        tag_html = f'<span class="tag">{note}</span>' if note else ""
+        wide = " wide" if (n % 2 == 1 and i == n - 1) else ""
+        cards.append(
+            f'  <a class="band{wide}" href="{path}/">\n'
+            f'    <div class="info"><h2>{lb}</h2><div class="kg">{label}</div>{tag_html}</div>\n'
+            f'    <span class="arr">{arrow_svg}</span>\n'
+            f'  </a>'
         )
-        written += write_repo_metadata(repo_dir, location, subdomain)
-        written_total += len(written)
-        print(f"  built {repo_dir} ({location_id} -> {subdomain}.giready.com): "
-              f"{len(written)} files")
+    return "\n".join(cards)
 
-    print(f"\n{written_total} files written across {len(SITES)} site repos.")
+
+def render_lact_landing_page(template_path, lang, practice_cfg, bands_by_id, band_ids,
+                             family, logo_src, lang_toggle_href, html_title):
+    """Render the lactulose landing page with the internal-only banner
+    prepended above the band picker (ported from the lactulose builders)."""
+    src = template_path.read_text(encoding="utf-8")
+    replacements = {
+        **build_practice_placeholders(practice_cfg, lang),
+        "{{HTML_TITLE}}":       html_title,
+        "{{LOGO_SRC}}":         logo_src,
+        "{{LANG_TOGGLE_HREF}}": lang_toggle_href,
+        "{{BAND_CARDS}}":       render_lact_band_cards(bands_by_id, lang, band_ids),
+    }
+    out = _do_replace(src, replacements, template_path.name)
+    banner = _LACT_BANNER[family][lang]
+    return out.replace("<body>", f"<body>\n{banner}", 1)
+
+
+def build_picker_banner_site(row, repo_dir, loc_id, location, practice_cfg, bands_by_id, strat):
+    """Picker-banner variants (lactulose): band-picker landing with an
+    internal-only banner + per-band pages, no PDF download. Ported from
+    build_lactulose[_combined]_websites.py build_for_repo."""
+    qr = practice_cfg["qr_targets"]
+    repo_dir.mkdir(parents=True, exist_ok=True)
+    clean_repo(repo_dir, row.bands, bands_by_id)
+    (repo_dir / "es").mkdir(exist_ok=True)
+    written = []
+    family = row.family
+
+    # EN landing
+    en_landing_html = render_lact_landing_page(
+        strat.landing_template("en"), "en", practice_cfg, bands_by_id, row.bands,
+        family, logo_src="logo-pmch.png", lang_toggle_href="es/",
+        html_title=row.titles["landing_en"],
+    )
+    p = repo_dir / "index.html"
+    p.write_text(_inject_analytics(en_landing_html, family, loc_id, "en"), encoding="utf-8")
+    written.append(p)
+
+    # ES landing
+    es_landing_html = render_lact_landing_page(
+        strat.landing_template("es"), "es", practice_cfg, bands_by_id, row.bands,
+        family, logo_src="../logo-pmch.png", lang_toggle_href="../",
+        html_title=row.titles["landing_es"],
+    )
+    p = repo_dir / "es" / "index.html"
+    p.write_text(_inject_analytics(es_landing_html, family, loc_id, "es"), encoding="utf-8")
+    written.append(p)
+
+    # Per-band pages
+    for bid in row.bands:
+        band = bands_by_id[bid]
+        path = band["mobile_path"]
+
+        en_dir = repo_dir / path
+        shutil.rmtree(en_dir, ignore_errors=True)
+        en_dir.mkdir(parents=True, exist_ok=True)
+        en_html = render_lact_band_page(
+            "en", band, location, practice_cfg, qr, strat, family,
+            logo_src="../logo-pmch.png",
+            lang_toggle_href=f"../es/{path}/",
+            landing_href="../",
+            html_title=row.titles["band_en"].format(label=_LACT_BAND_LABELS[bid]["en"]),
+        )
+        p = en_dir / "index.html"
+        p.write_text(_inject_analytics(en_html, family, loc_id, "en", bid), encoding="utf-8")
+        written.append(p)
+
+        es_dir = repo_dir / "es" / path
+        shutil.rmtree(es_dir, ignore_errors=True)
+        es_dir.mkdir(parents=True, exist_ok=True)
+        es_html = render_lact_band_page(
+            "es", band, location, practice_cfg, qr, strat, family,
+            logo_src="../../logo-pmch.png",
+            lang_toggle_href=f"../../{path}/",
+            landing_href="../",
+            html_title=row.titles["band_es"].format(label=_LACT_BAND_LABELS[bid]["es"]),
+        )
+        p = es_dir / "index.html"
+        p.write_text(_inject_analytics(es_html, family, loc_id, "es", bid), encoding="utf-8")
+        written.append(p)
+
+    if LOGO_PATH.exists():
+        shutil.copy(LOGO_PATH, repo_dir / "logo-pmch.png")
+        written.append(repo_dir / "logo-pmch.png")
+    return written
+
+
+# For the full list of touch-points required when adding a NEW family, see
+# the comment block at the top of data/sites.yaml.
+FAMILY_STRATEGY = {
+    "colonoscopy": Strategy(
+        band_template=lambda p, l: _band_template_for(p, l, family="colonoscopy"),
+        landing_template=_colon_landing),
+    "combined": Strategy(
+        band_template=lambda p, l: _band_template_for(p, l, family="combined"),
+        landing_template=_combined_landing),
+    "clenpiq": Strategy(
+        band_template=lambda p, l: _single_band_template("clenpiq", "clenpiq", l),
+        dose_builder=build_clenpiq_strings),
+    "clenpiq-combined": Strategy(
+        band_template=lambda p, l: _single_band_template("clenpiq", "clenpiq-combined", l),
+        dose_builder=build_clenpiq_strings),
+    "suprep": Strategy(
+        band_template=lambda p, l: _single_band_template("suprep", "suprep", l),
+        dose_builder=build_suprep_strings),
+    "suprep-combined": Strategy(
+        band_template=lambda p, l: _single_band_template("suprep", "suprep-combined", l),
+        dose_builder=build_suprep_strings),
+    "lactulose": Strategy(
+        band_template=lambda p, l: _band_template_for_lact("lactulose", p, l),
+        dose_builder=build_lactulose_strings,
+        landing_template=_colon_landing),
+    "lactulose-combined": Strategy(
+        band_template=lambda p, l: _band_template_for_lact("lactulose-combined", p, l),
+        dose_builder=build_lactulose_strings,
+        landing_template=_combined_landing),
+}
+
+
+# ---------------------------------------------------------------------------
+# Manifest-driven build_site + main
+# ---------------------------------------------------------------------------
+
+# Families whose bands must be PUBLIC (public: true, which is the default when
+# the flag is absent). All other families are scheduler-only (public: false).
+_PUBLIC_FAMILIES = {"colonoscopy", "combined"}
+
+
+def _assert_band_publicness(row, bands_by_id):
+    """Abort if any band's `public` flag contradicts its family's expectation.
+
+    colonoscopy + combined expect public: true (or absent — default true).
+    All variant families (lactulose*, clenpiq*, suprep*) expect public: false.
+    This mirrors the per-family assertions the original per-variant builders
+    each enforced and ensures the manifest can't silently mis-route a band.
+    """
+    expected_public = row.family in _PUBLIC_FAMILIES
+    for bid in row.bands:
+        band = bands_by_id.get(bid)
+        if band is None:
+            sys.exit(
+                f"ERROR: band '{bid}' in manifest row '{row.id}' not found in dosing.yaml"
+            )
+        actual_public = band.get("public", True)
+        if bool(actual_public) != expected_public:
+            direction = "public: true" if expected_public else "public: false"
+            found = "public: true (default)" if actual_public else "public: false"
+            sys.exit(
+                f"ERROR: band '{bid}' in manifest row '{row.id}' (family '{row.family}') "
+                f"must be {direction}, but dosing.yaml has {found}. "
+                f"Correct the band's `public:` flag or the manifest family assignment."
+            )
+
+def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
+    strat = FAMILY_STRATEGY[row.family]
+    written = 0
+    for loc_id, repo_name in row.repos.items():
+        repo_dir = Path.home() / "Desktop" / "peds-gi-system" / repo_name
+        location = locations[loc_id]
+        if row.landing == "picker":
+            files = build_for_repo(
+                repo_dir, loc_id, location, practice_cfg, bands_by_id, row.bands,
+                strat.landing_template("en"), strat.landing_template("es"),
+                row.titles["landing_en"], row.titles["landing_es"],
+                row.titles["band_en"], row.titles["band_es"],
+                family=row.family,
+            )
+        elif row.landing == "picker-banner":  # lactulose: band-picker + internal-only banner
+            files = build_picker_banner_site(row, repo_dir, loc_id, location,
+                                             practice_cfg, bands_by_id, strat)
+        else:  # "single": one-band page, no landing (clenpiq/suprep)
+            files = build_single_site(row, repo_dir, loc_id, location,
+                                      practice_cfg, bands_by_id, strat)
+        files += write_repo_metadata(repo_dir, location, row.subdomains[loc_id])
+        written += len(files)
+        print(f"  built {repo_dir} ({loc_id} -> {row.subdomains[loc_id]}.giready.com): {len(files)} files")
+    return written
+
+
+def main():
+    import render
+    practice_cfg = render._practice()
+    dosing_cfg = _load_yaml(DOSING_PATH)
+    locations = dosing_cfg["locations"]
+    bands_by_id = {b["id"]: b for b in dosing_cfg["bands"]}
+    only = set(sys.argv[1:])  # optional: build only these manifest ids
+    total = 0
+    for row in load_sites():
+        if only and row.id not in only:
+            continue
+        if row.family not in FAMILY_STRATEGY:
+            continue  # unknown family — skip
+        _assert_band_publicness(row, bands_by_id)
+        total += build_site(row, locations, bands_by_id, practice_cfg)
+    print(f"\n{total} files written.")
 
 
 if __name__ == "__main__":
