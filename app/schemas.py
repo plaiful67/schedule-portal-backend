@@ -129,7 +129,50 @@ class FlexSigRequest(_Base):
     weight_band: FlexSigBand
 
 
+class ComposedRequest(_Base):
+    """Base procedure + prep-neutral add-on procedures (sleep endoscopy, ENT
+    airway, BAL, rectal suction biopsy, ...). The handout title and add-on
+    blurbs are assembled by the skill's composition resolver from these ids;
+    knob_picks parameterizes any add-on knobs (e.g. {"ppi_handling": "hold"}).
+
+    `base` selects which prep backbone the add-ons ride:
+      - "egd"         → no bowel prep; weight_band MUST be absent.
+      - "colonoscopy" → colonoscopy-only bowel prep; weight_band REQUIRED.
+      - "combined"    → EGD+colonoscopy combined prep; weight_band REQUIRED.
+    Defaulting base="egd" keeps the EGD-only composed path valid for callers
+    that send no base.
+    """
+    procedure_type: Literal["composed"]
+    base: Literal["egd", "colonoscopy", "combined"] = "egd"
+    weight_band: BowelPrepBand | None = None
+    prep_type: PrepType = "miralax"
+    add_ons: list[str] = Field(..., min_length=1, max_length=10)
+    knob_picks: dict[str, str] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _composed_base_band_check(self):
+        prep_bases = {"colonoscopy", "combined"}
+        if self.base in prep_bases and self.weight_band is None:
+            raise ValueError(f"weight_band is required when base={self.base!r}")
+        if self.base == "egd" and self.weight_band is not None:
+            raise ValueError("weight_band must be absent when base='egd'")
+        if self.weight_band is not None:
+            if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
+                raise ValueError(
+                    f"prep_type=lactulose is only available for weight bands "
+                    f"{sorted(LACTULOSE_ALLOWED_BANDS)} (got {self.weight_band!r})")
+            if self.prep_type == "clenpiq" and self.weight_band not in CLENPIQ_ALLOWED_BANDS:
+                raise ValueError(
+                    f"prep_type=clenpiq is only available for weight bands "
+                    f"{sorted(CLENPIQ_ALLOWED_BANDS)} (got {self.weight_band!r})")
+            if self.prep_type == "suprep" and self.weight_band not in SUPREP_ALLOWED_BANDS:
+                raise ValueError(
+                    f"prep_type=suprep is only available for weight bands "
+                    f"{sorted(SUPREP_ALLOWED_BANDS)} (got {self.weight_band!r})")
+        return self
+
+
 RenderRequest = Annotated[
-    BowelPrepRequest | EGDRequest | EGDPhMiiRequest | CombinedRequest | FlexSigRequest,
+    BowelPrepRequest | EGDRequest | EGDPhMiiRequest | CombinedRequest | FlexSigRequest | ComposedRequest,
     Field(discriminator="procedure_type"),
 ]
