@@ -144,7 +144,12 @@ def directions_section(location_id: str, lang: str) -> tuple[str, str]:
     skill = _skill()
     html = template_path.read_text(encoding="utf-8")
     html = _LEGAL_FOOTER_CSS_RE.subn("", html, count=1)[0]
-    html = _LEGAL_FOOTER_HTML_RE.subn("\n", html, count=1)[0]
+    # Footer is single-sourced as {{PARTIAL_FOOTER_LEGAL}} (Phase A T7); strip the
+    # token (the public-site legal footer doesn't belong in the inlined directions
+    # appendix). Fall back to the legacy expanded-HTML regex for safety.
+    html, _n = re.subn(r"\s*\{\{PARTIAL_FOOTER_LEGAL\}\}\s*", "\n", html, count=1)
+    if _n == 0:
+        html = _LEGAL_FOOTER_HTML_RE.subn("\n", html, count=1)[0]
 
     # Swap the Maps QR placeholder for a data URI (same helper as build_directions).
     data_uri = skill._png_to_data_uri(skill._generate_maps_qr(_maps_url_for(location_id, lang)))

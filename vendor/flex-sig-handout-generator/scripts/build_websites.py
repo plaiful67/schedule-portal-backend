@@ -58,6 +58,7 @@ from render import (  # noqa: E402
     apply_conditional_blocks,
     lb_phrase,
     _inject_shared_mobile_a11y,
+    _load_shared_partials,
 )
 
 # Per-location target repo. Subdomains come from procedure.yaml's
@@ -268,6 +269,9 @@ def render_band_page(lang, procedure, band, location, practice_cfg, qr,
         pdf_button_block = ""
 
     replacements = {
+        # Shared partials first (e.g. {{PARTIAL_NPO_TABLE_NOTHICKENER_MOBILE}});
+        # their inner tokens (NPO_*) resolve from the band placeholders below.
+        **_load_shared_partials(lang),
         **build_practice_placeholders(lang),
         **build_location_placeholders(location, lang),
         **build_band_placeholders(procedure, band, lang, location=location),

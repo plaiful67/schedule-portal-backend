@@ -2,5 +2,5 @@
 PyYAML>=6.0
 qrcode>=7.4
 Pillow>=10.0
-weasyprint>=60.0
+weasyprint>=60.0,<69  # 69.0 regresses PDF/UA 7.21.5 (Apple-Color-Emoji glyph widths); pin <69 until fixed + re-validated with verapdf
 pypdf>=4.0

@@ -165,6 +165,10 @@ def render_mobile(procedure_id, template_name, lang, procedure, location, pdf_bu
         "{{PDF_BUTTON_BLOCK}}":    pdf_button_block,
     }
     out = src
+    # Expand shared partials (e.g. {{PARTIAL_NPO_TABLE_MOBILE}}) first; their
+    # inner tokens resolve in the main pass below.
+    for token, value in render._load_shared_partials(lang).items():
+        out = out.replace(token, value)
     for token, value in replacements.items():
         out = out.replace(token, value)
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", out)
