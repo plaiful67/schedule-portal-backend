@@ -70,6 +70,8 @@ def _canonical_rel_for(personalized_rel: str) -> str | None:
 
     if family == "egd":
         return f"egd-handout-generator/templates/egd-print.{lang_html}"
+    if family == "composed":
+        return f"egd-handout-generator/templates/egd-print.{lang_html}"
     if family == "egd_phmii":
         return f"egd-handout-generator/templates/egdph-print.{lang_html}"
     if family == "bowel_prep":

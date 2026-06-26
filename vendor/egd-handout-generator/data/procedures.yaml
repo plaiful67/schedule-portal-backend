@@ -1,0 +1,98 @@
+# Composition registry — Phase B increment 1.
+# Bases reuse procedure.yaml's `procedures` blocks for prep/NPO; this file adds the
+# composition layer: base title fragments, add-ons (title fragment + blurb), specialty
+# generic tiers (modeled as *_generic add-ons), and knobs. See
+# docs/superpowers/specs/2026-06-26-giready-composition-engine-knobs-design.md
+version: 1
+
+bases:
+  egd:
+    title_fragment_en: "Upper Endoscopy (EGD)"
+    title_fragment_es: "Endoscopia Superior (EGD)"
+
+# Add-ons are prep-neutral overlays. `specialty` links to a generic tier. `knobs` lists
+# knob ids this add-on owns. The `*_generic` add-ons carry only the specialty generic blurb.
+add_ons:
+  ph_mii:
+    title_fragment_en: "pH Impedance Study"
+    title_fragment_es: "Estudio de Impedancia-pH"
+    blurb_en: "A thin pH-impedance catheter will be placed during the same anesthesia and worn for about 24 hours afterward to measure reflux."
+    blurb_es: "Se colocará un catéter delgado de impedancia-pH durante la misma anestesia y se usará durante unas 24 horas para medir el reflujo."  # ES-REVIEW
+    knobs: [ppi_handling]
+  rsbx:
+    title_fragment_en: "Rectal Suction Biopsy"
+    title_fragment_es: "Biopsia por Succión Rectal"
+    blurb_en: "A small rectal biopsy will be taken during the same anesthesia. No extra preparation is needed."
+    blurb_es: "Se tomará una pequeña biopsia rectal durante la misma anestesia. No se necesita preparación adicional."  # ES-REVIEW
+  bal:
+    specialty: pulm
+    title_fragment_en: "Bronchoalveolar Lavage"
+    title_fragment_es: "Lavado Broncoalveolar"
+    blurb_en: "During the same anesthesia, the Pulmonary team will also perform a bronchoalveolar lavage (BAL) to sample the airways. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Neumología también realizará un lavado broncoalveolar (BAL) para tomar muestras de las vías respiratorias. No se necesita preparación adicional."  # ES-REVIEW
+  dise:
+    specialty: sleep
+    title_fragment_en: "Drug-Induced Sleep Endoscopy"
+    title_fragment_es: "Endoscopia del Sueño Inducida por Medicamentos"
+    blurb_en: "During the same anesthesia, the Sleep team will examine your child's airway (drug-induced sleep endoscopy, DISE). No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Sueño examinará las vías respiratorias de su hijo (endoscopia del sueño inducida, DISE). No se necesita preparación adicional."  # ES-REVIEW
+  dlb:
+    specialty: ent
+    title_fragment_en: "ENT Airway Exam (DLB)"
+    title_fragment_es: "Examen de Vías Respiratorias por Otorrinolaringología (DLB)"
+    blurb_en: "During the same anesthesia, the ENT team will examine your child's airway (direct laryngoscopy and bronchoscopy). No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología examinará las vías respiratorias de su hijo (laringoscopia y broncoscopia directas). No se necesita preparación adicional."  # ES-REVIEW
+  ent_ta:
+    specialty: ent
+    title_fragment_en: "Tonsils & Adenoids"
+    title_fragment_es: "Amígdalas y Adenoides"
+    blurb_en: "During the same anesthesia, the ENT team will also remove the tonsils and adenoids. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología también extirpará las amígdalas y los adenoides. No se necesita preparación adicional."  # ES-REVIEW
+  ent_tubes:
+    specialty: ent
+    title_fragment_en: "Ear Tubes"
+    title_fragment_es: "Tubos de Oído"
+    blurb_en: "During the same anesthesia, the ENT team will also place ear tubes. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología también colocará tubos de oído. No se necesita preparación adicional."  # ES-REVIEW
+  pulm_generic:
+    specialty: pulm
+    title_fragment_en: "Pulmonary Procedure"
+    title_fragment_es: "Procedimiento de Neumología"
+  ent_generic:
+    specialty: ent
+    title_fragment_en: "ENT Procedure"
+    title_fragment_es: "Procedimiento de Otorrinolaringología"
+  sleep_generic:
+    specialty: sleep
+    title_fragment_en: "Sleep Procedure"
+    title_fragment_es: "Procedimiento de Sueño"
+
+specialties:
+  ent:
+    generic_blurb_en: "Your child's ENT (ear, nose & throat) team will also be present during the same anesthesia. No extra preparation is needed."
+    generic_blurb_es: "El equipo de Otorrinolaringología de su hijo también estará presente durante la misma anestesia. No se necesita preparación adicional."  # ES-REVIEW
+  pulm:
+    generic_blurb_en: "Your child's Pulmonary team will also be present during the same anesthesia. No extra preparation is needed."
+    generic_blurb_es: "El equipo de Neumología de su hijo también estará presente durante la misma anestesia. No se necesita preparación adicional."  # ES-REVIEW
+  sleep:
+    generic_blurb_en: "Your child's Sleep team will also be present during the same anesthesia. No extra preparation is needed."
+    generic_blurb_es: "El equipo de Sueño de su hijo también estará presente durante la misma anestesia. No se necesita preparación adicional."  # ES-REVIEW
+
+knobs:
+  ppi_handling:
+    default: hold
+    owned_by_addon: ph_mii
+    options:
+      hold:
+        fragment_en: "Hold your child's acid-reducing medicine (proton pump inhibitor) for 7 days before the test, as directed by the office."
+        fragment_es: "Suspenda el medicamento reductor de ácido de su hijo (inhibidor de la bomba de protones) durante 7 días antes de la prueba, según lo indique la oficina."  # ES-REVIEW
+      continue:
+        fragment_en: "Your child may continue their acid-reducing medicine (proton pump inhibitor) as usual unless the office tells you otherwise."
+        fragment_es: "Su hijo puede continuar con su medicamento reductor de ácido (inhibidor de la bomba de protones) como de costumbre, a menos que la oficina le indique lo contrario."  # ES-REVIEW
+  # Registered but inactive in Phase 1 (content = Phase 2; owned by the bowel-prep base, not egd).
+  miralax_schedule:
+    default: single
+    owned_by_base: bowel_prep
+    options:
+      single: { fragment_en: "", fragment_es: "" }
+      split:  { fragment_en: "", fragment_es: "" }

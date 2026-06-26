@@ -467,7 +467,8 @@ def _ensure_weasyprint_libpath():
             os.environ["DYLD_FALLBACK_LIBRARY_PATH"] = (homebrew_lib + ":" + cur).rstrip(":")
 
 
-def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_path):
+def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_path,
+               add_ons=None, knob_picks=None):
     template_path = TEMPLATES / f"{procedure_id}-print.{lang}.html"
     if not template_path.exists():
         raise RuntimeError(f"Template not found: {template_path}")
@@ -510,6 +511,17 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
         procedure_placeholders = build_egdph_placeholders(procedure, lang, location=location, procedure_id=procedure_id)
     else:
         procedure_placeholders = build_egd_placeholders(procedure, lang, location=location)
+
+    # Composition overlay: assemble title + add-on blurbs from the registry.
+    # Scoped to the plain-EGD base: egdph uses a different title (built by
+    # build_egdph_placeholders) and its template has no {{ADDON_BLURBS}} slot.
+    if procedure_id == "egd":
+        import compose as _compose
+        comp = _compose.compose("egd", add_ons or [], knob_picks or {}, lang)
+        if add_ons:
+            procedure_placeholders["{{HTML_TITLE}}"] = comp.title
+            procedure_placeholders["{{PROCEDURE_LABEL}}"] = comp.title
+        procedure_placeholders["{{ADDON_BLURBS}}"] = comp.blurbs_html
 
     replacements = {
         **build_practice_placeholders(lang),
@@ -564,6 +576,8 @@ def main():
     ap.add_argument("--location", default="all", help="scc | pmch | all")
     ap.add_argument("--lang", default="both", choices=["en", "es", "both"])
     ap.add_argument("--theme", default="color", choices=["color", "print-light", "calm", "both"])
+    ap.add_argument("--add-ons", default="", help="comma-separated add-on ids, e.g. bal,dise")
+    ap.add_argument("--ppi", default=None, choices=["hold", "continue"], help="PPI knob pick")
     args = ap.parse_args()
 
     out_dir = Path(args.out)
@@ -589,6 +603,9 @@ def main():
     langs  = ["en", "es"] if args.lang  == "both" else [args.lang]
     themes = ["color", "print-light"] if args.theme == "both" else [args.theme]
 
+    add_ons = [a for a in args.add_ons.split(",") if a]
+    knob_picks = {"ppi_handling": args.ppi} if args.ppi else {}
+
     written = []
     for lid in location_ids:
         location = locations_data[lid]
@@ -602,7 +619,8 @@ def main():
                 target_dir.mkdir(parents=True, exist_ok=True)
                 fname = f"{args.procedure}-{loc_suffix}{lang_suffix}-print{theme_suffix}.pdf"
                 out = target_dir / fname
-                render_pdf(args.procedure, procedure, location, lid, lang, theme, out)
+                render_pdf(args.procedure, procedure, location, lid, lang, theme, out,
+                           add_ons=add_ons, knob_picks=knob_picks)
                 written.append(out)
                 print(f"  wrote {out}")
 

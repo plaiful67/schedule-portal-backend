@@ -289,6 +289,19 @@ def main():
     else:
         print("      ✅ every egd-*.html template references meds.giready.com")
 
+    # 3c. Composition registry coverage (all combos compose cleanly, no missing fields)
+    print("\n[3c] Composition registry coverage")
+    sys.path.insert(0, str(SCRIPTS))
+    import check_registry_coverage
+    reg_problems = check_registry_coverage.audit()
+    for p in reg_problems:
+        print(f"      REGISTRY: {p}")
+    if reg_problems:
+        print(f"      ❌ {len(reg_problems)} registry coverage problem(s)")
+        failures.append(f"registry coverage: {len(reg_problems)} problem(s)")
+    else:
+        print("      ✅ registry coverage clean")
+
     if args.quick:
         return _summary(failures)
 

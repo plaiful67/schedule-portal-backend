@@ -4,3 +4,6 @@ __pycache__/
 *.py[cod]
 .DS_Store
 templates-backup-*/
+
+# subagent-driven-development scratch (ledger, briefs)
+.superpowers/

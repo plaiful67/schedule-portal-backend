@@ -141,14 +141,24 @@
       "canonical_sha256": "b7de378b4be5630bc525fe594d04f0afaa9752862e6a5e8b35d2944223749d16",
       "status": "forked"
     },
+    "composed/print-personalized.en.html": {
+      "canonical": "egd-handout-generator/templates/egd-print.en.html",
+      "canonical_sha256": "c154034c133742a43c73890dd00d2d888067fee38af0a81be0754371dc39f740",
+      "status": "forked"
+    },
+    "composed/print-personalized.es.html": {
+      "canonical": "egd-handout-generator/templates/egd-print.es.html",
+      "canonical_sha256": "1b68f91a606d2106638afd08201460a6a2cd6b24491ed643784305a8daf331b1",
+      "status": "forked"
+    },
     "egd/print-personalized.en.html": {
       "canonical": "egd-handout-generator/templates/egd-print.en.html",
-      "canonical_sha256": "98cca23281d54eb6d8983a2184c1f51cdd0cf72a8f6adc410652ac5581970e93",
+      "canonical_sha256": "c154034c133742a43c73890dd00d2d888067fee38af0a81be0754371dc39f740",
       "status": "forked"
     },
     "egd/print-personalized.es.html": {
       "canonical": "egd-handout-generator/templates/egd-print.es.html",
-      "canonical_sha256": "157561ebfb4e77f2b12d78ac1094cb6f6811e9882d08a5901b7feb87ac743739",
+      "canonical_sha256": "1b68f91a606d2106638afd08201460a6a2cd6b24491ed643784305a8daf331b1",
       "status": "forked"
     },
     "egd_phmii/print-personalized.en.html": {

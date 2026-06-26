@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <title>{{HTML_TITLE}}</title>
 <style>
-  /* Versión en español — el CSS es idéntico al de la plantilla en inglés. */
+  /* Print-ready stylesheet for WeasyPrint. Same design system as the
+     bowel-prep handouts (Source Serif 4 + Inter, navy step bands, light
+     border accents, toner-friendly variant via body.theme-print-light). */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
   @page {
     size: letter;
     margin: 0.55in 0.65in 0.5in 0.65in;
     @bottom-right {
-      content: counter(page) " de " counter(pages);
+      content: "Página " counter(page) " de " counter(pages);
       font-family: "Inter", sans-serif; font-size: 8.5pt; color: #666;
     }
     @bottom-left {
@@ -53,6 +55,7 @@
   a.resource-card { color: inherit; text-decoration: none; }
   .location-text a { color: inherit; text-decoration: none; }
 
+  /* Cover */
   .cover {
     string-set: band-label "{{PROCEDURE_LABEL}}";
     border-bottom: 2pt solid #0e2233;
@@ -87,15 +90,17 @@
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 12pt; margin-top: 2pt;
   }
-  /* 17pt es intencional: el h1 de portada del EGD es corto ("Endoscopia Superior")
-     así que puede llevar un peso más pesado que bowel-prep / flex-sig (16pt). Ver
-     docs/DEVELOPER_HANDOFF.md "Per-skill style conventions". */
-  .doc-title { font-size: 17pt; font-weight: 600; color: #0e2233; margin: 1pt 0; white-space: nowrap; }
+  .doc-title { font-size: 17pt; font-weight: 600; color: #0e2233; margin: 1pt 0; }
   .band-label {
     font-family: "Inter", sans-serif; font-size: 12pt; font-weight: 600;
     color: #b03a00; margin-top: 2pt;
   }
+  .performing-physician {
+    font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 500;
+    color: #555; margin-top: 3pt;
+  }
 
+  /* Location block */
   .location {
     display: flex; gap: 12pt; align-items: flex-start;
     border: 1pt solid #c9d3dd; background: #f4f7fa;
@@ -127,16 +132,18 @@
     font-size: 8pt; color: #555; line-height: 1.18;
     white-space: normal; margin-right: 5pt;
   }
-h2.step {
+/* Step / section headings */
+  h2.step {
     background: #0e2233; color: #ffffff;
     padding: 4pt 8pt; border-radius: 3pt;
-    margin: 9pt 0 4pt 0; font-size: 11.5pt;
+    margin: 5pt 0 3pt 0; font-size: 11.5pt;
     break-after: avoid; font-family: "Inter", sans-serif;
   }
   h2.step .icon { display: inline-block; margin-right: 4pt; }
 
   p.note { font-size: 9.5pt; color: #555; font-style: italic; margin: 3pt 0 0 0; }
 
+  /* NPO table — the centerpiece */
   table.npo {
     width: 100%; border-collapse: collapse;
     margin: 4pt 0 8pt 0;
@@ -147,11 +154,11 @@ h2.step {
   table.npo th {
     background: #e3eaf1; color: #0e2233;
     font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 600;
-    text-align: left; padding: 5pt 8pt;
+    text-align: left; padding: 3pt 7pt;
     border-bottom: 1pt solid #c9d3dd;
   }
   table.npo td {
-    padding: 5pt 8pt;
+    padding: 3pt 7pt;
     border-bottom: 0.5pt solid #d8dee5;
     vertical-align: top;
     font-size: 10pt;
@@ -162,6 +169,7 @@ h2.step {
   table.npo .stop-hours { font-size: 11pt; }
   table.npo .row-thickener td { background: #fffdf6; }
 
+  /* Callouts & warnings */
   .callout, .warning {
     border-radius: 4pt; padding: 6pt 9pt; margin: 6pt 0;
     break-inside: avoid;
@@ -176,8 +184,9 @@ h2.step {
     font-weight: 600; color: #7a1f00;
   }
 
+  /* Two-column resources */
   .two-col {
-    display: flex; gap: 14pt; align-items: flex-start;
+    display: flex; gap: 14pt; align-items: stretch;
     margin: 6pt 0;
   }
   .two-col > * { flex: 1 1 0; }
@@ -193,6 +202,7 @@ h2.step {
     line-height: 1.2; flex: 1 1 auto;
   }
 
+  /* Toner-friendly theme overrides */
   body.theme-print-light h2.step {
     background: #ffffff; color: #0e2233;
     border: 1pt solid #0e2233; border-left: 4pt solid #0e2233;
@@ -211,58 +221,46 @@ h2.step {
   body.theme-print-light .location { background: #ffffff; }
   body.theme-print-light .resource-card { background: #ffffff; }
 
-.medical-disclaimer {
-  margin-top: 16px;
-  padding-top: 12px;
-  border-top: 1px solid #d0d0d0;
-  font-size: 0.85em;
-  line-height: 1.45;
-  color: #555;
-}
-@media print {
-  .medical-disclaimer {
-    color: #333;
-    border-top: 1px solid #888;
+  /* --- Personalized appointment callout --- */
+  .appt-callout {
+    margin: 6pt 0; padding: 5pt 14pt;
+    border: 2pt solid #0e2233; border-radius: 6pt;
+    background: #f7f8fa; page-break-inside: avoid;
   }
-}
+  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+  .appt-block { flex: 1 1 0; min-width: 0; }
+  .appt-block.appt-block-date { flex: 2 1 0; }
+  .appt-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; margin-bottom: 1pt;
+  }
+  .appt-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 13pt; font-weight: 700; color: #0e2233;
+    white-space: nowrap;
+  }
+  /* --- Standalone narrow follow-up appointment callout --- */
+  .followup-callout {
+    margin: 8pt 0; padding: 6pt 12pt;
+    border-left: 3pt solid #0e4a82;
+    background: #f5f8fb;
+    display: flex; align-items: baseline; gap: 8pt;
+    page-break-inside: avoid;
+  }
+  .followup-callout .followup-label {
+    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;
+    color: #555; font-weight: 600;
+  }
+  .followup-callout .followup-value {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-size: 11pt; font-weight: 600; color: #0e2233;
+  }
+  .followup-callout.fallback .followup-value {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;
+  }
 
-.footer-policy-links {
-  margin: 12px 0 8px;
-  text-align: center;
-  font-size: 0.85em;
-}
-.footer-policy-links a {
-  color: #0e4a82;
-  text-decoration: none;
-}
-.footer-policy-links a:hover { text-decoration: underline; }
-.footer-policy-links .sep { color: #999; margin: 0 6px; }
-
-.footer-copyright {
-  margin: 6px 0 4px;
-  text-align: center;
-  font-size: 0.8em;
-  color: #888;
-}
-
-.topbar-logo {
-  height: 48px;
-  width: auto;
-  flex: 0 0 auto;
-  display: block;
-}
-.topbar-logo-link {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  text-decoration: none;
-}
 </style>
-<link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">
-<link rel="manifest" href="https://giready.com/site.webmanifest">
-<meta name="theme-color" content="#1A3F8C">
 </head>
 <body>
 
@@ -285,10 +283,31 @@ h2.step {
   <div class="cover-title-row">
     <h1 class="doc-title">{{PROCEDURE_LABEL}}</h1>
     <div class="band-label">Qué Esperar</div>
+    <div class="performing-physician">Médico que realiza el procedimiento: {{PERFORMING_PHYSICIAN}}</div>
   </div>
 </section>
 
-<!-- LOCATION -->
+<!-- ============================================================= -->
+<!-- CALLOUT DE LA CITA (solo en versión personalizada)            -->
+<!-- ============================================================= -->
+<section class="appt-callout">
+  <div class="appt-row">
+    <div class="appt-block appt-block-date">
+      <div class="appt-label">Fecha del procedimiento</div>
+      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Llegada</div>
+      <div class="appt-value">{{ARRIVAL_TIME}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Hora del procedimiento</div>
+      <div class="appt-value">{{APPT_TIME}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- LOCALIZACIÓN (subida para quedar bajo el callout de la cita) -->
 <section class="location">
   <div class="location-text">
     <div class="label">Lugar del Procedimiento</div>
@@ -305,13 +324,17 @@ h2.step {
   </div>
 </section>
 
-<!-- ABOUT -->
+<!-- Cita de seguimiento (callout estrecho independiente) -->
+{{FOLLOWUP_BLOCK_HTML}}
+
+<!-- SOBRE EL PROCEDIMIENTO -->
 <h2 class="step"><span class="icon">&#128214;</span> Sobre el Procedimiento</h2>
 <p>Una <strong>endoscopia superior</strong> (también llamada <strong>EGD</strong>, por esofagogastroduodenoscopia) es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por la boca de su hijo(a) para examinar el esófago, el estómago y la primera parte del intestino delgado. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>{{DURATION_MIN}} minutos</strong>, pero planee estar en el centro varias horas en total.</p>
 {{ADDON_BLURBS}}
+
 <!-- NPO -->
 <h2 class="step"><span class="icon">&#9201;&#65039;</span> Comer y Beber — Antes del Procedimiento (NPO)</h2>
-<p>Por la seguridad de su hijo(a), la anestesia requiere el estómago vacío. Detenga cada alimento o líquido a continuación según el tiempo indicado, contando hacia atrás desde la <strong>hora de llegada programada</strong> de su hijo(a):</p>
+<p>Detenga cada alimento o líquido a continuación por el tiempo indicado antes de la <strong>hora de llegada programada</strong> de su hijo(a) (la anestesia requiere el estómago vacío):</p>
 
 {{PARTIAL_NPO_TABLE_PRINT}}
 
@@ -323,17 +346,16 @@ h2.step {
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
     <div style="flex:1;">
-      <p style="margin: 0 0 1pt;">Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen. La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua.</p>
-      <p style="margin: 0 0 1pt;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
-      <p style="margin: 0;">Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0 0 1pt;">Tenga lista la lista de medicamentos de su hijo(a) para la llamada de nuestro equipo. La mayoría de los medicamentos diarios pueden tomarse con un sorbo pequeño de agua; verifique cuáles suspender en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+      <p style="margin: 0;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 días antes</strong> &mdash; retrasan el vaciamiento del estómago y aumentan el riesgo con anestesia.</p>
     </div>
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
 
+<!-- DÍA ANTES / DÍA DEL PROCEDIMIENTO -->
 {{PARTIAL_FEEDBACK_BAR}}
 
-<!-- DAY BEFORE / DAY OF -->
 <h2 class="step"><span class="icon">&#128197;</span> Día Antes y Día del Procedimiento</h2>
 <ul>
   <li><strong>Baño</strong>: un baño o ducha normal la noche anterior está bien.</li>
@@ -343,7 +365,7 @@ h2.step {
   <li><strong>Regla del día de enfermedad</strong>: si su hijo(a) presenta fiebre, tos nueva, vómito o síntomas significativos de resfriado en las 48 horas previas, llame a la oficina — anestesia podría necesitar reprogramar.</li>
 </ul>
 
-<!-- AFTER -->
+<!-- DESPUÉS -->
 <h2 class="step"><span class="icon">&#127973;</span> Después del Procedimiento</h2>
 <ul>
   <li>Su hijo(a) despertará en el área de recuperación. Es normal tener algo de somnolencia, leve dolor de garganta y gases/distensión durante varias horas.</li>
@@ -353,7 +375,7 @@ h2.step {
   <li>El médico le explicará lo que se vio durante el procedimiento antes de que se vayan a casa. Los resultados de las biopsias toman aproximadamente 1–2 semanas; los enviaremos por el portal del paciente o llamaremos.</li>
 </ul>
 
-<!-- WHEN TO CALL -->
+<!-- CUÁNDO LLAMAR -->
 <h2 class="step"><span class="icon">&#128222;</span> Cuándo Llamar a la Oficina</h2>
 <p>Llame al <a href="tel:3173389450"><strong>(317) 338-9450</strong></a> si su hijo(a) presenta cualquiera de lo siguiente después del procedimiento:</p>
 <ul>
@@ -364,7 +386,7 @@ h2.step {
   <li>Dificultad para respirar o dolor en el pecho (esto es una emergencia — llame al 911)</li>
 </ul>
 
-<!-- RESOURCES -->
+<!-- RECURSOS -->
 <h2 class="step">Recursos &amp; Preguntas</h2>
 <div class="two-col">
   <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
@@ -379,8 +401,7 @@ h2.step {
     <img id="qr-gikids" src="qr-placeholder.png" alt="Recurso GIKids — código QR">
     <div class="label"><strong>GIKids.org</strong><br>Información general sobre la endoscopia digestiva alta.</div>
   </a>
-</div>{{PARTIAL_FOOTER_LEGAL}}
-
+</div>
 
 </body>
 </html>
