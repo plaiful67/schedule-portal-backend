@@ -17,7 +17,7 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import medications
-from .adapters import bowel_prep, combined, egd, egd_phmii
+from .adapters import bowel_prep, combined, composed, egd, egd_phmii
 from .adapters._paths import skill_source
 from .personalization import (
     build_followup_block,
@@ -53,6 +53,7 @@ app.add_middleware(
 VARIANT_TOKEN = {
     "bowel_prep": "Colon",
     "combined": "EGDColon",
+    "composed": "Composed",
     "egd": "EGD",
     "egd_phmii": "EGDpH",
     "flex_sig": "FlexSig",
@@ -188,6 +189,10 @@ def _render_impl(req: RenderRequest):
         pdf_bytes = egd.render_pdf(**common)
     elif req.procedure_type == "egd_phmii":
         pdf_bytes = egd_phmii.render_pdf(**common)
+    elif req.procedure_type == "composed":
+        pdf_bytes = composed.render_pdf(
+            add_ons=req.add_ons, knob_picks=req.knob_picks, **common
+        )
     else:
         raise HTTPException(
             status_code=501,
