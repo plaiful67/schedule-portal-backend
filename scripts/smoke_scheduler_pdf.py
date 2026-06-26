@@ -58,6 +58,16 @@ CASES = [
     ("egd es",       dict(procedure_type="egd", language="es")),
     ("egdph en",     dict(procedure_type="egd_phmii", language="en", location_id="pmch")),
     ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch")),
+    # Composed base cases — real registry add-on ids dlb/dise.
+    # composed egd has no weight_band/prep_type (egd base forbids them).
+    ("composed colon en",    dict(procedure_type="composed", base="colonoscopy",
+                                  weight_band="31-40", prep_type="miralax",
+                                  language="en", add_ons=["dlb"], knob_picks={})),
+    ("composed combined es", dict(procedure_type="composed", base="combined",
+                                  weight_band="31-40", prep_type="miralax",
+                                  language="es", add_ons=["dise"], knob_picks={})),
+    ("composed egd en",      dict(procedure_type="composed", base="egd",
+                                  language="en", add_ons=["dise"], knob_picks={})),
 ]
 
 

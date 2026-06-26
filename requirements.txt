@@ -6,3 +6,4 @@ weasyprint==68.1
 qrcode==8.2
 Pillow==12.2.0
 pypdf==6.11.0
+httpx==0.28.1
