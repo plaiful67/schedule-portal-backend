@@ -39,6 +39,21 @@ APPT = (date.today() + timedelta(days=21)).isoformat()
 PHYS = "tibesar"          # → "Dr. Tibesar" in the footer/callout
 PHYS_NAME = "Tibesar"
 
+# Extractable proof the {{PARTIAL_FEEDBACK_BAR}} partial rendered (the QR img
+# is a data-URI, not text). Guards the EGD-feedback-bar regression class.
+#
+# Two distinct ES strings exist by design:
+#  - Bowel-prep personalized templates (hardcoded): "piensa de estas instrucciones"
+#  - EGD/EGD+pH-MII/composed templates (shared partial): "opina sobre estas instrucciones"
+# Both are valid; the assertion checks that at least one is present.
+FEEDBACK_CAPTION: dict[str, list[str]] = {
+    "en": ["Tell us what you think of these instructions"],
+    "es": [
+        "Díganos qué piensa de estas instrucciones",   # bowel-prep personalized templates
+        "Díganos qué opina sobre estas instrucciones",  # shared partial (EGD/composed)
+    ],
+}
+
 # (label, payload-overrides). Common fields filled in below.
 CASES = [
     ("std en",       dict(procedure_type="bowel_prep", weight_band="31-40", language="en")),
@@ -91,7 +106,7 @@ def render(base: str, payload: dict) -> bytes:
         return resp.read()
 
 
-def checks(pdf: bytes) -> list[str]:
+def checks(pdf: bytes, lang: str) -> list[str]:
     from pypdf import PdfReader
     problems = []
     reader = PdfReader(BytesIO(pdf))
@@ -107,6 +122,17 @@ def checks(pdf: bytes) -> list[str]:
         problems.append(f"leaked tokens {leaked}")
     if PHYS_NAME not in text:
         problems.append(f"physician {PHYS_NAME!r} missing from text")
+    # Collapse whitespace before caption search: WeasyPrint word-wraps the
+    # feedback bar span so pypdf extracts the caption with embedded newlines
+    # (e.g. "Tell us what you think of\nthese instructions"). Normalising to
+    # single spaces lets us match the expected string verbatim.
+    text_ws = re.sub(r"\s+", " ", text)
+    captions = FEEDBACK_CAPTION.get(lang, FEEDBACK_CAPTION["en"])
+    if not any(c in text_ws for c in captions):
+        problems.append(
+            f"feedback-QR bar caption missing for lang={lang!r} "
+            f"(expected one of {captions!r}) — feedback bar dropped?"
+        )
     return problems
 
 
@@ -128,7 +154,7 @@ def main() -> int:
         # EGD+pH is PMCH-only; not exercised here (bowel-prep families only).
         try:
             pdf = render(base, payload)
-            problems = checks(pdf)
+            problems = checks(pdf, payload.get("language", "en"))
             if problems:
                 failed += 1
                 print(f"  ✗ {label:13s} {len(pdf):7d}B  — {'; '.join(problems)}")
