@@ -20,7 +20,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import skill_dir
+from ._paths import shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("egd-handout-generator")
@@ -55,13 +55,16 @@ skill = _load_skill_module()
 # Re-point skill paths (idempotent if egd adapter already did this).
 skill.SKILL_DIR = SKILL_ROOT
 skill.TEMPLATES = SKILL_ROOT / "templates"
+skill._SHARED_PARTIALS_DIR = shared_dir() / "partials"
 skill.PROCEDURE_PATH = SKILL_ROOT / "data" / "procedure.yaml"
 skill.PRACTICE_PATH = SKILL_ROOT / "practice.yaml"
+skill._SHARED_PARTIALS_CACHE = {}
 
 
 def _reset_caches_for_live_dev():
     skill._PRACTICE_CACHE = None
     skill._PROCEDURE_CACHE = None
+    skill._SHARED_PARTIALS_CACHE = {}
 
 
 def _load_procedure_data() -> dict[str, Any]:

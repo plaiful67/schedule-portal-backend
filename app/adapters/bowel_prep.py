@@ -15,7 +15,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import skill_dir
+from ._paths import shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("bowel-prep-generator")
@@ -183,10 +183,14 @@ skill = _load_skill_module()
 skill.SKILL_DIR = SKILL_ROOT
 skill.TEMPLATES = SKILL_ROOT / "templates"
 skill.PARTIALS_DIR = skill.TEMPLATES / "partials"
+# Cross-skill shared partials resolve from the vendored shared/ on Cloud Run
+# (or ~/peds-gi-prep-system/shared in live dev) — see shared_dir().
+skill._SHARED_PARTIALS_DIR = shared_dir() / "partials"
 skill.DOSING_PATH = SKILL_ROOT / "data" / "dosing.yaml"
 skill.PRACTICE_PATH = SKILL_ROOT / "practice.yaml"
 skill._PRACTICE_CACHE = None
 skill._PARTIALS_CACHE = {}
+skill._SHARED_PARTIALS_CACHE = {}
 
 # Static-handout sites at *.giready.com use the GI Ready logo (the skill's
 # practice.yaml ships logo_filename: "giready-logo.png"). Scheduler-generated
@@ -211,6 +215,7 @@ def _reset_caches_for_live_dev():
     """
     skill._PRACTICE_CACHE = None
     skill._PARTIALS_CACHE = {}
+    skill._SHARED_PARTIALS_CACHE = {}
 
 
 def _load_dosing() -> dict[str, Any]:
