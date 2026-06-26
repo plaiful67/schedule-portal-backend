@@ -62,9 +62,14 @@ def _strip_legal_footer(html: str, *, template_name: str) -> str:
     new_html, css_count = _LEGAL_FOOTER_CSS_RE.subn("", html, count=1)
     if css_count != 1:
         raise RuntimeError(f"{template_name}: legal-footer CSS block not found")
-    new_html, html_count = _LEGAL_FOOTER_HTML_RE.subn("\n", new_html, count=1)
+    # Footer HTML is single-sourced as {{PARTIAL_FOOTER_LEGAL}} (Phase A T7); this
+    # builder strips the template before render (no partial expansion), so remove
+    # the token. Fall back to the legacy inlined-HTML regex for safety.
+    new_html, html_count = re.subn(r"\s*\{\{PARTIAL_FOOTER_LEGAL\}\}\s*", "\n", new_html, count=1)
     if html_count != 1:
-        raise RuntimeError(f"{template_name}: legal-footer HTML block not found")
+        new_html, html_count = _LEGAL_FOOTER_HTML_RE.subn("\n", new_html, count=1)
+    if html_count != 1:
+        raise RuntimeError(f"{template_name}: legal-footer token/HTML block not found")
     return new_html
 
 

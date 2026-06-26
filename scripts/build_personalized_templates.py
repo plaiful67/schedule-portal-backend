@@ -220,8 +220,10 @@ _LEGAL_FOOTER_HTML_ES = """
 
 def _strip_legal_footer(text: str, *, lang: str) -> str:
     text = _replace_unique(text, _LEGAL_FOOTER_CSS, "", where=f"strip legal-footer CSS ({lang})")
-    html = _LEGAL_FOOTER_HTML_EN if lang == "en" else _LEGAL_FOOTER_HTML_ES
-    text = _replace_unique(text, html, "", where=f"strip legal-footer HTML ({lang})")
+    # The footer HTML is single-sourced as {{PARTIAL_FOOTER_LEGAL}} (Phase A T7).
+    # Strip the token so scheduler personalized PDFs stay footer-less (the
+    # _LEGAL_FOOTER_HTML_{EN,ES} constants below are kept for reference only).
+    text = _replace_unique(text, "{{PARTIAL_FOOTER_LEGAL}}", "", where=f"strip legal-footer token ({lang})")
     return text
 
 

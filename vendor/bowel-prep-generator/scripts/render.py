@@ -2124,6 +2124,30 @@ def _load_partials(lang):
     return out
 
 
+# Cross-skill shared partials (footer/legal, feedback bar, NPO table) live in the
+# meta repo so a one-line edit propagates to every skill. The backend re-points
+# _SHARED_PARTIALS_DIR to its vendored copy (vendor/shared/partials).
+_SHARED_PARTIALS_DIR = Path.home() / "peds-gi-prep-system" / "shared" / "partials"
+_SHARED_PARTIALS_CACHE = {}  # {lang: {token: content}}
+
+
+def _load_shared_partials(lang):
+    """Read shared/partials/_*.<lang>.html → {{PARTIAL_<UPPER>}}: content.
+    Cached per-language. Returns {} when the dir is absent, so the loader is
+    inert until shared partials exist (and local partials override shared)."""
+    if lang in _SHARED_PARTIALS_CACHE:
+        return _SHARED_PARTIALS_CACHE[lang]
+    out = {}
+    if _SHARED_PARTIALS_DIR.is_dir():
+        suffix = f".{lang}.html"
+        for p in sorted(_SHARED_PARTIALS_DIR.glob(f"_*{suffix}")):
+            name = p.name[1:-len(suffix)]
+            token = "{{PARTIAL_" + name.upper() + "}}"
+            out[token] = p.read_text(encoding="utf-8")
+    _SHARED_PARTIALS_CACHE[lang] = out
+    return out
+
+
 # Backwards-compatible accessors (used elsewhere in the file).
 def _scc_maps_url_base():
     return _practice()["template_defaults"]["scc_maps_url"]
@@ -2410,7 +2434,9 @@ def render_pdf_print(template_path, replacements, out_path,
     practice_replacements = build_practice_placeholders(lang, logo=logo, doctors=doctors)
     # Partials must be merged FIRST so any per-band/QR/practice placeholders that
     # live inside the partial markup are still substituted by the regular pass.
-    partials_replacements = _load_partials(lang)
+    # Shared partials first, local partials override (both expand before the
+    # regular pass so tokens inside the partial markup still substitute).
+    partials_replacements = {**_load_shared_partials(lang), **_load_partials(lang)}
     all_replacements = {**partials_replacements, **replacements, **qr_replacements, **practice_replacements}
     for token, value in all_replacements.items():
         html = html.replace(token, value)

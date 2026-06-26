@@ -56,6 +56,30 @@ def _inject_shared_print_css(html: str) -> str:
     return html.replace("<head>", f"<head>\n<style>{_SHARED_PRINT_CSS}</style>", 1)
 
 
+# Cross-skill shared partials (footer/legal, feedback bar, NPO table) live in the
+# meta repo so a one-line edit propagates to every skill. The backend re-points
+# _SHARED_PARTIALS_DIR to its vendored copy (vendor/shared/partials).
+_SHARED_PARTIALS_DIR = Path.home() / "peds-gi-prep-system" / "shared" / "partials"
+_SHARED_PARTIALS_CACHE = {}  # {lang: {token: content}}
+
+
+def _load_shared_partials(lang):
+    """Read shared/partials/_*.<lang>.html → {{PARTIAL_<UPPER>}}: content.
+    Cached per-language. Returns {} when the dir is absent, so the loader is
+    inert until shared partials exist."""
+    if lang in _SHARED_PARTIALS_CACHE:
+        return _SHARED_PARTIALS_CACHE[lang]
+    out = {}
+    if _SHARED_PARTIALS_DIR.is_dir():
+        suffix = f".{lang}.html"
+        for p in sorted(_SHARED_PARTIALS_DIR.glob(f"_*{suffix}")):
+            name = p.name[1:-len(suffix)]
+            token = "{{PARTIAL_" + name.upper() + "}}"
+            out[token] = p.read_text(encoding="utf-8")
+    _SHARED_PARTIALS_CACHE[lang] = out
+    return out
+
+
 # Calm theme — replace the template's own <style> with the shared Calm
 # stylesheet (calm-print.css) + calm-egd.css (the EGD/flex-sig table classes
 # calm-print.css doesn't carry). Mirrors the bowel-prep skill's _swap_calm_style.
@@ -502,6 +526,11 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
         "{{GIKIDS_URL}}":          gikids_url,
         "{{LOCATION_PHONE_TEL}}":  location_phone_tel,
     }
+    # Expand shared partials FIRST so any tokens they introduce (e.g.
+    # {{FEEDBACK_URL}} inside the shared feedback bar) are resolved by the
+    # regular pass below. Inert until shared/partials/ exists.
+    for token, value in _load_shared_partials(lang).items():
+        html = html.replace(token, value)
     for token, value in replacements.items():
         html = html.replace(token, value)
 
