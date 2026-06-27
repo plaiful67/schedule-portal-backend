@@ -478,10 +478,12 @@ def render_pdf(
     # rather than suppress it — replaces the older server-side STOP_MEDS_BLOCK
     # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
-    # Composed-overlay guard: add-on blurbs requested but the selected base
-    # template has no {{ADDON_BLURBS}} slot → FAIL LOUDLY, never silently drop
-    # the add-ons (the EGD-feedback-bar regression class). Only the canonical
-    # miralax standard + combined templates carry the slot this increment.
+    # Composed-overlay guard: add-on content requested but the selected base
+    # template has none of {{ADDON_BLURBS}} / {{ADDON_PROCEDURE_ITEMS}} /
+    # {{ADDON_TEAM_BLURBS}} → FAIL LOUDLY, never silently drop the add-ons
+    # (the EGD-feedback-bar regression class). Only the canonical miralax
+    # standard (ADDON_BLURBS) and combined (ADDON_PROCEDURE_ITEMS +
+    # ADDON_TEAM_BLURBS) templates are slot-enabled this increment.
     _any_composed_content = bool(addon_blurbs_html or addon_procedure_items_html or addon_team_blurbs_html)
     _any_slot_present = any(tok in html for tok in ("{{ADDON_BLURBS}}", "{{ADDON_PROCEDURE_ITEMS}}", "{{ADDON_TEAM_BLURBS}}"))
     if _any_composed_content and not _any_slot_present:
