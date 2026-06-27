@@ -116,6 +116,66 @@ def get_config(
     return tenant.config(tenant_id)
 
 
+# Map a scheduler request to its content-status unit (mirrors the site-family
+# units). The scheduler is a publish path too, so a tenant must have SIGNED OFF
+# on the unit before the backend renders a personalized PDF for it. prep_type
+# (lactulose/clenpiq/suprep) selects a distinct content family — the same way
+# the hidden site variants are distinct units.
+_BASE_CONTENT_UNIT = {
+    "bowel_prep": "colonoscopy",
+    "combined": "combined",
+    "egd": "egd",
+    "egd_phmii": "egd_phmii",
+    "flex_sig": "flex_sig",
+    "composed": "combined",
+}
+
+
+def _content_unit_for(req) -> str:
+    """The content unit a render request publishes, accounting for prep_type
+    (lactulose/clenpiq/suprep are distinct units, like the hidden site variants
+    — e.g. bowel_prep+lactulose → 'lactulose', combined+suprep →
+    'suprep-combined')."""
+    base = _BASE_CONTENT_UNIT.get(req.procedure_type, req.procedure_type)
+    prep = getattr(req, "prep_type", "miralax")
+    if base in ("colonoscopy", "combined") and prep in ("lactulose", "clenpiq", "suprep"):
+        return prep if base == "colonoscopy" else f"{prep}-combined"
+    return base
+
+
+@app.get("/content/status")
+def content_status_endpoint(tenant_id: str = Depends(tenant.get_tenant)):
+    """The tenant's content-ownership ledger: per content unit, its effective
+    state (with the approved_sha auto-revert applied). Read-only."""
+    cs = tenant._content_status()
+    status = cs.load_status(tenant_id).get("content_status", {}) or {}
+    units = status.get("units", {}) or {}
+    return {
+        "tenant": tenant_id,
+        "content_sha": cs.content_sha(tenant_id),
+        "units": {u: cs.unit_status(tenant_id, u) for u in units},
+        "publishable": cs.approved_units(tenant_id),
+    }
+
+
+@app.post("/content/approve")
+def content_approve(
+    unit: str = Query(...),
+    approved_by: str = Query(...),
+    tenant_id: str = Depends(tenant.get_tenant),
+    role: str = Depends(tenant.get_signer_role),
+):
+    """Sign off on a content unit. ROLE GATE: only a clinical_signer (from the
+    Access JWT group) may approve — a platform_operator gets 403. Binds the
+    approval to the current content sha (auto-reverts on later edits)."""
+    cs = tenant._content_status()
+    try:
+        rec = cs.approve(tenant_id, unit, approved_by=approved_by, role=role)
+    except PermissionError as e:
+        raise HTTPException(status_code=403, detail=str(e))
+    return {"tenant": tenant_id, "unit": unit, **rec}
+
+
 @app.post("/render")
 async def render(request: Request, tenant_id: str = Depends(tenant.get_tenant)):
     _t0 = _time.monotonic()
@@ -147,6 +207,17 @@ async def render(request: Request, tenant_id: str = Depends(tenant.get_tenant)):
             for err in e.errors()
         ]
         raise HTTPException(status_code=422, detail=detail)
+    # Content-ownership gate: the scheduler is a publish path too. Refuse a PDF
+    # for a content unit the tenant hasn't signed off on (approved + sha
+    # matches). giready's units are all approved, so its path is unaffected.
+    _unit = _content_unit_for(req)
+    _cs = tenant._content_status()
+    if not _cs.is_publishable(tenant_id, _unit):
+        raise HTTPException(
+            status_code=403,
+            detail=f"content unit {_unit!r} is not approved for tenant {tenant_id!r} "
+                   f"— a clinical_signer must sign off before it can be served.")
+
     # Make the resolved tenant the active one so the adapters' footer/roster
     # lookups (physicians.footer_line / lookup, called without a tenant arg)
     # resolve against THIS tenant. Defaults back to giready between requests.

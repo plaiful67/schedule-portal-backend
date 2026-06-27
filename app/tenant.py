@@ -178,6 +178,61 @@ def _tenant_from_access_jwt(assertion: str | None) -> str | None:
         return None
 
 
+CLINICAL_SIGNER_ROLE = "clinical_signer"
+PLATFORM_OPERATOR_ROLE = "platform_operator"
+
+
+def _roles_from_access_jwt(assertion: str | None) -> set[str]:
+    """Roles/groups from the Access JWT. CF Access puts the identity's group
+    memberships in the token; we read `custom.groups` / `groups` (a list) and
+    `custom.role` / `role` (a scalar). Signature already verified at the edge."""
+    if not assertion:
+        return set()
+    try:
+        parts = assertion.split(".")
+        if len(parts) != 3:
+            return set()
+        payload_b64 = parts[1] + "=" * (-len(parts[1]) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(payload_b64))
+        custom = payload.get("custom", {}) or {}
+        roles: set[str] = set()
+        for src in (custom.get("groups"), payload.get("groups")):
+            if isinstance(src, list):
+                roles.update(str(g) for g in src)
+        for src in (custom.get("role"), payload.get("role")):
+            if isinstance(src, str):
+                roles.add(src)
+        return roles
+    except Exception:
+        return set()
+
+
+def get_signer_role(
+    cf_access_jwt_assertion: str | None = Header(default=None),
+    x_signer_role: str | None = Header(default=None),
+) -> str:
+    """The caller's content-signing role, SERVER-SIDE only:
+      1. clinical_signer if the Access JWT groups include it, else
+      2. the X-Signer-Role header (dev/preview) ONLY when the env opt-in is set,
+      3. else platform_operator (the default — CAN edit layout, CANNOT sign).
+    Approval endpoints depend on this so the role gate is an enforced check."""
+    roles = _roles_from_access_jwt(cf_access_jwt_assertion)
+    if CLINICAL_SIGNER_ROLE in roles:
+        return CLINICAL_SIGNER_ROLE
+    if x_signer_role and os.environ.get("PORTAL_ALLOW_HEADER_TENANT", "").strip() == "1":
+        return x_signer_role.strip()
+    return PLATFORM_OPERATOR_ROLE
+
+
+def _content_status():
+    """Import the shared content_status module via the shared dir."""
+    sd = str(shared_dir())
+    if sd not in sys.path:
+        sys.path.insert(0, sd)
+    import content_status  # noqa: PLC0415
+    return content_status
+
+
 def get_tenant(
     cf_access_jwt_assertion: str | None = Header(default=None),
     x_tenant: str | None = Header(default=None),

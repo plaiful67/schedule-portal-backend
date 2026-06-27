@@ -2123,9 +2123,8 @@ def _apply_apex(html: str) -> str:
 
 # --- Tenant identity swap (phone + address) --------------------------------
 # Many patient templates + partials hardcode giready's PRACTICE-IDENTITY literals
-# as plain text (no token): the office phone "(317) 338-9450"/"(317)338-9450"/
-# "tel:3173389450", the per-location phones ("(317) 569-8250" etc.) and the
-# location street addresses ("12188-A N Meridian St …, Carmel, IN 46032"). There
+# as plain text (no token): the office phone (display + no-space + tel-digit
+# forms), the per-location phones, and the location street addresses. There
 # is no {{PRACTICE_PHONE}} token, so the tenant overlay (which DOES carry these
 # values) never reaches these literals. _apply_identity is the swap-pass analog
 # of _apply_apex: it rewrites the GIREADY-BASELINE identity literals to the

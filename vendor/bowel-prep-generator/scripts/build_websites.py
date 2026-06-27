@@ -523,6 +523,18 @@ def _inject_analytics(html, family, location_id, lang, band_id=""):
     # the active tenant's via the skill's _apply_identity (reads the render
     # tenant set by _configure_tenant). Identity for the giready tenant.
     html = _render_apply_identity(html)
+    # Draft-preview guard: a content unit that hasn't been signed off but is
+    # being rendered with --allow-draft-preview gets a noindex meta + a visible
+    # "DRAFT — NOT FOR PATIENTS" watermark banner, so unsigned content can never
+    # be mistaken for published, clinically-owned content.
+    if _TENANT.get("draft_preview"):
+        html = html.replace(
+            "</head>",
+            '<meta name="robots" content="noindex, nofollow, noarchive">\n</head>', 1)
+        banner = ('<div style="position:fixed;top:0;left:0;right:0;z-index:99999;'
+                  'background:#b00020;color:#fff;text-align:center;font:700 14px/2.2 sans-serif;'
+                  'letter-spacing:.04em">DRAFT — NOT SIGNED OFF — NOT FOR PATIENTS</div>')
+        html = html.replace("<body>", "<body>\n" + banner, 1)
     site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
     if not site:
         return html
@@ -1146,6 +1158,22 @@ def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
     return written
 
 
+def _content_status_module():
+    """Import the shared content_status module (publish/approval gate) via the
+    shared dir resolver. Returns None if absent (then the build is ungated, as
+    before content-status existed — fail-open is acceptable for a tooling import
+    error but the gate is present in every supported layout)."""
+    import render
+    try:
+        sd = str(render._shared_dir())
+        if sd not in sys.path:
+            sys.path.insert(0, sd)
+        import content_status
+        return content_status
+    except Exception:
+        return None
+
+
 def _configure_tenant(tenant_id, preview_out):
     """Resolve the tenant overlay and populate the module-level _TENANT build
     context + render's tenant. For giready this leaves every value at its
@@ -1204,6 +1232,10 @@ def main():
     ap.add_argument("--preview-out", default=None,
                     help="Local preview root for a non-giready tenant build (required "
                          "for --tenant != giready). No DNS/wrangler — local artifacts only.")
+    ap.add_argument("--allow-draft-preview", action="store_true",
+                    help="Build DRAFT (unsigned/sha-mismatched) content units to a "
+                         "WATERMARKED, noindex preview instead of refusing them. Draft "
+                         "content is NEVER published to a tenant's real apex.")
     ap.add_argument("only", nargs="*", help="Optional: build only these manifest ids.")
     args = ap.parse_args()
 
@@ -1224,14 +1256,37 @@ def main():
             locations[_lid] = _r._deep_merge_under(base, _lblock) if isinstance(base, dict) else _lblock
     bands_by_id = {b["id"]: b for b in dosing_cfg["bands"]}
     only = set(args.only)  # optional: build only these manifest ids
+
+    # Content-ownership gate (plan Layer 4): a content unit (= site family)
+    # publishes ONLY if the tenant has signed off on it (approved + the approval
+    # still matches the current content sha). A draft / sha-mismatched unit is
+    # refused — skipped from the real build (with --allow-draft-preview it builds
+    # to a watermarked, noindex preview instead, never the tenant's real apex).
+    _cs = _content_status_module()
     total = 0
+    skipped = []
     for row in load_sites():
         if only and row.id not in only:
             continue
         if row.family not in FAMILY_STRATEGY:
             continue  # unknown family — skip
         _assert_band_publicness(row, bands_by_id)
+        if _cs is not None and not _cs.is_publishable(args.tenant, row.family):
+            st = _cs.unit_status(args.tenant, row.family)
+            reason = "auto-reverted (content changed since sign-off)" \
+                if st.get("auto_reverted") else st.get("state", "draft")
+            if not args.allow_draft_preview:
+                skipped.append((row.id, row.family, reason))
+                print(f"  REFUSED {row.id} (family={row.family}): not approved — {reason}")
+                continue
+            _TENANT["draft_preview"] = True  # build watermarked, noindex (build_for_repo honors it)
+            print(f"  DRAFT-PREVIEW {row.id} (family={row.family}): {reason} → watermarked/noindex")
+        else:
+            _TENANT["draft_preview"] = False
         total += build_site(row, locations, bands_by_id, practice_cfg)
+    if skipped:
+        print(f"\n{len(skipped)} content unit(s) REFUSED (not signed off): "
+              + ", ".join(f"{i}:{r}" for i, f, r in skipped))
     print(f"\n{total} files written.")
 
 

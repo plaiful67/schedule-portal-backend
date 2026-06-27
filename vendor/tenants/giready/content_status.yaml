@@ -1,0 +1,73 @@
+# Content-ownership ledger for tenant #1 (giready) — the liability seam.
+#
+# Each content unit is a SITE FAMILY. giready is the signed BASELINE: every
+# family it currently ships is `approved`, bound to the git sha of giready's
+# tenant.yaml (the bytes the practice owns + signs off on). This keeps giready
+# building byte-identically. If giready's tenant.yaml is edited, approved_sha
+# stops matching the current sha → those units auto-revert to draft until
+# re-signed (content_status.is_publishable / unit_status enforce this).
+#
+# approved_by is a tenant clinical_signer (the role that may sign clinical
+# content; a platform operator cannot). For the giready baseline this is the
+# practice owner.
+content_status:
+  default_signer_role: clinical_signer
+  units:
+    colonoscopy:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    combined:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    lactulose:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    lactulose-combined:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    clenpiq:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    clenpiq-combined:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    suprep:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    suprep-combined:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    # Scheduler-only procedure units (not site families, but content the
+    # scheduler /render publishes — egd, egd+pH-MII, flex-sig). Signed so the
+    # giready scheduler path keeps serving them.
+    egd:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    egd_phmii:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    flex_sig:
+      state: approved
+      approved_by: "drz@giready.com"
+      approved_sha: "8572910ea3daff161cacf17b10cf0cf4f43f5107"
+      approved_at: "2026-06-27T00:00:00+00:00"

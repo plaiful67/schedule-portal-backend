@@ -1,0 +1,25 @@
+# Content-ownership ledger for the demo tenant (fictional "Acme Pediatric GI").
+#
+# Demonstrates the liability seam: colonoscopy + combined are signed off by
+# Acme's clinical_signer (bound to the git sha of demo's tenant.yaml), so they
+# publish. `lactulose` is intentionally left DRAFT to prove the publish gate
+# REFUSES unsigned content — a draft unit never reaches the tenant's real apex
+# (build skips it; only a watermarked noindex preview is allowed).
+#
+# approved_sha is demo/tenant.yaml's git sha at sign-off. Edit demo's tenant.yaml
+# and these auto-revert to draft (sha mismatch) until re-signed.
+content_status:
+  default_signer_role: clinical_signer
+  units:
+    colonoscopy:
+      state: approved
+      approved_by: "rivera@acmepedsgi.example"
+      approved_sha: "e287602536eb8e02901c2899faa1cfc44bbe2281"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    combined:
+      state: approved
+      approved_by: "rivera@acmepedsgi.example"
+      approved_sha: "e287602536eb8e02901c2899faa1cfc44bbe2281"
+      approved_at: "2026-06-27T00:00:00+00:00"
+    lactulose:
+      state: draft   # intentionally unsigned — the publish gate must refuse it
