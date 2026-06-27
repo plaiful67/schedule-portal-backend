@@ -20,7 +20,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import shared_dir, skill_dir
+from ._paths import is_live_dev, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("egd-handout-generator")
@@ -60,8 +60,24 @@ skill.PROCEDURE_PATH = SKILL_ROOT / "data" / "procedure.yaml"
 skill.PRACTICE_PATH = SKILL_ROOT / "practice.yaml"
 skill._SHARED_PARTIALS_CACHE = {}
 
+# PMCH-logo brand split for scheduler-generated PDFs (see egd.py for the why).
+# Applied idempotently here too so egd_phmii renders the PMCH logo even if it is
+# imported WITHOUT the egd/composed adapters having run first — the override
+# used to depend on import order, silently shipping the wrong (GI Ready) logo.
+if not getattr(skill._practice, "_pmch_override_applied", False):
+    _original_practice = skill._practice
+    def _practice_with_pmch_override():
+        data = _original_practice()
+        data["practice"]["logo_filename"] = "logo-pmch.png"
+        return data
+    _practice_with_pmch_override._pmch_override_applied = True  # type: ignore[attr-defined]
+    skill._practice = _practice_with_pmch_override
+
 
 def _reset_caches_for_live_dev():
+    # No-op in production (immutable vendored source) — keeps caches warm.
+    if not is_live_dev("egd-handout-generator"):
+        return
     skill._PRACTICE_CACHE = None
     skill._PROCEDURE_CACHE = None
     skill._SHARED_PARTIALS_CACHE = {}

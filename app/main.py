@@ -19,6 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from . import medications
 from .adapters import bowel_prep, combined, composed, egd, egd_phmii
 from .adapters.bowel_prep import ComposedTemplateUnsupported
+from .adapters.composed import CompositionInputError
 from .adapters._paths import skill_source
 from .personalization import (
     build_followup_block,
@@ -197,7 +198,7 @@ def _render_impl(req: RenderRequest):
                 base=req.base, weight_band=req.weight_band, prep_type=req.prep_type,
                 **common,
             )
-        except ComposedTemplateUnsupported as e:
+        except (ComposedTemplateUnsupported, CompositionInputError) as e:
             raise HTTPException(status_code=422, detail=str(e))
     else:
         raise HTTPException(

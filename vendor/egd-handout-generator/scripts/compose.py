@@ -26,6 +26,14 @@ def load_registry(path: Path | None = None) -> dict:
     return _REGISTRY_CACHE
 
 
+def reset_registry_cache():
+    """Clear the cached registry so a live edit to procedures.yaml lands on the
+    next compose without a process restart — mirrors the adapters'
+    _reset_caches_for_live_dev for practice.yaml / shared partials."""
+    global _REGISTRY_CACHE
+    _REGISTRY_CACHE = None
+
+
 def _frag(entry: dict, lang: str) -> str:
     return entry.get(f"title_fragment_{lang}", entry.get("title_fragment_en", ""))
 
@@ -105,20 +113,32 @@ def compose_procedure_items(add_ons, lang, registry=None):
     return "\n".join(items)
 
 
-def compose_blurbs(add_ons, knob_picks, lang, registry=None):
-    reg = registry or load_registry()
+def _addon_blocks(add_ons, knob_picks, lang, reg, *, exclude_gi_procedures=False):
+    """Shared builder for add-on blurb + knob <p> blocks. With
+    exclude_gi_procedures=True, add-ons that render as procedure list items
+    (compose_procedure_items) are skipped — that's the 'team' blurb slot on
+    templates which show GI procedures as a bulleted list instead. Single source
+    so the full-blurbs and team-blurbs paths can never drift in markup."""
     selected = set(add_ons)
     blocks = []
     for addon_id in reg["add_ons"]:
         if addon_id not in selected:
             continue
-        text = _addon_blurb(addon_id, reg["add_ons"][addon_id], lang, reg)
+        entry = reg["add_ons"][addon_id]
+        if exclude_gi_procedures and _is_gi_procedure_addon(entry, lang):
+            continue
+        text = _addon_blurb(addon_id, entry, lang, reg)
         if text:
             blocks.append(f'<p class="addon-blurb">{text}</p>')
     for knob in resolve_knobs(add_ons, knob_picks, lang, reg):
         if knob["fragment"]:
             blocks.append(f'<p class="addon-knob">{knob["fragment"]}</p>')
     return "\n".join(blocks)
+
+
+def compose_blurbs(add_ons, knob_picks, lang, registry=None):
+    reg = registry or load_registry()
+    return _addon_blocks(add_ons, knob_picks, lang, reg)
 
 
 @dataclass
@@ -138,23 +158,9 @@ def compose(base, add_ons, knob_picks, lang, registry=None):
     knob_values = {k["name"]: k["value"] for k in resolve_knobs(add_ons, knob_picks, lang, reg)}
     addon_title = compose_addon_title(add_ons, lang, reg)
     procedure_items = compose_procedure_items(add_ons, lang, reg)
-    # team_blurbs: same as blurbs but excludes GI-procedure add-ons
-    # (knob fragments are always team-side; they don't have procedure_list_desc)
-    selected = set(add_ons)
-    team_blocks = []
-    for addon_id in reg["add_ons"]:
-        if addon_id not in selected:
-            continue
-        entry = reg["add_ons"][addon_id]
-        if _is_gi_procedure_addon(entry, lang):
-            continue
-        text = _addon_blurb(addon_id, entry, lang, reg)
-        if text:
-            team_blocks.append(f'<p class="addon-blurb">{text}</p>')
-    for knob in resolve_knobs(add_ons, knob_picks, lang, reg):
-        if knob["fragment"]:
-            team_blocks.append(f'<p class="addon-knob">{knob["fragment"]}</p>')
-    team_blurbs = "\n".join(team_blocks)
+    # team_blurbs: same as blurbs but excludes GI-procedure add-ons (those render
+    # as list items via compose_procedure_items). Shared builder — no duplication.
+    team_blurbs = _addon_blocks(add_ons, knob_picks, lang, reg, exclude_gi_procedures=True)
     return Composition(
         title=title, blurbs_html=blurbs, knob_values=knob_values,
         addon_title=addon_title, procedure_items_html=procedure_items,

@@ -15,7 +15,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import shared_dir, skill_dir
+from ._paths import is_live_dev, load_compose_module, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("egd-handout-generator")
@@ -75,11 +75,16 @@ if not getattr(skill._practice, "_pmch_override_applied", False):
 
 
 def _reset_caches_for_live_dev():
-    """Reset practice.yaml cache at request time so live edits to the skill
-    YAML land in the next render without a uvicorn restart.
+    """Reset practice.yaml / shared-partials / composition-registry caches at
+    request time so live edits to the skill YAML land in the next render without
+    a uvicorn restart. No-op in production (immutable vendored source) so the
+    caches stay warm and we don't re-read+parse on every request.
     """
+    if not is_live_dev("egd-handout-generator"):
+        return
     skill._PRACTICE_CACHE = None
     skill._SHARED_PARTIALS_CACHE = {}
+    load_compose_module().reset_registry_cache()
 
 
 def _load_procedure_data() -> dict[str, Any]:
@@ -87,16 +92,16 @@ def _load_procedure_data() -> dict[str, Any]:
         return yaml.safe_load(f)
 
 
-def _location_block(location_id: str) -> dict[str, Any]:
-    data = _load_procedure_data()
+def _location_block(location_id: str, data: dict[str, Any] | None = None) -> dict[str, Any]:
+    data = data if data is not None else _load_procedure_data()
     loc = data["locations"].get(location_id)
     if not loc:
         raise ValueError(f"Unknown location_id={location_id!r}")
     return loc
 
 
-def _procedure_block(procedure_id: str = "egd") -> dict[str, Any]:
-    data = _load_procedure_data()
+def _procedure_block(procedure_id: str = "egd", data: dict[str, Any] | None = None) -> dict[str, Any]:
+    data = data if data is not None else _load_procedure_data()
     proc = data["procedures"].get(procedure_id)
     if not proc:
         raise ValueError(f"Unknown procedure id={procedure_id!r}")
@@ -114,13 +119,24 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     include_directions: bool = True,
+    add_ons: list[str] | None = None,
+    knob_picks: dict[str, str] | None = None,
+    template_by_lang: dict[str, Path] | None = None,
 ) -> bytes:
-    """Produce a personalized EGD-only PDF as bytes."""
+    """Produce a personalized EGD PDF as bytes.
+
+    Plain EGD when ``add_ons`` is None/empty. When ``add_ons`` is given this is
+    the composed EGD-base path: the title gains the add-on suffix and the add-on
+    blurbs fill the template's {{ADDON_*}} slots. ``template_by_lang`` lets the
+    composed adapter point at app/templates/composed/ instead of the plain EGD
+    template — so the composition lives in ONE render body, not a fork.
+    """
     from weasyprint import HTML
 
     _reset_caches_for_live_dev()
-    location = _location_block(location_id)
-    procedure = _procedure_block("egd")
+    data = _load_procedure_data()  # one parse per request; shared by all blocks
+    location = _location_block(location_id, data)
+    procedure = _procedure_block("egd", data)
 
     replacements = {
         **skill.build_practice_placeholders(lang),
@@ -135,13 +151,27 @@ def render_pdf(
     replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
     replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
+    # Composition overlay (EGD base + add-on procedures). Only active when the
+    # caller passes add_ons; plain EGD renders exactly as before.
+    comp = None
+    if add_ons:
+        compose_module = load_compose_module()
+        comp = compose_module.compose("egd", add_ons, knob_picks or {}, lang)
+        replacements["{{HTML_TITLE}}"] = comp.title  # full title for PDF metadata
+        # PROCEDURE_LABEL = base-only (no add-on suffix) so a running/band label
+        # can't overflow; the add-on shows via {{ADDON_TITLE_SUFFIX}}.
+        replacements["{{PROCEDURE_LABEL}}"] = compose_module.compose_title("egd", [], lang)
+        replacements["{{ADDON_TITLE_SUFFIX}}"] = (" + " + comp.addon_title) if comp.addon_title else ""
+        replacements["{{ADDON_BLURBS}}"] = comp.blurbs_html
+        replacements["{{ADDON_PROCEDURE_ITEMS}}"] = comp.procedure_items_html
+        replacements["{{ADDON_TEAM_BLURBS}}"] = comp.team_blurbs_html
+
     # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
     # destination page personalizes itself via its built-in _personalize JS.
     # FEEDBACK_URL = same URL with ?feedback=1&source=print spliced in
     # before the hash so survey.js auto-opens with the print-vs-phone q3
     # variant. Query string must come BEFORE the URL fragment.
-    proc_data = _load_procedure_data()
-    sub = location.get("mobile_subdomain", "") or proc_data.get("mobile_site", {}).get("subdomain", "egd")
+    sub = location.get("mobile_subdomain", "") or data.get("mobile_site", {}).get("subdomain", "egd")
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
@@ -171,10 +201,23 @@ def render_pdf(
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
     }
 
-    template_path = TEMPLATE_BY_LANG.get(lang)
+    template_path = (template_by_lang or TEMPLATE_BY_LANG).get(lang)
     if template_path is None:
         raise ValueError(f"No EGD template for lang={lang!r}")
     html = template_path.read_text(encoding="utf-8")
+    # Composed-overlay guard: fail loudly if any non-empty add-on content has no
+    # matching slot in this template (per-slot, never silently drop). Shares the
+    # bowel_prep guard so the EGD-base path can't regress the way bowel_prep was
+    # hardened against.
+    if comp is not None:
+        from .bowel_prep import ComposedTemplateUnsupported, addon_slots_cover
+        _content = bool(comp.blurbs_html or comp.procedure_items_html or comp.team_blurbs_html)
+        if _content and not addon_slots_cover(
+            html, comp.blurbs_html, comp.procedure_items_html, comp.team_blurbs_html
+        ):
+            raise ComposedTemplateUnsupported(
+                f"composed add-ons requested but template {template_path.name!r} "
+                f"has no matching ADDON_BLURBS / ADDON_PROCEDURE_ITEMS / ADDON_TEAM_BLURBS slot")
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization + EGD-table rules) before substitution.
     html = swap_calm(html, include_egd=True)

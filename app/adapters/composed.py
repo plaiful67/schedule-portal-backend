@@ -1,124 +1,49 @@
-"""Composed adapter — produces a personalized EGD + add-ons PDF by reusing the
-vendored egd-handout-generator skill's substitution functions but with a
-custom QR pointing at the schedule.giready.com deep-link receiver, and
-overlaying composition title + add-on blurbs assembled by the vendored resolver.
+"""Composed adapter — assembles a personalized "base procedure + add-ons" PDF.
+
+    base="egd"          → delegates to the egd adapter with composition-overlay
+                          kwargs (no bowel prep).
+    base="colonoscopy"  → colonoscopy-only bowel-prep base + add-on overlay.
+    base="combined"     → EGD+colonoscopy combined prep + add-on overlay.
+
+The actual rendering lives in the egd / bowel_prep adapters; this module only
+resolves the composition (title + blurbs via the vendored resolver), validates
+the add-on / knob inputs, and dispatches. No forked render body — so an EGD
+pipeline change (QR target, feedback bar, pdf-tagging) can't silently diverge
+between the plain-EGD and composed-EGD paths.
 """
 from __future__ import annotations
 
-import importlib.util
-import re
-import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
-import yaml
-
-from .. import personalization, physicians
-from ._calm import swap_calm
-from ._paths import shared_dir, skill_dir
+from ._paths import is_live_dev, load_compose_module
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-SKILL_ROOT = skill_dir("egd-handout-generator")
-SKILL_RENDER = SKILL_ROOT / "scripts" / "render.py"
-SKILL_COMPOSE = SKILL_ROOT / "scripts" / "compose.py"
 TEMPLATES_DIR = BACKEND_DIR / "app" / "templates" / "composed"
 TEMPLATE_BY_LANG = {
     "en": TEMPLATES_DIR / "print-personalized.en.html",
     "es": TEMPLATES_DIR / "print-personalized.es.html",
 }
 
-
-def _load_skill_module():
-    """Load the EGD skill's render.py under a unique module name so it
-    doesn't collide with the bowel-prep skill's `render` already cached
-    in sys.modules.
-    """
-    name = "_egd_handout_render"
-    if name in sys.modules:
-        return sys.modules[name]
-    spec = importlib.util.spec_from_file_location(name, SKILL_RENDER)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Could not load EGD render module from {SKILL_RENDER}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
+compose_module = load_compose_module()
 
 
-skill = _load_skill_module()
+class CompositionInputError(ValueError):
+    """An add-on id or knob pick the registry doesn't recognize. Raised at the
+    composition boundary so app.main can map it to a 422 (not a 500) — the
+    frontend gates this, but a direct API caller deserves a useful error."""
 
 
-def _load_compose_module():
-    name = "_composed_resolver"
-    if name in sys.modules:
-        return sys.modules[name]
-    spec = importlib.util.spec_from_file_location(name, SKILL_COMPOSE)
-    if spec is None or spec.loader is None:
-        raise ImportError(f"Could not load compose module from {SKILL_COMPOSE}")
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[name] = module
-    spec.loader.exec_module(module)
-    return module
-
-
-compose_module = _load_compose_module()
-
-# Re-point the skill's module-level paths so they resolve to the chosen
-# skill source (live ~/.claude/skills or vendor/).
-skill.SKILL_DIR = SKILL_ROOT
-skill.TEMPLATES = SKILL_ROOT / "templates"
-# Cross-skill shared partials (footer/legal, feedback bar, NPO table) resolve
-# from the vendored shared/ on Cloud Run (or ~/peds-gi-prep-system/shared live).
-skill._SHARED_PARTIALS_DIR = shared_dir() / "partials"
-skill.PROCEDURE_PATH = SKILL_ROOT / "data" / "procedure.yaml"
-skill.PRACTICE_PATH = SKILL_ROOT / "practice.yaml"
-skill._PRACTICE_CACHE = None
-skill._SHARED_PARTIALS_CACHE = {}
-
-# Static-handout sites at *.giready.com use the GI Ready logo (the skill's
-# practice.yaml ships logo_filename: "giready-logo.png"). Scheduler-generated
-# personalized PDFs keep the PMCH logo per Sebastian's 2026-05-22 brand split.
-# The override has to live in code, not vendor/*.yaml, because `make vendor-sync`
-# re-copies the static skill on every deploy and would overwrite any YAML edit.
-# This patch also covers egd_phmii.py since it shares the same skill module.
-if not getattr(skill._practice, "_pmch_override_applied", False):
-    _original_practice = skill._practice
-    def _practice_with_pmch_override():
-        data = _original_practice()
-        data["practice"]["logo_filename"] = "logo-pmch.png"
-        return data
-    _practice_with_pmch_override._pmch_override_applied = True  # type: ignore[attr-defined]
-    skill._practice = _practice_with_pmch_override
-
-
-def _reset_caches_for_live_dev():
-    """Reset practice.yaml cache at request time so live edits to the skill
-    YAML land in the next render without a uvicorn restart.
-    """
-    skill._PRACTICE_CACHE = None
-    skill._SHARED_PARTIALS_CACHE = {}
-
-
-def _load_procedure_data() -> dict[str, Any]:
-    with open(skill.PROCEDURE_PATH, encoding="utf-8") as f:
-        return yaml.safe_load(f)
-
-
-def _location_block(location_id: str) -> dict[str, Any]:
-    data = _load_procedure_data()
-    loc = data["locations"].get(location_id)
-    if not loc:
-        raise ValueError(f"Unknown location_id={location_id!r}")
-    return loc
-
-
-def _procedure_block(procedure_id: str = "egd") -> dict[str, Any]:
-    data = _load_procedure_data()
-    proc = data["procedures"].get(procedure_id)
-    if not proc:
-        raise ValueError(f"Unknown procedure id={procedure_id!r}")
-    return proc
+def _compose(base: str, add_ons: list[str], knob_picks: dict[str, str], lang: str):
+    """Resolve the composition, translating registry-lookup failures (unknown
+    add-on → KeyError, invalid knob pick → ValueError) into
+    CompositionInputError so they surface as a 422 rather than a 500."""
+    if is_live_dev():
+        compose_module.reset_registry_cache()
+    try:
+        return compose_module.compose(base, add_ons, knob_picks, lang)
+    except (KeyError, ValueError) as e:
+        raise CompositionInputError(str(e)) from e
 
 
 def render_pdf(
@@ -140,15 +65,21 @@ def render_pdf(
 ) -> bytes:
     """Produce a personalized composed PDF as bytes.
 
-    base="egd": EGD + add-ons only (original Task-3 path).
+    base="egd": EGD + add-ons only.
     base="colonoscopy"/"combined": bowel-prep base + add-ons overlay.
     """
+    # Validate add-on / knob inputs up front (→ 422 on a bad id/pick) regardless
+    # of which base path renders.
+    comp = _compose(base, add_ons, knob_picks, lang)
+
     if base in ("colonoscopy", "combined"):
         if weight_band is None:
             raise ValueError(f"weight_band required for base={base!r}")
-        comp = compose_module.compose(base, add_ons, knob_picks, lang)
         from . import bowel_prep
         variant = "combined" if base == "combined" else "standard"
+        # PROCEDURE_LABEL = base procedure only (no add-on suffix) — consistent
+        # with the egd composed path, so a running/band label can't overflow.
+        base_label = compose_module.compose_title(base, [], lang)
         return bowel_prep.render_pdf(
             band_id=weight_band, location_id=location_id, lang=lang,
             physician_id=physician_id, appt_date_human=appt_date_human,
@@ -156,116 +87,17 @@ def render_pdf(
             followup_block_html=followup_block_html, appt_dt=appt_dt,
             variant=variant, prep_type=prep_type, include_directions=include_directions,
             addon_blurbs_html=comp.blurbs_html, composed_title=comp.title,
+            composed_procedure_label=base_label,
             addon_title_suffix=(" + " + comp.addon_title) if comp.addon_title else "",
             addon_procedure_items_html=comp.procedure_items_html,
             addon_team_blurbs_html=comp.team_blurbs_html)
-    # base == "egd": existing Task-3 EGD body follows unchanged.
-    from weasyprint import HTML
 
-    _reset_caches_for_live_dev()
-    location = _location_block(location_id)
-    procedure = _procedure_block("egd")
-
-    replacements = {
-        **skill.build_practice_placeholders(lang),
-        **skill.build_location_placeholders(location, lang),
-        **skill.build_egd_placeholders(procedure, lang, location=location),
-    }
-
-    # Performing-physician personalization: same model as bowel_prep adapter.
-    # Doctors list is sourced from the bowel-prep skill's practice.yaml (the
-    # EGD skill's practice.yaml doesn't carry a doctors block today).
-    physician = physicians.lookup(physician_id)
-    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
-    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
-
-    comp = compose_module.compose("egd", add_ons, knob_picks, lang)
-    replacements["{{HTML_TITLE}}"] = comp.title  # full title for PDF metadata
-    replacements["{{PROCEDURE_LABEL}}"] = compose_module.compose_title("egd", [], lang)  # base only, no add-ons
-    replacements["{{ADDON_TITLE_SUFFIX}}"] = (" + " + comp.addon_title) if comp.addon_title else ""
-    replacements["{{ADDON_BLURBS}}"] = comp.blurbs_html
-    replacements["{{ADDON_PROCEDURE_ITEMS}}"] = comp.procedure_items_html
-    replacements["{{ADDON_TEAM_BLURBS}}"] = comp.team_blurbs_html
-
-    # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
-    # destination page personalizes itself via its built-in _personalize JS.
-    # FEEDBACK_URL = same URL with ?feedback=1&source=print spliced in
-    # before the hash so survey.js auto-opens with the print-vs-phone q3
-    # variant. Query string must come BEFORE the URL fragment.
-    proc_data = _load_procedure_data()
-    sub = location.get("mobile_subdomain", "") or proc_data.get("mobile_site", {}).get("subdomain", "egd")
-    lang_seg = "es/" if lang == "es" else ""
-    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
-    mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
-    feedback_url = f"https://{sub}.giready.com/{lang_seg}?feedback=1&source=print{hash_params}"
-    maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
-    youtube_url = skill._qr_target("youtube_url_es" if lang == "es" else "youtube_url_en")
-    portal_url = skill._qr_target("portal_url")
-    gikids_url = skill._qr_target("gikids_url")
-    location_phone_tel = re.sub(r"\D", "", location.get("phone", ""))
-
-    qr_replacements = {
-        # Cover-QR href: matches the cover QR PNG so click and scan both
-        # land on the survey-enabled mobile page.
-        "{{MOBILE_URL}}":          feedback_url,
-        "{{FEEDBACK_URL}}":        feedback_url,
-        "{{MAPS_URL}}":            maps_url,
-        "{{YOUTUBE_URL}}":         youtube_url,
-        "{{PORTAL_URL}}":          portal_url,
-        "{{GIKIDS_URL}}":          gikids_url,
-        "{{LOCATION_PHONE_TEL}}":  location_phone_tel,
-    }
-
-    personalization_replacements = {
-        "{{APPT_DATE_HUMAN}}":      appt_date_human,
-        "{{APPT_TIME}}":            appt_time_display,
-        "{{ARRIVAL_TIME}}":         arrival_time_display,
-        "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
-    }
-
-    template_path = TEMPLATE_BY_LANG.get(lang)
-    if template_path is None:
-        raise ValueError(f"No composed template for lang={lang!r}")
-    html = template_path.read_text(encoding="utf-8")
-    # Calm theme: swap the forked template's navy <style> for the shared Calm
-    # stylesheet (+ personalization + EGD-table rules) before substitution.
-    html = swap_calm(html, include_egd=True)
-    # Expand shared partials first (feedback bar / NPO table); inner tokens like
-    # {{FEEDBACK_URL}} resolve in the main pass below.
-    for token, value in skill._load_shared_partials(lang).items():
-        html = html.replace(token, str(value))
-    all_replacements = {**replacements, **qr_replacements, **personalization_replacements}
-    for token, value in all_replacements.items():
-        html = html.replace(token, str(value))
-
-    # Swap the QR <img id> srcs to data URIs. qr-mobile (cover) and
-    # qr-feedback (mid-doc) both encode the survey-enabled URL so either
-    # scan path opens the modal tagged source=print.
-    qr_uris = {
-        "qr-mobile":   skill._png_to_data_uri(skill._generate_qr(feedback_url)),
-        "qr-feedback": skill._png_to_data_uri(skill._generate_qr(feedback_url)),
-        "qr-maps":     skill._png_to_data_uri(skill._generate_qr(maps_url)) if maps_url else "",
-        "qr-youtube":  skill._png_to_data_uri(skill._generate_qr(youtube_url)) if youtube_url else "",
-        "qr-portal":   skill._png_to_data_uri(skill._generate_qr(portal_url)) if portal_url else "",
-        "qr-gikids":   skill._png_to_data_uri(skill._generate_qr(gikids_url)) if gikids_url else "",
-    }
-    html = skill._inject_qr_into_imgs(html, qr_uris)
-
-    # Procedure-time-driven clock-time substitutions (mirrors mobile pz-only JS).
-    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
-
-    unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
-    if unreplaced:
-        raise RuntimeError(f"Unreplaced placeholders: {sorted(set(unreplaced))}")
-
-    # Splice shared print-base.css in front of the template's own <style>
-    # block so design-token + feedback-cell changes propagate without
-    # editing every template. Template-local CSS still overrides.
-    html = skill._inject_shared_print_css(html)
-
-    base_url = (SKILL_ROOT / "templates").as_uri() + "/"
-    if include_directions:
-        from ..directions_inline import inject_into_handout
-        html = inject_into_handout(html, location_id, lang)
-    from ..pdf_tagging import write_pdf_tagged
-    return write_pdf_tagged(HTML(string=html, base_url=base_url))
+    # base == "egd": delegate to the egd adapter with composition overlay,
+    # pointing it at the composed personalized template.
+    from . import egd
+    return egd.render_pdf(
+        location_id=location_id, lang=lang, physician_id=physician_id,
+        appt_date_human=appt_date_human, appt_time_display=appt_time_display,
+        arrival_time_display=arrival_time_display, followup_block_html=followup_block_html,
+        appt_dt=appt_dt, include_directions=include_directions,
+        add_ons=add_ons, knob_picks=knob_picks, template_by_lang=TEMPLATE_BY_LANG)

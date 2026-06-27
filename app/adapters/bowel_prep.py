@@ -15,7 +15,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import shared_dir, skill_dir
+from ._paths import is_live_dev, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("bowel-prep-generator")
@@ -156,6 +156,36 @@ class ComposedTemplateUnsupported(RuntimeError):
     500) as defense-in-depth so any direct API callers get a useful error."""
 
 
+def addon_slots_cover(html: str, blurbs_html: str, procedure_items_html: str,
+                      team_blurbs_html: str) -> bool:
+    """True iff every non-empty piece of composed add-on content has a slot in
+    `html` that will render it.
+
+    The three content buckets overlap: {{ADDON_BLURBS}} (blurbs_html) is the
+    superset — it carries EVERY selected add-on — so if that slot is present,
+    all add-ons render regardless of the other two. Otherwise a template uses
+    the split form ({{ADDON_PROCEDURE_ITEMS}} for GI-procedure add-ons +
+    {{ADDON_TEAM_BLURBS}} for the rest); then each non-empty split bucket needs
+    its matching slot or that add-on would be silently dropped.
+
+    Per-slot, NOT any-slot: the old `any(slot present)` check passed whenever
+    *one* slot existed and silently dropped content routed to a *missing* one.
+    """
+    if blurbs_html and "{{ADDON_BLURBS}}" in html:
+        return True
+    if procedure_items_html and "{{ADDON_PROCEDURE_ITEMS}}" not in html:
+        return False
+    if team_blurbs_html and "{{ADDON_TEAM_BLURBS}}" not in html:
+        return False
+    # If blurbs content exists with no {{ADDON_BLURBS}} slot, it's only safe when
+    # the split buckets (items+team, which together cover every add-on) carried
+    # it — i.e. at least one split bucket was non-empty and matched above.
+    if blurbs_html and "{{ADDON_BLURBS}}" not in html \
+            and not procedure_items_html and not team_blurbs_html:
+        return False
+    return True
+
+
 def is_partner_variant_active(physician_id: str, band_id: str | None, prep_type: str) -> bool:
     """Return True iff the partner-variant routing path applies for this
     request. Used by app/main.py to surface the flag in the analytics event.
@@ -219,7 +249,12 @@ def _reset_caches_for_live_dev():
     point at the live ~/.claude/skills/ directory, that cache means edits
     don't appear until uvicorn restarts. Resetting at request time costs
     one tiny YAML read per render and lets live edits land immediately.
+
+    No-op in production (vendored, immutable skill source) — re-reading the
+    YAML + re-globbing the partials on every request is pure waste there.
     """
+    if not is_live_dev("bowel-prep-generator"):
+        return
     skill._PRACTICE_CACHE = None
     skill._PARTIALS_CACHE = {}
     skill._SHARED_PARTIALS_CACHE = {}
@@ -262,6 +297,7 @@ def render_pdf(
     include_directions: bool = True,
     addon_blurbs_html: str = "",
     composed_title: str = "",
+    composed_procedure_label: str = "",
     addon_title_suffix: str = "",
     addon_procedure_items_html: str = "",
     addon_team_blurbs_html: str = "",
@@ -457,7 +493,10 @@ def render_pdf(
     }
     if composed_title:
         personalization_replacements["{{HTML_TITLE}}"] = composed_title
-        personalization_replacements["{{PROCEDURE_LABEL}}"] = composed_title
+        # {{PROCEDURE_LABEL}} is the running/band label — keep it the bare base
+        # procedure (no add-on suffix) so a footer can't overflow, matching the
+        # egd composed path. Falls back to the full title if no base label given.
+        personalization_replacements["{{PROCEDURE_LABEL}}"] = composed_procedure_label or composed_title
     # Forward-compat: the canonical bowel-prep skill has removed the
     # contingency / shopping-quantity helpers, but the scheduler's
     # personalized templates still reference those tokens. When the adapter
@@ -478,18 +517,20 @@ def render_pdf(
     # rather than suppress it — replaces the older server-side STOP_MEDS_BLOCK
     # injection that used to live where {{PARTIAL_MEDICATIONS_NOTE}} sits now.
     html = template_path.read_text(encoding="utf-8")
-    # Composed-overlay guard: add-on content requested but the selected base
-    # template has none of {{ADDON_BLURBS}} / {{ADDON_PROCEDURE_ITEMS}} /
-    # {{ADDON_TEAM_BLURBS}} → FAIL LOUDLY, never silently drop the add-ons
-    # (the EGD-feedback-bar regression class). Only the canonical miralax
-    # standard (ADDON_BLURBS) and combined (ADDON_PROCEDURE_ITEMS +
-    # ADDON_TEAM_BLURBS) templates are slot-enabled this increment.
+    # Composed-overlay guard: FAIL LOUDLY if any non-empty add-on content has no
+    # matching slot in this template — never silently drop the add-ons (the
+    # EGD-feedback-bar regression class). Per-slot, not any-slot: a template with
+    # only {{ADDON_BLURBS}} must not silently swallow {{ADDON_PROCEDURE_ITEMS}}
+    # content, etc. (see addon_slots_cover). Only the canonical miralax standard
+    # (ADDON_BLURBS) and combined (ADDON_PROCEDURE_ITEMS + ADDON_TEAM_BLURBS)
+    # templates are slot-enabled this increment.
     _any_composed_content = bool(addon_blurbs_html or addon_procedure_items_html or addon_team_blurbs_html)
-    _any_slot_present = any(tok in html for tok in ("{{ADDON_BLURBS}}", "{{ADDON_PROCEDURE_ITEMS}}", "{{ADDON_TEAM_BLURBS}}"))
-    if _any_composed_content and not _any_slot_present:
+    if _any_composed_content and not addon_slots_cover(
+        html, addon_blurbs_html, addon_procedure_items_html, addon_team_blurbs_html
+    ):
         raise ComposedTemplateUnsupported(
             f"composed add-ons requested but template {template_path.name!r} "
-            f"has no ADDON_BLURBS / ADDON_PROCEDURE_ITEMS / ADDON_TEAM_BLURBS slot "
+            f"has no matching ADDON_BLURBS / ADDON_PROCEDURE_ITEMS / ADDON_TEAM_BLURBS slot "
             f"(prep_type={prep_type!r}); this base/prep combo is not yet add-on-enabled")
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization rules) before any token substitution.

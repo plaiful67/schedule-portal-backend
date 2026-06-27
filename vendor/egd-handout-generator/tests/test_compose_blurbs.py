@@ -28,7 +28,9 @@ def test_ph_mii_appends_ppi_knob_fragment():
 
 def test_blurb_order_is_registry_order():
     out = compose.compose_blurbs(["dlb", "ph_mii"], {}, "en")
-    assert out.index("pH-impedance catheter") < out.index("ENT team will examine")
+    # Registry order: ph_mii precedes dlb, so its blurb comes first regardless
+    # of the order the ids were passed in.
+    assert out.index("pH-impedance catheter") < out.index("direct laryngoscopy")
 
 
 if __name__ == "__main__":
