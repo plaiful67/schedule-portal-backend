@@ -22,7 +22,6 @@ from pathlib import Path
 
 SCRIPTS_DIR = Path(__file__).resolve().parent
 BACKEND_DIR = SCRIPTS_DIR.parent
-OUT_DIR = BACKEND_DIR / "app" / "templates" / "bowel_prep"
 
 
 def _load_builder():
@@ -46,33 +45,34 @@ def main() -> int:
     failures: list[str] = []
     diffs_printed = False
 
-    for canonical_name, out_name, patch_fn in builder.VARIANTS:
-        canonical_path = builder.VENDOR_TEMPLATES / canonical_name
-        committed_path = OUT_DIR / out_name
+    for vendor_skill, canonical_name, out_subdir, out_name, patch_fn in builder.VARIANTS:
+        canonical_path = builder.VENDOR_ROOT / vendor_skill / "templates" / canonical_name
+        committed_path = builder.TEMPLATES_ROOT / out_subdir / out_name
+        label = f"{out_subdir}/{out_name}"
         if not canonical_path.exists():
             failures.append(
-                f"{canonical_name}: vendor copy missing at {canonical_path}. "
+                f"{vendor_skill}/{canonical_name}: vendor copy missing at {canonical_path}. "
                 f"Run `make vendor-sync` first."
             )
             continue
         if not committed_path.exists():
             failures.append(
-                f"{out_name}: committed personalized template missing at {committed_path}."
+                f"{label}: committed personalized template missing at {committed_path}."
             )
             continue
         try:
             expected = patch_fn(canonical_path.read_text(encoding="utf-8"))
         except RuntimeError as e:
-            failures.append(f"{canonical_name}: patch failed → {e}")
+            failures.append(f"{vendor_skill}/{canonical_name}: patch failed → {e}")
             continue
         actual = committed_path.read_text(encoding="utf-8")
         if expected != actual:
-            failures.append(f"{out_name}: drift detected")
+            failures.append(f"{label}: drift detected")
             diff = difflib.unified_diff(
                 actual.splitlines(keepends=True),
                 expected.splitlines(keepends=True),
-                fromfile=f"{out_name} (on disk)",
-                tofile=f"{out_name} (rebuilt from canonical)",
+                fromfile=f"{label} (on disk)",
+                tofile=f"{label} (rebuilt from canonical)",
                 n=3,
             )
             sys.stderr.writelines(diff)
