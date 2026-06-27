@@ -17,7 +17,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import TypeAdapter, ValidationError
 
-from . import medications, physicians, tenant
+from . import builder, medications, physicians, tenant
 from .adapters import bowel_prep, combined, composed, egd, egd_phmii
 from .adapters.bowel_prep import ComposedTemplateUnsupported
 from .adapters.composed import CompositionInputError
@@ -43,7 +43,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_LOCAL_DEV + _extra_origins,
     allow_methods=["GET", "POST", "OPTIONS"],
-    allow_headers=["Content-Type"],
+    # X-Tenant / X-Signer-Role carry the dev tenant + signer role for the
+    # builder (M6/M7); production derives both from the Access JWT instead.
+    allow_headers=["Content-Type", "X-Tenant", "X-Signer-Role"],
     # `Content-Disposition` is not a CORS-safelisted response header, so the
     # browser hides it from JS unless we explicitly expose it. Without this,
     # `r.headers.get("Content-Disposition")` returns null on the frontend and
@@ -174,6 +176,40 @@ def content_approve(
     except PermissionError as e:
         raise HTTPException(status_code=403, detail=str(e))
     return {"tenant": tenant_id, "unit": unit, **rec}
+
+
+# --- No-code builder (M6) + AI-draft (M7) -----------------------------------
+
+@app.post("/builder/tenant")
+async def builder_tenant(request: Request):
+    """Write tenants/<id>/{tenant.yaml,content_status.yaml,logo} from the
+    builder SPA payload. Content starts DRAFT (M5 gate); apex must be .example."""
+    body = await request.json()
+    return builder.write_tenant(body)
+
+
+@app.post("/builder/build")
+async def builder_build(request: Request):
+    """Render + build a builder-created tenant to a LOCAL preview dir. Draft
+    units render watermarked + noindex; nothing is deployed."""
+    body = await request.json()
+    return builder.build_preview(body.get("tenant_id", ""),
+                                 allow_draft_preview=body.get("allow_draft_preview", True))
+
+
+@app.post("/draft")
+async def draft(request: Request):
+    """AI authoring assist (Layer 5). Server-side Anthropic Messages API (key
+    server-side) or a labelled MOCK draft. The draft is INERT — it feeds the M5
+    approval gate; nothing publishes until a clinical_signer approves. No PHI is
+    sent to the LLM (template prose only)."""
+    body = await request.json()
+    # tenant is taken from the body for the builder dev flow, but the DRAFT is
+    # inert regardless of tenant — it never publishes on its own.
+    return builder.make_draft(
+        description=body.get("description", ""),
+        procedures=body.get("procedures", []) or [],
+        tenant_id=body.get("tenant_id", ""))
 
 
 @app.post("/render")
