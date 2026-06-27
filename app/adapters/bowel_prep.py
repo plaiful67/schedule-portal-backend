@@ -624,7 +624,12 @@ def render_pdf(
 
     # Resolve relative URLs (logo PNG, etc.) against the skill's templates/ dir.
     base_url = (SKILL_ROOT / "templates").as_uri() + "/"
-    if include_directions:
+    # The directions appendix is GIREADY-SCC/PMCH-SPECIFIC content: turn-by-turn
+    # from local landmarks, giready maps URLs, the spelled-out street address.
+    # It cannot be made correct for another practice by string-swapping — a real
+    # tenant supplies its OWN directions. So inject it ONLY for giready; a
+    # non-giready tenant omits it (prototype: demo has no directions appendix).
+    if include_directions and _tenant_id == "giready":
         from ..directions_inline import inject_into_handout
         html = inject_into_handout(html, location_id, lang)
 
@@ -632,6 +637,11 @@ def render_pdf(
     # template 'giready.com' host literals (meds callout, legal, breadcrumb,
     # directions appendix) to the active tenant's apex. Identity for giready.
     html = skill._apply_apex(html)
+    # Tenant identity pass (also after directions inline, which carries the
+    # giready office/location phone + street address): swap them to the active
+    # tenant's. Identity for giready. Without this a non-giready scheduler PDF
+    # would print GI Ready's phone/address — the wrong-contact-info failure.
+    html = skill._apply_identity(html)
 
     from ..pdf_tagging import write_pdf_tagged
     pdf_bytes = write_pdf_tagged(HTML(string=html, base_url=base_url))

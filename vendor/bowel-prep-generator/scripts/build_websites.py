@@ -79,7 +79,7 @@ PDF_THEME = os.environ.get("BOWEL_PREP_PDF_THEME", "calm").strip().lower()
 # pages are guaranteed to use the same dose phrasing and the same
 # pre-rendered "2 Days Before" HTML block as the print PDF.
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y, build_clenpiq_strings, build_suprep_strings, build_lactulose_strings  # noqa: E402
+from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y, build_clenpiq_strings, build_suprep_strings, build_lactulose_strings, _apply_identity as _render_apply_identity  # noqa: E402
 
 from header_config import (  # noqa: E402  (single source of truth)
     write_headers,
@@ -221,6 +221,12 @@ def find_handout_pdf(band, location_id, lang, family):
     The build keeps going either way; a missing PDF just means the band
     page omits the download link (rather than hard-failing the build).
     """
+    # PDF_REVIEW_DIR holds GIREADY's pre-rendered download PDFs (giready
+    # branding/phone/address). A non-giready tenant must NOT ship them — its
+    # download PDFs would have to be re-rendered for that tenant. In the
+    # prototype we omit the download link (the build handles None gracefully).
+    if _TENANT.get("id", "giready") != "giready":
+        return None
     stem = band["filename_stem"]  # e.g. "31-40kg", "under-15kg-enema"
     loc_upper = location_id.upper()
     lang_dir = "English" if lang == "en" else "Spanish"
@@ -512,6 +518,11 @@ def _inject_analytics(html, family, location_id, lang, band_id=""):
     apex = _TENANT.get("apex", "giready.com")
     if apex != "giready.com":
         html = html.replace("giready.com", apex)
+    # Tenant identity pass: build_websites' renderers also emit the giready
+    # office/location phone + street-address literals (no token). Swap them to
+    # the active tenant's via the skill's _apply_identity (reads the render
+    # tenant set by _configure_tenant). Identity for the giready tenant.
+    html = _render_apply_identity(html)
     site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
     if not site:
         return html
@@ -1105,7 +1116,14 @@ def _assert_band_publicness(row, bands_by_id):
 def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
     strat = FAMILY_STRATEGY[row.family]
     written = 0
+    # A non-giready tenant builds ONLY the locations it explicitly declares in
+    # its tenant.yaml `locations` overlay — it must not inherit (and ship a site
+    # for) giready's other location (e.g. demo has no PMCH, so no prep86 site
+    # carrying St. Vincent's address/phone). giready builds every location.
+    tenant_locs = _TENANT.get("declared_locations")
     for loc_id, repo_name in row.repos.items():
+        if tenant_locs is not None and loc_id not in tenant_locs:
+            continue
         repo_dir = _repo_out_dir(repo_name, row.subdomains[loc_id])
         location = locations[loc_id]
         if row.landing == "picker":
@@ -1161,6 +1179,18 @@ def _configure_tenant(tenant_id, preview_out):
     _TENANT["csp_api_origin"] = analytics.get("api_origin", f"https://api-schedule.{apex}")
     _TENANT["csp_asset_origin"] = f"https://{apex}"
     _TENANT["preview_root"] = preview_out
+    # Locations the tenant EXPLICITLY declares in its own overlay (not the
+    # inherited dosing.yaml ones) — build_site uses this to skip inherited
+    # giready locations. Read the raw overlay so inherited keys don't appear.
+    try:
+        sd = str(render._shared_dir())
+        if sd not in sys.path:
+            sys.path.insert(0, sd)
+        import tenant_resolver
+        overlay = tenant_resolver.resolve(tenant_id) or {}
+        _TENANT["declared_locations"] = set((overlay.get("locations") or {}).keys())
+    except Exception:
+        _TENANT["declared_locations"] = None
     return practice_cfg
 
 

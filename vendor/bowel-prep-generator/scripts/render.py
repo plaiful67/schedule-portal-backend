@@ -1954,6 +1954,9 @@ def render_html(template_path, replacements, out_path):
     # apple-touch/legal/meds/analytics-beacon/breadcrumb/subdomain hosts) to the
     # active tenant's apex. Identity for the giready tenant (byte-identity gate).
     html = _apply_apex(html)
+    # Tenant identity pass: rewrite giready office/location phone + address
+    # literals to the active tenant's. Identity for the giready tenant.
+    html = _apply_identity(html)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -2116,6 +2119,128 @@ def _apply_apex(html: str) -> str:
     if apex == "giready.com":
         return html
     return html.replace("giready.com", apex)
+
+
+# --- Tenant identity swap (phone + address) --------------------------------
+# Many patient templates + partials hardcode giready's PRACTICE-IDENTITY literals
+# as plain text (no token): the office phone "(317) 338-9450"/"(317)338-9450"/
+# "tel:3173389450", the per-location phones ("(317) 569-8250" etc.) and the
+# location street addresses ("12188-A N Meridian St …, Carmel, IN 46032"). There
+# is no {{PRACTICE_PHONE}} token, so the tenant overlay (which DOES carry these
+# values) never reaches these literals. _apply_identity is the swap-pass analog
+# of _apply_apex: it rewrites the GIREADY-BASELINE identity literals to the
+# active tenant's equivalents. For the giready tenant target == baseline so it's
+# identity (the byte-identity gate proves it). Longer strings replace first so a
+# phone digit-run can't be clobbered inside an address.
+#
+# GRADUATION NOTE: the cleaner long-term fix is to tokenize these (~57 templates)
+# to {{PRACTICE_PHONE}}/{{PRACTICE_PHONE_TEL}}/{{LOCATION_ADDRESS}} and substitute
+# in the regular pass. That's a high-churn template edit; deferred to keep the
+# prototype seam low-risk + giready byte-identical.
+
+
+_GIREADY_IDENTITY_BASELINE = None
+
+
+def _phone_forms(display, tel_digits):
+    """All literal forms a phone appears in: display "(317) 338-9450", the
+    no-space variant "(317)338-9450", and the tel: digit run "tel:3173389450"."""
+    forms = {}
+    if display:
+        forms["display"] = display
+        forms["nospace"] = display.replace(") ", ")")  # "(317) 338-9450" -> "(317)338-9450"
+    if tel_digits:
+        forms["tel"] = f"tel:{tel_digits}"
+    return forms
+
+
+def _identity_values(tenant_id):
+    """Resolve a tenant's identity values (office phone forms + per-location
+    phone/address) WITHOUT disturbing the active _practice cache. Reads the
+    overlay directly and merges over the bowel-prep practice.yaml + dosing
+    locations (the giready baseline)."""
+    # Office phone: overlay practice.{phone,phone_tel} over the local practice.yaml.
+    with open(PRACTICE_PATH, encoding="utf-8") as f:
+        local = yaml.safe_load(f) or {}
+    sd = _shared_dir()
+    core = {}
+    if sd and (sd / "practice-core.yaml").exists():
+        with open(sd / "practice-core.yaml", encoding="utf-8") as f:
+            core = yaml.safe_load(f) or {}
+    base_practice = _deep_merge_under(core, local).get("practice", {})
+    overlay = {}
+    sd_str = str(sd) if sd else None
+    if sd_str:
+        if sd_str not in sys.path:
+            sys.path.insert(0, sd_str)
+        try:
+            import tenant_resolver
+            overlay = tenant_resolver.resolve(tenant_id) or {}
+        except Exception:
+            overlay = {}
+    practice = _deep_merge_under(base_practice, overlay.get("practice", {}) or {})
+    office_phone = practice.get("phone")
+    office_tel = practice.get("phone_tel")
+
+    # Locations: dosing.yaml locations with the tenant's `locations` overlay.
+    dosing_locs = dict(load_dosing().get("locations", {}))
+    for lid, lb in (overlay.get("locations") or {}).items():
+        base = dosing_locs.get(lid, {})
+        dosing_locs[lid] = _deep_merge_under(base, lb) if isinstance(base, dict) else lb
+
+    return {
+        "office": _phone_forms(office_phone, office_tel),
+        "locations": {
+            lid: {
+                "phone": lb.get("phone"),
+                "phone_nospace": (lb.get("phone") or "").replace(") ", ")") or None,
+                "phone_tel": "tel:" + re.sub(r"\D", "", lb.get("phone", "")) if lb.get("phone") else None,
+                "address": lb.get("address"),
+            }
+            for lid, lb in dosing_locs.items()
+        },
+    }
+
+
+def _apply_identity(html: str) -> str:
+    """Rewrite giready-baseline practice-identity literals (office phone, each
+    location's phone + address) to the active tenant's values. Identity for the
+    giready tenant. Longest replacements first to avoid digit/substring overlap."""
+    global _GIREADY_IDENTITY_BASELINE
+    tenant_id = _TENANT_ID
+    if tenant_id == "giready":
+        return html  # target == baseline → no-op
+    if _GIREADY_IDENTITY_BASELINE is None:
+        _GIREADY_IDENTITY_BASELINE = _identity_values("giready")
+    base = _GIREADY_IDENTITY_BASELINE
+    tgt = _identity_values(tenant_id)
+
+    pairs = []  # (from_literal, to_literal)
+    # Office phone forms.
+    for k, frm in base["office"].items():
+        to = tgt["office"].get(k)
+        if frm and to and frm != to:
+            pairs.append((frm, to))
+    # Per-location phone (display/nospace/tel) + address.
+    for lid, lb in base["locations"].items():
+        tl = tgt["locations"].get(lid, {})
+        for field in ("address", "phone", "phone_nospace", "phone_tel"):
+            frm = lb.get(field)
+            to = tl.get(field)
+            if frm and to and frm != to:
+                pairs.append((frm, to))
+
+    # De-dup + sort longest-first so an address (which contains a phone-like
+    # digit run? no — but a city/zip) is swapped before any shorter overlap.
+    seen = set()
+    uniq = []
+    for frm, to in pairs:
+        if frm not in seen:
+            seen.add(frm)
+            uniq.append((frm, to))
+    for frm, to in sorted(uniq, key=lambda p: -len(p[0])):
+        html = html.replace(frm, to)
+    return html
 
 
 def _shared_dir():
@@ -2559,6 +2684,8 @@ def render_pdf_print(template_path, replacements, out_path,
     # the print templates (favicon/apple-touch/legal/meds/QR-caption/subdomain
     # hosts) to the active tenant's apex. Identity for the giready tenant.
     html = _apply_apex(html)
+    # Tenant identity pass: office/location phone + address literals.
+    html = _apply_identity(html)
 
     # Resolve relative URLs (logos, maps, stub images) against the templates/
     # root, not the template's own directory — so templates in subfolders
