@@ -263,6 +263,8 @@ def render_pdf(
     addon_blurbs_html: str = "",
     composed_title: str = "",
     addon_title_suffix: str = "",
+    addon_procedure_items_html: str = "",
+    addon_team_blurbs_html: str = "",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -444,12 +446,14 @@ def render_pdf(
 
     # Personalized callout placeholders.
     personalization_replacements = {
-        "{{APPT_DATE_HUMAN}}":      appt_date_human,
-        "{{APPT_TIME}}":            appt_time_display,
-        "{{ARRIVAL_TIME}}":         arrival_time_display,
-        "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
-        "{{ADDON_BLURBS}}":         addon_blurbs_html,
-        "{{ADDON_TITLE_SUFFIX}}":   addon_title_suffix,
+        "{{APPT_DATE_HUMAN}}":         appt_date_human,
+        "{{APPT_TIME}}":               appt_time_display,
+        "{{ARRIVAL_TIME}}":            arrival_time_display,
+        "{{FOLLOWUP_BLOCK_HTML}}":     followup_block_html,
+        "{{ADDON_BLURBS}}":            addon_blurbs_html,
+        "{{ADDON_TITLE_SUFFIX}}":      addon_title_suffix,
+        "{{ADDON_PROCEDURE_ITEMS}}":   addon_procedure_items_html,
+        "{{ADDON_TEAM_BLURBS}}":       addon_team_blurbs_html,
     }
     if composed_title:
         personalization_replacements["{{HTML_TITLE}}"] = composed_title
@@ -478,11 +482,13 @@ def render_pdf(
     # template has no {{ADDON_BLURBS}} slot → FAIL LOUDLY, never silently drop
     # the add-ons (the EGD-feedback-bar regression class). Only the canonical
     # miralax standard + combined templates carry the slot this increment.
-    if addon_blurbs_html and "{{ADDON_BLURBS}}" not in html:
+    _any_composed_content = bool(addon_blurbs_html or addon_procedure_items_html or addon_team_blurbs_html)
+    _any_slot_present = any(tok in html for tok in ("{{ADDON_BLURBS}}", "{{ADDON_PROCEDURE_ITEMS}}", "{{ADDON_TEAM_BLURBS}}"))
+    if _any_composed_content and not _any_slot_present:
         raise ComposedTemplateUnsupported(
             f"composed add-ons requested but template {template_path.name!r} "
-            f"has no {{{{ADDON_BLURBS}}}} slot (prep_type={prep_type!r}); "
-            f"this base/prep combo is not yet add-on-enabled")
+            f"has no ADDON_BLURBS / ADDON_PROCEDURE_ITEMS / ADDON_TEAM_BLURBS slot "
+            f"(prep_type={prep_type!r}); this base/prep combo is not yet add-on-enabled")
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization rules) before any token substitution.
     html = swap_calm(html)

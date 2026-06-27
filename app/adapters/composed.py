@@ -156,7 +156,9 @@ def render_pdf(
             followup_block_html=followup_block_html, appt_dt=appt_dt,
             variant=variant, prep_type=prep_type, include_directions=include_directions,
             addon_blurbs_html=comp.blurbs_html, composed_title=comp.title,
-            addon_title_suffix=(" + " + comp.addon_title) if comp.addon_title else "")
+            addon_title_suffix=(" + " + comp.addon_title) if comp.addon_title else "",
+            addon_procedure_items_html=comp.procedure_items_html,
+            addon_team_blurbs_html=comp.team_blurbs_html)
     # base == "egd": existing Task-3 EGD body follows unchanged.
     from weasyprint import HTML
 
@@ -182,6 +184,8 @@ def render_pdf(
     replacements["{{PROCEDURE_LABEL}}"] = compose_module.compose_title("egd", [], lang)  # base only, no add-ons
     replacements["{{ADDON_TITLE_SUFFIX}}"] = (" + " + comp.addon_title) if comp.addon_title else ""
     replacements["{{ADDON_BLURBS}}"] = comp.blurbs_html
+    replacements["{{ADDON_PROCEDURE_ITEMS}}"] = comp.procedure_items_html
+    replacements["{{ADDON_TEAM_BLURBS}}"] = comp.team_blurbs_html
 
     # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the
     # destination page personalizes itself via its built-in _personalize JS.
