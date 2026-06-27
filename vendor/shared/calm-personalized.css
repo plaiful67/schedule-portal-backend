@@ -140,8 +140,16 @@
 }
 .safety p { margin: 2pt 0; }
 
-/* Add-on procedure(s) appended to the handout title in smaller print. */
-.doc-title .addon-suffix { font-size: 0.5em; font-weight: 600; color: #555; white-space: normal; }
+/* Scheduler cover runs narrower than website handouts — the band-label chip +
+   performing-physician share the title row — so shrink the base title a touch so
+   multi-procedure names ("EGD and Colonoscopy") stay on one line. Website
+   handouts keep calm-print.css's 23pt. */
+/* Bare h1.doc-title (personalized templates omit calm-print's .titles wrapper) —
+   give it the flex grow the wrapper would have, so multi-procedure titles fill the
+   row and stay on one line; trim the size a touch for the narrower scheduler cover. */
+.cover-title-row .doc-title { flex: 1 1 auto; font-size: 20pt; }
+/* Add-on procedure(s) appended to the handout title in smaller print, on their own line. */
+.doc-title .addon-suffix { display: block; font-size: 0.62em; font-weight: 600; color: #555; white-space: normal; }
 
 /* Diet-reference category column (kept for parity) ------------------- */
 table.diet-ref .col-cat {

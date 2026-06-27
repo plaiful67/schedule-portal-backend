@@ -79,6 +79,32 @@ def _addon_blurb(addon_id: str, entry: dict, lang: str, registry: dict) -> str:
     return entry.get(f"blurb_{lang}", entry.get("blurb_en", ""))
 
 
+def _is_gi_procedure_addon(entry: dict, lang: str) -> bool:
+    """True iff this add-on has a procedure_list_desc for the given lang
+    (signals it should render as a list item, not a paragraph blurb)."""
+    return bool(entry.get(f"procedure_list_desc_{lang}",
+                           entry.get("procedure_list_desc_en", "")))
+
+
+def compose_procedure_items(add_ons, lang, registry=None):
+    """Bare <li> items for GI-procedure add-ons (those with procedure_list_desc).
+    Returns joined string with no <ul> wrapper; empty string if none qualify."""
+    reg = registry or load_registry()
+    selected = set(add_ons)
+    items = []
+    for addon_id in reg["add_ons"]:
+        if addon_id not in selected:
+            continue
+        entry = reg["add_ons"][addon_id]
+        if not _is_gi_procedure_addon(entry, lang):
+            continue
+        frag = _frag(entry, lang)
+        desc = entry.get(f"procedure_list_desc_{lang}",
+                         entry.get("procedure_list_desc_en", ""))
+        items.append(f"<li><strong>{frag}</strong> &mdash; {desc}</li>")
+    return "\n".join(items)
+
+
 def compose_blurbs(add_ons, knob_picks, lang, registry=None):
     reg = registry or load_registry()
     selected = set(add_ons)
@@ -101,6 +127,8 @@ class Composition:
     blurbs_html: str
     knob_values: dict = field(default_factory=dict)
     addon_title: str = ""
+    procedure_items_html: str = ""
+    team_blurbs_html: str = ""
 
 
 def compose(base, add_ons, knob_picks, lang, registry=None):
@@ -109,4 +137,26 @@ def compose(base, add_ons, knob_picks, lang, registry=None):
     blurbs = compose_blurbs(add_ons, knob_picks, lang, reg)
     knob_values = {k["name"]: k["value"] for k in resolve_knobs(add_ons, knob_picks, lang, reg)}
     addon_title = compose_addon_title(add_ons, lang, reg)
-    return Composition(title=title, blurbs_html=blurbs, knob_values=knob_values, addon_title=addon_title)
+    procedure_items = compose_procedure_items(add_ons, lang, reg)
+    # team_blurbs: same as blurbs but excludes GI-procedure add-ons
+    # (knob fragments are always team-side; they don't have procedure_list_desc)
+    selected = set(add_ons)
+    team_blocks = []
+    for addon_id in reg["add_ons"]:
+        if addon_id not in selected:
+            continue
+        entry = reg["add_ons"][addon_id]
+        if _is_gi_procedure_addon(entry, lang):
+            continue
+        text = _addon_blurb(addon_id, entry, lang, reg)
+        if text:
+            team_blocks.append(f'<p class="addon-blurb">{text}</p>')
+    for knob in resolve_knobs(add_ons, knob_picks, lang, reg):
+        if knob["fragment"]:
+            team_blocks.append(f'<p class="addon-knob">{knob["fragment"]}</p>')
+    team_blurbs = "\n".join(team_blocks)
+    return Composition(
+        title=title, blurbs_html=blurbs, knob_values=knob_values,
+        addon_title=addon_title, procedure_items_html=procedure_items,
+        team_blurbs_html=team_blurbs,
+    )

@@ -30,6 +30,8 @@ add_ons:
     title_fragment_es: "Biopsia por Succión Rectal"
     blurb_en: "During the same procedure, a rectal suction biopsy will also be performed. A small tissue sample is taken from the lining of the rectum using gentle suction. No extra preparation is needed beyond the bowel prep already required for the colonoscopy or sigmoidoscopy."
     blurb_es: "Durante el mismo procedimiento, también se realizará una biopsia por succión rectal. Se toma una pequeña muestra de tejido del revestimiento del recto mediante succión suave. No se necesita preparación adicional más allá de la preparación intestinal ya requerida para la colonoscopia o la sigmoidoscopia."  # ES-REVIEW
+    procedure_list_desc_en: "A small tissue sample is taken from the lining of the rectum using gentle suction."
+    procedure_list_desc_es: "Se toma una pequeña muestra de tejido del revestimiento del recto mediante succión suave."  # ES-REVIEW
   bal:
     specialty: pulm
     title_fragment_en: "Bronchoalveolar Lavage"
