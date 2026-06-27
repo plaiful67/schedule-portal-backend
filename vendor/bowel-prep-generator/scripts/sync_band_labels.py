@@ -142,9 +142,13 @@ _LB_PAREN = re.compile(r"\([^)]*\blb\b[^)]*\)")
 def sync_scheduler(write):
     bp = _bowel_prep_bands()
     text = SCHEDULER_JS.read_text(encoding="utf-8")
-    # Limit work to the BOWEL_PREP_BANDS array literal.
+    # Limit work to the BOWEL_PREP_BANDS array literal. The scheduler app.js may
+    # declare it with `const` or `let` (it was switched to `let` so a fetched
+    # /config can replace the labels), so accept either.
     start = text.find("const BOWEL_PREP_BANDS")
-    end = text.find("]", start)
+    if start == -1:
+        start = text.find("let BOWEL_PREP_BANDS")
+    end = text.find("]", start) if start != -1 else -1
     if start == -1 or end == -1:
         sys.exit("ERROR: could not locate BOWEL_PREP_BANDS array in app.js")
     head, block, tail = text[:start], text[start:end], text[end:]
