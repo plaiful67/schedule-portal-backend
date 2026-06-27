@@ -230,18 +230,47 @@ skill._PARTIALS_CACHE = {}
 skill._SHARED_PARTIALS_CACHE = {}
 
 # Static-handout sites at *.giready.com use the GI Ready logo (the skill's
-# practice.yaml ships logo_filename: "giready-logo.png"). Scheduler-generated
-# personalized PDFs keep the PMCH logo per Sebastian's 2026-05-22 brand split.
-# The override has to live in code, not vendor/*.yaml, because `make vendor-sync`
-# re-copies the static skill on every deploy and would overwrite any YAML edit.
-if not getattr(skill._practice, "_pmch_override_applied", False):
-    _original_practice = skill._practice
-    def _practice_with_pmch_override():
-        data = _original_practice()
-        data["practice"]["logo_filename"] = "logo-pmch.png"
-        return data
-    _practice_with_pmch_override._pmch_override_applied = True  # type: ignore[attr-defined]
-    skill._practice = _practice_with_pmch_override
+# practice.yaml ships logo_filename: "giready-logo.png"). giready's
+# scheduler-generated personalized PDFs keep the PMCH logo per Sebastian's
+# 2026-05-22 brand split. The override has to live in code, not vendor/*.yaml,
+# because `make vendor-sync` re-copies the static skill on every deploy and
+# would overwrite any YAML edit.
+#
+# MULTI-TENANT: the PMCH logo override is a GIREADY-SPECIFIC brand decision
+# (PMCH is giready's hospital). A non-giready tenant must NOT inherit it — its
+# scheduler PDFs carry ITS OWN branding (cover stack + logo from its
+# tenant.yaml). So the override is now applied PER RENDER, gated on the active
+# tenant, rather than once at import.
+_original_practice = getattr(skill._practice, "_original", skill._practice)
+
+
+def _apply_tenant_to_skill(tenant_id: str) -> None:
+    """Point the skill's render module at `tenant_id` (so _practice() picks up
+    that tenant's cover-stack/footer/logo overlay + apex) and install the
+    correct _practice wrapper:
+      - giready: keep the PMCH logo override (byte-identical to today).
+      - other tenant: no PMCH override — use the tenant's own logo_filename.
+    """
+    skill._set_tenant(tenant_id)  # clears _PRACTICE_CACHE too
+
+    if tenant_id == "giready":
+        def _practice_giready():
+            data = _original_practice()
+            data["practice"]["logo_filename"] = "logo-pmch.png"
+            return data
+        _practice_giready._original = _original_practice  # type: ignore[attr-defined]
+        skill._practice = _practice_giready
+    else:
+        # Tenant brand: no PMCH override. _practice() returns the tenant overlay
+        # merged result (its cover_stack/footer/logo_filename + apex).
+        def _practice_tenant():
+            return _original_practice()
+        _practice_tenant._original = _original_practice  # type: ignore[attr-defined]
+        skill._practice = _practice_tenant
+
+
+# Default to giready at import so any non-/render caller behaves as before.
+_apply_tenant_to_skill("giready")
 
 
 def _reset_caches_for_live_dev():
@@ -322,6 +351,13 @@ def render_pdf(
     egdcolonsuprep{,86} subdomains.
     """
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
+
+    # Point the skill at the active request tenant (giready default) so the
+    # cover stack / footer / logo / apex come from that tenant's overlay. For
+    # giready this restores today's exact PMCH-branded behaviour.
+    _tenant_id = physicians._active_tenant()
+    _apply_tenant_to_skill(_tenant_id)
+    _apex = skill._apex()
 
     _reset_caches_for_live_dev()
 
@@ -456,12 +492,12 @@ def render_pdf(
     mobile_path = band.get("mobile_path", "")
     lang_seg = "es/" if lang == "es" else ""
     hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
-    mobile_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/{hash_params}"
+    mobile_url = f"https://{subdomain}.{_apex}/{lang_seg}{mobile_path}/{hash_params}"
     # FEEDBACK_URL splices ?feedback=1&source=print BEFORE the hash so
     # survey.js auto-opens on arrival and tags the D1 row as PDF-origin.
     # Cover and mid-doc QRs both encode this URL; the cover-QR href also
     # uses it so click and scan land in the same place.
-    feedback_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/?feedback=1&source=print{hash_params}"
+    feedback_url = f"https://{subdomain}.{_apex}/{lang_seg}{mobile_path}/?feedback=1&source=print{hash_params}"
     mobile_qr_data_uri  = skill._png_to_data_uri(skill._generate_maps_qr(feedback_url))
     feedback_qr_data_uri = mobile_qr_data_uri  # identical encoding; reuse the bytes
 
@@ -591,6 +627,12 @@ def render_pdf(
     if include_directions:
         from ..directions_inline import inject_into_handout
         html = inject_into_handout(html, location_id, lang)
+
+    # Tenant apex pass (LAST, after directions inline): rewrite any remaining
+    # template 'giready.com' host literals (meds callout, legal, breadcrumb,
+    # directions appendix) to the active tenant's apex. Identity for giready.
+    html = skill._apply_apex(html)
+
     from ..pdf_tagging import write_pdf_tagged
     pdf_bytes = write_pdf_tagged(HTML(string=html, base_url=base_url))
     return pdf_bytes
