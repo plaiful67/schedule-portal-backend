@@ -310,11 +310,14 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: clear-liquids inline",
     )
 
-    # 7. Add-on blurbs slot — move from after the bowel-prep intro to after the
-    #    "What Are These Procedures?" closing paragraph (30-60 minutes sentence),
-    #    immediately before the "About the Bowel Prep" h2. This is the injection
-    #    point for composed add-on blurbs when base="combined". Non-composed renders
-    #    fill the slot with "" (empty) via bowel_prep.render_pdf's personalization dict.
+    # 7. Add-on slots — two injection points in the combined template:
+    #    7a. {{ADDON_PROCEDURE_ITEMS}}: inside the procedures <ul>, immediately
+    #        after the Colonoscopy <li>. rsbx becomes a 3rd bullet here on combined.
+    #    7b. {{ADDON_TEAM_BLURBS}}: paragraph slot after the "What Are These
+    #        Procedures?" closing paragraph, before "About the Bowel Prep" h2.
+    #        This is team-level add-on blurbs only (physician/team intros, etc.).
+    #        Non-composed renders fill both slots with "" (empty) via
+    #        bowel_prep.render_pdf's personalization dict.
     #
     #    Old location (REMOVED): after EGD-doesn't-need-prep sentence, before MEDICATIONS comment.
     #    New location: after 30-60 minutes closing paragraph, before About the Bowel Prep h2.
@@ -328,14 +331,24 @@ def patch_combined_print_en(canonical: str) -> str:
         '<!-- MEDICATIONS + PRE-CLEANOUT CALLOUTS (right after About)       -->',
         where="combined en: revert old ADDON_BLURBS location (no-op identity replace, slot moves to procedure section)",
     )
+
+    # 7a. Insert {{ADDON_PROCEDURE_ITEMS}} inside the procedures <ul>, immediately
+    #     after the Colonoscopy <li>. rsbx becomes a 3rd bullet here on combined.
+    out = _replace_unique(
+        out,
+        '  <li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>\n</ul>',
+        '  <li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>\n{{ADDON_PROCEDURE_ITEMS}}\n</ul>',
+        where="combined en: ADDON_PROCEDURE_ITEMS slot after Colonoscopy <li>",
+    )
+
     out = _replace_unique(
         out,
         '<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>\n\n'
         '<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>',
         '<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>\n'
-        '{{ADDON_BLURBS}}\n'
+        '{{ADDON_TEAM_BLURBS}}\n'
         '<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>',
-        where="combined en: ADDON_BLURBS slot after What Are These Procedures? closing paragraph",
+        where="combined en: ADDON_TEAM_BLURBS paragraph slot (team add-ons only, after closing paragraph)",
     )
 
     # (The old standalone "Sample Meals" box was removed from the canonical
@@ -416,9 +429,12 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: clear-liquids inline",
     )
 
-    # 7. Add-on blurbs slot — move from after the bowel-prep intro to after the
-    #    "¿Qué Son Estos Procedimientos?" closing paragraph (30-60 minutos sentence),
-    #    immediately before the "Sobre la Preparación Intestinal" h2.
+    # 7. Add-on slots — two injection points in the combined template:
+    #    7a. {{ADDON_PROCEDURE_ITEMS}}: inside the procedures <ul>, immediately
+    #        after the Colonoscopia <li>. rsbx becomes a 3rd bullet here on combined.
+    #    7b. {{ADDON_TEAM_BLURBS}}: paragraph slot after the "¿Qué Son Estos
+    #        Procedimientos?" closing paragraph, before "Sobre la Preparación
+    #        Intestinal" h2. Team-level add-ons only; non-composed renders fill "" (empty).
     #
     #    Old location (REMOVED): after EGD-no-prep sentence, before CALLOUTS comment.
     #    New location: after 30-60 minutos closing paragraph, before Sobre la Preparación h2.
@@ -432,14 +448,23 @@ def patch_combined_print_es(canonical: str) -> str:
         '<!-- CALLOUTS: MEDICAMENTOS + PRE-LIMPIEZA (justo después de Sobre) -->',
         where="combined es: revert old ADDON_BLURBS location (identity replace, slot moves to procedure section)",
     )
+
+    # 7a. Insert {{ADDON_PROCEDURE_ITEMS}} inside the procedures <ul>, after the Colonoscopia <li>.
+    out = _replace_unique(
+        out,
+        '  <li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>\n</ul>',
+        '  <li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>\n{{ADDON_PROCEDURE_ITEMS}}\n</ul>',
+        where="combined es: ADDON_PROCEDURE_ITEMS slot after Colonoscopia <li>",
+    )
+
     out = _replace_unique(
         out,
         '<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>\n\n'
         '<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>',
         '<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>\n'
-        '{{ADDON_BLURBS}}\n'
+        '{{ADDON_TEAM_BLURBS}}\n'
         '<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>',
-        where="combined es: ADDON_BLURBS slot after ¿Qué Son Estos Procedimientos? closing paragraph",
+        where="combined es: ADDON_TEAM_BLURBS paragraph slot (team add-ons only, after closing paragraph)",
     )
 
     # (Caja de "Comidas de Muestra" eliminada de la plantilla canónica; ya no hay
