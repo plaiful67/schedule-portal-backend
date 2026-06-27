@@ -28,14 +28,14 @@ add_ons:
   rsbx:
     title_fragment_en: "Rectal Suction Biopsy"
     title_fragment_es: "Biopsia por Succión Rectal"
-    blurb_en: "A small rectal biopsy will be taken during the same anesthesia. No extra preparation is needed."
-    blurb_es: "Se tomará una pequeña biopsia rectal durante la misma anestesia. No se necesita preparación adicional."  # ES-REVIEW
+    blurb_en: "During the same procedure, a rectal suction biopsy will also be performed. A small tissue sample is taken from the lining of the rectum using gentle suction. No extra preparation is needed beyond the bowel prep already required for the colonoscopy or sigmoidoscopy."
+    blurb_es: "Durante el mismo procedimiento, también se realizará una biopsia por succión rectal. Se toma una pequeña muestra de tejido del revestimiento del recto mediante succión suave. No se necesita preparación adicional más allá de la preparación intestinal ya requerida para la colonoscopia o la sigmoidoscopia."  # ES-REVIEW
   bal:
     specialty: pulm
     title_fragment_en: "Bronchoalveolar Lavage"
     title_fragment_es: "Lavado Broncoalveolar"
-    blurb_en: "During the same anesthesia, the Pulmonary team will also perform a bronchoalveolar lavage (BAL) to sample the airways. No extra preparation is needed."
-    blurb_es: "Durante la misma anestesia, el equipo de Neumología también realizará un lavado broncoalveolar (BAL) para tomar muestras de las vías respiratorias. No se necesita preparación adicional."  # ES-REVIEW
+    blurb_en: "During the same anesthesia, the Pulmonary team will also perform a bronchoalveolar lavage (BAL), in which a small amount of fluid is washed into and collected from the lungs for testing. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Neumología también realizará un lavado broncoalveolar (BAL), en el que se introduce y se recoge una pequeña cantidad de líquido de los pulmones para analizarla. No se necesita preparación adicional."  # ES-REVIEW
   dise:
     specialty: sleep
     title_fragment_en: "Drug-Induced Sleep Endoscopy"
@@ -46,14 +46,14 @@ add_ons:
     specialty: ent
     title_fragment_en: "ENT Airway Exam (DLB)"
     title_fragment_es: "Examen de Vías Respiratorias por Otorrinolaringología (DLB)"
-    blurb_en: "During the same anesthesia, the ENT team will examine your child's airway (direct laryngoscopy and bronchoscopy). No extra preparation is needed."
-    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología examinará las vías respiratorias de su hijo (laringoscopia y broncoscopia directas). No se necesita preparación adicional."  # ES-REVIEW
+    blurb_en: "During the same anesthesia, the ENT team will also perform a direct laryngoscopy and bronchoscopy (DLB) to examine the airway. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología también realizará una laringoscopia y broncoscopia directas (DLB) para examinar las vías respiratorias. No se necesita preparación adicional."  # ES-REVIEW
   ent_ta:
     specialty: ent
     title_fragment_en: "Tonsils & Adenoids"
     title_fragment_es: "Amígdalas y Adenoides"
-    blurb_en: "During the same anesthesia, the ENT team will also remove the tonsils and adenoids. No extra preparation is needed."
-    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología también extirpará las amígdalas y los adenoides. No se necesita preparación adicional."  # ES-REVIEW
+    blurb_en: "During the same anesthesia, the ENT team will also perform a tonsillectomy and/or adenoidectomy. Please follow any additional dietary or medication instructions provided by the ENT team prior to surgery."
+    blurb_es: "Durante la misma anestesia, el equipo de Otorrinolaringología también realizará una amigdalectomía o adenoidectomía. Siga las instrucciones adicionales sobre dieta o medicamentos que le proporcione el equipo de Otorrinolaringología antes de la cirugía."  # ES-REVIEW
   ent_tubes:
     specialty: ent
     title_fragment_en: "Ear Tubes"

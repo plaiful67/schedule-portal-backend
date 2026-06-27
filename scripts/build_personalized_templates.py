@@ -234,6 +234,16 @@ def patch_combined_print_en(canonical: str) -> str:
     # 0. Strip the privacy/terms/disclaimer footer (personalized-only).
     out = _strip_legal_footer(out, lang="en")
 
+    # 0b. Title: drop "Prep" suffix, add addon-suffix span slot.
+    #     Canonical: <h1 class="doc-title">EGD and Colonoscopy Prep</h1>
+    #     Personalized: <h1 class="doc-title">EGD and Colonoscopy<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>
+    out = _replace_unique(
+        out,
+        '<h1 class="doc-title">EGD and Colonoscopy Prep</h1>',
+        '<h1 class="doc-title">EGD and Colonoscopy<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
+        where="combined en: title drop Prep + addon-suffix span",
+    )
+
     # 1. CSS for appt-callout + performing-physician + followup-callout
     #    (appended pre-</style>).
     out = _inject_personalization_css(out)
@@ -300,20 +310,32 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: clear-liquids inline",
     )
 
-    # 7. Add-on blurbs slot — immediately after the bowel-prep intro </p> and
-    #    before the MEDICATIONS section comment. This is the injection point for
-    #    composed add-on blurbs when base="combined". Non-composed renders fill
-    #    the slot with "" (empty) via bowel_prep.render_pdf's personalization dict.
+    # 7. Add-on blurbs slot — move from after the bowel-prep intro to after the
+    #    "What Are These Procedures?" closing paragraph (30-60 minutes sentence),
+    #    immediately before the "About the Bowel Prep" h2. This is the injection
+    #    point for composed add-on blurbs when base="combined". Non-composed renders
+    #    fill the slot with "" (empty) via bowel_prep.render_pdf's personalization dict.
+    #
+    #    Old location (REMOVED): after EGD-doesn't-need-prep sentence, before MEDICATIONS comment.
+    #    New location: after 30-60 minutes closing paragraph, before About the Bowel Prep h2.
     out = _replace_unique(
         out,
         'The EGD itself does not need bowel prep &mdash; only the fasting times.</p>\n\n'
         '<!-- ============================================================= -->\n'
         '<!-- MEDICATIONS + PRE-CLEANOUT CALLOUTS (right after About)       -->',
-        'The EGD itself does not need bowel prep &mdash; only the fasting times.</p>\n'
-        '{{ADDON_BLURBS}}\n'
+        'The EGD itself does not need bowel prep &mdash; only the fasting times.</p>\n\n'
         '<!-- ============================================================= -->\n'
         '<!-- MEDICATIONS + PRE-CLEANOUT CALLOUTS (right after About)       -->',
-        where="combined en: ADDON_BLURBS slot after bowel-prep intro",
+        where="combined en: revert old ADDON_BLURBS location (no-op identity replace, slot moves to procedure section)",
+    )
+    out = _replace_unique(
+        out,
+        '<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>\n\n'
+        '<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>',
+        '<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>\n'
+        '{{ADDON_BLURBS}}\n'
+        '<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>',
+        where="combined en: ADDON_BLURBS slot after What Are These Procedures? closing paragraph",
     )
 
     # (The old standalone "Sample Meals" box was removed from the canonical
@@ -329,6 +351,16 @@ def patch_combined_print_es(canonical: str) -> str:
     out = canonical
 
     out = _strip_legal_footer(out, lang="es")
+
+    # 0b. Title: drop "Preparación para" prefix (keep just procedure names + addon-suffix span slot).
+    #     Canonical: <h1 class="doc-title">Preparación para EGD y Colonoscopia</h1>
+    #     Personalized: <h1 class="doc-title">EGD y Colonoscopia<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>
+    out = _replace_unique(
+        out,
+        '<h1 class="doc-title">Preparación para EGD y Colonoscopia</h1>',
+        '<h1 class="doc-title">EGD y Colonoscopia<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
+        where="combined es: title drop Preparación para + addon-suffix span",
+    )
 
     out = _inject_personalization_css(out)
 
@@ -384,18 +416,30 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: clear-liquids inline",
     )
 
-    # 7. Add-on blurbs slot — immediately after the bowel-prep intro </p> and
-    #    before the CALLOUTS section comment. Mirrors the EN patch (step 7).
+    # 7. Add-on blurbs slot — move from after the bowel-prep intro to after the
+    #    "¿Qué Son Estos Procedimientos?" closing paragraph (30-60 minutos sentence),
+    #    immediately before the "Sobre la Preparación Intestinal" h2.
+    #
+    #    Old location (REMOVED): after EGD-no-prep sentence, before CALLOUTS comment.
+    #    New location: after 30-60 minutos closing paragraph, before Sobre la Preparación h2.
     out = _replace_unique(
         out,
         'La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>\n\n'
         '<!-- ============================================================= -->\n'
         '<!-- CALLOUTS: MEDICAMENTOS + PRE-LIMPIEZA (justo después de Sobre) -->',
-        'La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>\n'
-        '{{ADDON_BLURBS}}\n'
+        'La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>\n\n'
         '<!-- ============================================================= -->\n'
         '<!-- CALLOUTS: MEDICAMENTOS + PRE-LIMPIEZA (justo después de Sobre) -->',
-        where="combined es: ADDON_BLURBS slot after bowel-prep intro",
+        where="combined es: revert old ADDON_BLURBS location (identity replace, slot moves to procedure section)",
+    )
+    out = _replace_unique(
+        out,
+        '<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>\n\n'
+        '<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>',
+        '<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>\n'
+        '{{ADDON_BLURBS}}\n'
+        '<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>',
+        where="combined es: ADDON_BLURBS slot after ¿Qué Son Estos Procedimientos? closing paragraph",
     )
 
     # (Caja de "Comidas de Muestra" eliminada de la plantilla canónica; ya no hay

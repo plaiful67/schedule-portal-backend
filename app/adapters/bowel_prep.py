@@ -262,6 +262,7 @@ def render_pdf(
     include_directions: bool = True,
     addon_blurbs_html: str = "",
     composed_title: str = "",
+    addon_title_suffix: str = "",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -448,6 +449,7 @@ def render_pdf(
         "{{ARRIVAL_TIME}}":         arrival_time_display,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
         "{{ADDON_BLURBS}}":         addon_blurbs_html,
+        "{{ADDON_TITLE_SUFFIX}}":   addon_title_suffix,
     }
     if composed_title:
         personalization_replacements["{{HTML_TITLE}}"] = composed_title

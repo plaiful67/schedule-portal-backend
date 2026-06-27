@@ -75,14 +75,19 @@ CASES = [
     ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch")),
     # Composed base cases — real registry add-on ids dlb/dise.
     # composed egd has no weight_band/prep_type (egd base forbids them).
+    # `expect` key: whitespace-normalized substring that must appear in the PDF text —
+    # guards the silent-add-on-drop regression class.
     ("composed colon en",    dict(procedure_type="composed", base="colonoscopy",
                                   weight_band="31-40", prep_type="miralax",
-                                  language="en", add_ons=["dlb"], knob_picks={})),
+                                  language="en", add_ons=["dlb"], knob_picks={},
+                                  expect="direct laryngoscopy and bronchoscopy")),
     ("composed combined es", dict(procedure_type="composed", base="combined",
                                   weight_band="31-40", prep_type="miralax",
-                                  language="es", add_ons=["dise"], knob_picks={})),
+                                  language="es", add_ons=["dise"], knob_picks={},
+                                  expect="endoscopia del sueño")),
     ("composed egd en",      dict(procedure_type="composed", base="egd",
-                                  language="en", add_ons=["dise"], knob_picks={})),
+                                  language="en", add_ons=["dise"], knob_picks={},
+                                  expect="drug-induced sleep")),
 ]
 
 
@@ -150,11 +155,25 @@ def main() -> int:
             appointment_date=APPT, appointment_time="08:30", arrival_time="07:30",
             stop_meds=["ibuprofen"], include_directions=True,
         )
-        payload.update(over)
+        # Extract `expect` without mutating the case dict — it's a smoke-guard key, not an API field.
+        expect_substr = over.get("expect", None)
+        payload.update({k: v for k, v in over.items() if k != "expect"})
         # EGD+pH is PMCH-only; not exercised here (bowel-prep families only).
         try:
             pdf = render(base, payload)
             problems = checks(pdf, payload.get("language", "en"))
+            # Add-on text guard: assert the add-on blurb text is present in the PDF.
+            if expect_substr is not None:
+                from pypdf import PdfReader
+                from io import BytesIO
+                reader = PdfReader(BytesIO(pdf))
+                text_ws = re.sub(r"\s+", " ", "\n".join(
+                    (p.extract_text() or "") for p in reader.pages))
+                if expect_substr not in text_ws:
+                    problems.append(
+                        f"add-on text missing: expected {expect_substr!r} in PDF text "
+                        f"(add-on blurb silently dropped?)"
+                    )
             if problems:
                 failed += 1
                 print(f"  ✗ {label:13s} {len(pdf):7d}B  — {'; '.join(problems)}")

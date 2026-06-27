@@ -140,6 +140,9 @@
 }
 .safety p { margin: 2pt 0; }
 
+/* Add-on procedure(s) appended to the handout title in smaller print. */
+.doc-title .addon-suffix { font-size: 0.5em; font-weight: 600; color: #555; white-space: normal; }
+
 /* Diet-reference category column (kept for parity) ------------------- */
 table.diet-ref .col-cat {
   width: 18%; font-family: var(--sans); font-weight: 600; color: var(--teal-deep);

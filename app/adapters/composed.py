@@ -155,7 +155,8 @@ def render_pdf(
             appt_time_display=appt_time_display, arrival_time_display=arrival_time_display,
             followup_block_html=followup_block_html, appt_dt=appt_dt,
             variant=variant, prep_type=prep_type, include_directions=include_directions,
-            addon_blurbs_html=comp.blurbs_html, composed_title=comp.title)
+            addon_blurbs_html=comp.blurbs_html, composed_title=comp.title,
+            addon_title_suffix=(" + " + comp.addon_title) if comp.addon_title else "")
     # base == "egd": existing Task-3 EGD body follows unchanged.
     from weasyprint import HTML
 
@@ -177,8 +178,9 @@ def render_pdf(
     replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     comp = compose_module.compose("egd", add_ons, knob_picks, lang)
-    replacements["{{HTML_TITLE}}"] = comp.title
-    replacements["{{PROCEDURE_LABEL}}"] = comp.title
+    replacements["{{HTML_TITLE}}"] = comp.title  # full title for PDF metadata
+    replacements["{{PROCEDURE_LABEL}}"] = compose_module.compose_title("egd", [], lang)  # base only, no add-ons
+    replacements["{{ADDON_TITLE_SUFFIX}}"] = (" + " + comp.addon_title) if comp.addon_title else ""
     replacements["{{ADDON_BLURBS}}"] = comp.blurbs_html
 
     # MOBILE_URL = the existing EGD mobile site URL + `#d=&t=` hash so the

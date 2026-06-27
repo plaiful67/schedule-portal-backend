@@ -43,6 +43,17 @@ def compose_title(base: str, add_ons: list[str], lang: str, registry: dict | Non
     return " + ".join(p for p in parts if p)
 
 
+def compose_addon_title(add_ons, lang, registry=None):
+    """Just the add-on title fragments, ' + '-joined (no base) — lets a handout
+    render the base procedure name normally and the add-on(s) in smaller print."""
+    reg = registry or load_registry()
+    ordered = [a for a in reg["add_ons"] if a in set(add_ons)]
+    for a in add_ons:
+        if a not in reg["add_ons"]:
+            raise KeyError(a)
+    return " + ".join(_frag(reg["add_ons"][a], lang) for a in ordered if _frag(reg["add_ons"][a], lang))
+
+
 def resolve_knobs(add_ons, knob_picks, lang, registry=None):
     reg = registry or load_registry()
     selected = set(add_ons)
@@ -89,6 +100,7 @@ class Composition:
     title: str
     blurbs_html: str
     knob_values: dict = field(default_factory=dict)
+    addon_title: str = ""
 
 
 def compose(base, add_ons, knob_picks, lang, registry=None):
@@ -96,4 +108,5 @@ def compose(base, add_ons, knob_picks, lang, registry=None):
     title = compose_title(base, add_ons, lang, reg)
     blurbs = compose_blurbs(add_ons, knob_picks, lang, reg)
     knob_values = {k["name"]: k["value"] for k in resolve_knobs(add_ons, knob_picks, lang, reg)}
-    return Composition(title=title, blurbs_html=blurbs, knob_values=knob_values)
+    addon_title = compose_addon_title(add_ons, lang, reg)
+    return Composition(title=title, blurbs_html=blurbs, knob_values=knob_values, addon_title=addon_title)
