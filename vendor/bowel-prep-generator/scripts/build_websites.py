@@ -43,6 +43,26 @@ LOGO_PATH = TEMPLATES / "logo-pmch.png"
 PRACTICE_PATH = SKILL_DIR / "practice.yaml"
 DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 
+# Default delivery target: the per-variant `*-giready` site repos on the Desktop.
+# When the giready-sites monorepo drives the build it sets GIREADY_SITES_OUT to
+# its `sites/` root; then output goes to `<root>/<subdomain>/` (bare subdomain,
+# one dir per subdomain) instead of `<repo_name>/`. Content is identical either
+# way — only the destination path changes. See giready-sites/data/sites.yaml.
+_SITES_OUT_ROOT = os.environ.get("GIREADY_SITES_OUT", "").strip()
+
+
+def _repo_out_dir(repo_name: str, subdomain: str) -> Path:
+    # A non-giready tenant NEVER writes into giready's Desktop site repos or a
+    # real deploy target. It renders to a local, tenant-namespaced PREVIEW root
+    # (no DNS, no wrangler — plan guardrail "local/preview artifacts only").
+    # Repo dirs are namespaced `{tenant}-{subdomain}` to avoid collisions.
+    preview_root = _TENANT.get("preview_root")
+    if preview_root:
+        return Path(preview_root) / f'{_TENANT["id"]}-{subdomain}'
+    if _SITES_OUT_ROOT:
+        return Path(_SITES_OUT_ROOT) / subdomain
+    return Path.home() / "Desktop" / "peds-gi-system" / repo_name
+
 # Pre-rendered print PDFs to copy alongside each band's mobile page so users
 # can print the canonical handout from the website. Populated by
 # scripts/render.py; if missing the build still succeeds but the PDF link is
@@ -61,7 +81,12 @@ PDF_THEME = os.environ.get("BOWEL_PREP_PDF_THEME", "calm").strip().lower()
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render import build_strings, build_infant_strings, _load_partials, build_calendar_events_json, lb_phrase, _inject_shared_mobile_a11y, build_clenpiq_strings, build_suprep_strings, build_lactulose_strings  # noqa: E402
 
-from header_config import write_headers  # noqa: E402  (single source of truth)
+from header_config import (  # noqa: E402  (single source of truth)
+    write_headers,
+    DEFAULT_ANALYTICS_ORIGIN,
+    DEFAULT_API_ORIGIN,
+    DEFAULT_ASSET_ORIGIN,
+)
 
 from _sites_manifest import load_sites, SiteRow  # noqa: E402
 
@@ -404,10 +429,33 @@ def clean_repo(repo_dir, band_ids, bands_by_id):
                 shutil.rmtree(d)
 
 
+# Per-tenant build context. Set once in main() (mirrors render.py's _TENANT_ID
+# idiom) so the deep build call-chain doesn't grow a tenant param on every
+# signature. Defaults are giready's PRODUCTION values, so a giready build is
+# byte-identical; a second tenant overrides them (resolved from tenant.yaml).
+#
+# beacon_origin: the analytics platform Worker the page beacons to. Per the
+#   entity-neutral spine (plan §"Layer 2"), a NON-giready tenant points at a
+#   DISTINCT platform origin (one shared, tenant-tagged Worker), NOT
+#   analytics.giready.com. giready stays on its own beacon for byte-identity.
+# context_marker: the <meta> marker name used for the analytics context blob +
+#   the idempotency guard. Kept as "giready:context" for giready (byte-
+#   identical); a second tenant uses a neutral "platform:context".
+_TENANT = {
+    "id": "giready",
+    "apex": "giready.com",           # host literal rewrite target (identity for giready)
+    "beacon_origin": "https://analytics.giready.com",
+    "context_marker": "giready:context",
+    # data-tenant attribute: EMPTY for giready (so its deployed snippet stays
+    # byte-identical — no new attribute), ' data-tenant="<id>"' for any other
+    # tenant. The platform Worker reads this to slice events by tenant.
+    "data_tenant_attr": "",
+}
+
 _ANALYTICS_SNIPPET = (
-    '<meta name="giready:context" content=\'{ctx}\'>\n'
-    '  <script defer src="https://analytics.giready.com/gi.js" data-site="{site}"></script>\n'
-    '  <script defer src="https://analytics.giready.com/survey.js" data-site="{site}" data-survey-delay="90"></script>'
+    '<meta name="{marker}" content=\'{ctx}\'>\n'
+    '  <script defer src="{beacon}/gi.js" data-site="{site}"{dt}></script>\n'
+    '  <script defer src="{beacon}/survey.js" data-site="{site}"{dt} data-survey-delay="90"></script>'
 )
 
 _ANALYTICS_SITE_BY_FAMILY_LOC = {
@@ -455,6 +503,15 @@ def _inject_analytics(html, family, location_id, lang, band_id=""):
     # every mobile page — applied here because _inject_analytics is the single
     # last-mile transform before every write_text. Independent of analytics.
     html = _inject_shared_mobile_a11y(html)
+    # Tenant apex pass: build_websites' page renderers emit the raw template
+    # 'giready.com' host literals (favicon/apple-touch/legal/meds/breadcrumb/
+    # logo/calendar) directly — they don't go through render.py's _apply_apex.
+    # Rewrite them here, the single last-mile transform before every write_text.
+    # Identity for the giready tenant (apex == 'giready.com'); 'giready.com' is
+    # only ever a hostname in our templates, never the 'GI Ready' brand string.
+    apex = _TENANT.get("apex", "giready.com")
+    if apex != "giready.com":
+        html = html.replace("giready.com", apex)
     site = _ANALYTICS_SITE_BY_FAMILY_LOC.get((family, location_id))
     if not site:
         return html
@@ -465,8 +522,11 @@ def _inject_analytics(html, family, location_id, lang, band_id=""):
         "lang": lang,
         "source": "web",
     }, separators=(",", ":"))
-    snippet = _ANALYTICS_SNIPPET.format(site=site, ctx=ctx)
-    if 'giready:context' in html and f'data-site="{site}"' in html and 'survey.js' in html:
+    marker = _TENANT["context_marker"]
+    snippet = _ANALYTICS_SNIPPET.format(
+        marker=marker, site=site, ctx=ctx,
+        beacon=_TENANT["beacon_origin"], dt=_TENANT["data_tenant_attr"])
+    if f'name="{marker}"' in html and f'data-site="{site}"' in html and 'survey.js' in html:
         return html
     return html.replace("</head>", f"  {snippet}\n</head>", 1)
 
@@ -584,7 +644,15 @@ def write_repo_metadata(repo_dir, location, subdomain):
     already-initialized repos instead of silently going stale.
     """
     written = []
-    written += write_headers(repo_dir)
+    # CSP origins are per-tenant: giready uses the defaults (byte-identical
+    # _headers); a second tenant passes its beacon + api + asset origins so its
+    # CSP allow-list matches its own hosts (resolved into _TENANT in main()).
+    written += write_headers(
+        repo_dir,
+        analytics_origin=_TENANT.get("csp_analytics_origin", DEFAULT_ANALYTICS_ORIGIN),
+        api_origin=_TENANT.get("csp_api_origin", DEFAULT_API_ORIGIN),
+        asset_origin=_TENANT.get("csp_asset_origin", DEFAULT_ASSET_ORIGIN),
+    )
 
     gitignore_path = repo_dir / ".gitignore"
     if not gitignore_path.exists():
@@ -1038,7 +1106,7 @@ def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
     strat = FAMILY_STRATEGY[row.family]
     written = 0
     for loc_id, repo_name in row.repos.items():
-        repo_dir = Path.home() / "Desktop" / "peds-gi-system" / repo_name
+        repo_dir = _repo_out_dir(repo_name, row.subdomains[loc_id])
         location = locations[loc_id]
         if row.landing == "picker":
             files = build_for_repo(
@@ -1060,13 +1128,72 @@ def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
     return written
 
 
-def main():
+def _configure_tenant(tenant_id, preview_out):
+    """Resolve the tenant overlay and populate the module-level _TENANT build
+    context + render's tenant. For giready this leaves every value at its
+    production default (byte-identical build); a second tenant gets its own
+    apex-derived beacon/api/asset/preview origins."""
     import render
-    practice_cfg = render._practice()
+    render._set_tenant(tenant_id)
+    practice_cfg = render._practice()        # triggers the overlay merge
+    tcfg = practice_cfg.get("tenant", {}) or {}
+    _TENANT["id"] = tenant_id
+
+    if tenant_id == "giready":
+        # giready: keep production beacon/marker/CSP origins verbatim.
+        return practice_cfg
+
+    apex = tcfg.get("apex", "giready.com")
+    _TENANT["apex"] = apex
+    analytics = tcfg.get("analytics", {}) or {}
+    # Entity-neutral spine: a non-giready tenant beacons to the SHARED platform
+    # Worker (distinct origin, tenant-tagged), NOT analytics.<its apex>. For the
+    # prototype this is a documented placeholder platform origin; pointing it at
+    # a real platform domain is a later config flip.
+    platform_origin = analytics.get(
+        "platform_origin", "https://analytics.giready-platform.example")
+    _TENANT["beacon_origin"] = platform_origin
+    _TENANT["context_marker"] = "platform:context"
+    _TENANT["data_tenant_attr"] = f' data-tenant="{tenant_id}"'
+    # CSP allow-list for the tenant's own pages: platform beacon + tenant api +
+    # tenant asset origin (its apex).
+    _TENANT["csp_analytics_origin"] = platform_origin
+    _TENANT["csp_api_origin"] = analytics.get("api_origin", f"https://api-schedule.{apex}")
+    _TENANT["csp_asset_origin"] = f"https://{apex}"
+    _TENANT["preview_root"] = preview_out
+    return practice_cfg
+
+
+def main():
+    import argparse
+    ap = argparse.ArgumentParser(description="Build the per-tenant mobile handout sites.")
+    ap.add_argument("--tenant", default="giready",
+                    help="Tenant id (default 'giready' — byte-identical production build). "
+                         "A non-giready tenant renders to a local preview root "
+                         "(--preview-out), namespaced, with a distinct platform beacon.")
+    ap.add_argument("--preview-out", default=None,
+                    help="Local preview root for a non-giready tenant build (required "
+                         "for --tenant != giready). No DNS/wrangler — local artifacts only.")
+    ap.add_argument("only", nargs="*", help="Optional: build only these manifest ids.")
+    args = ap.parse_args()
+
+    if args.tenant != "giready" and not args.preview_out:
+        sys.exit("ERROR: --tenant <non-giready> requires --preview-out <dir> "
+                 "(prototype renders to local preview only — no real deploy target).")
+
+    practice_cfg = _configure_tenant(args.tenant, args.preview_out)
     dosing_cfg = _load_yaml(DOSING_PATH)
     locations = dosing_cfg["locations"]
+    # Tenant locations overlay (mirror render.main): a tenant supplies its own
+    # facility roster on top of dosing.yaml. Identity for giready.
+    _tloc = (practice_cfg.get("tenant", {}) or {}).get("locations")
+    if _tloc:
+        import render as _r
+        for _lid, _lblock in _tloc.items():
+            base = locations.get(_lid, {})
+            locations[_lid] = _r._deep_merge_under(base, _lblock) if isinstance(base, dict) else _lblock
     bands_by_id = {b["id"]: b for b in dosing_cfg["bands"]}
-    only = set(sys.argv[1:])  # optional: build only these manifest ids
+    only = set(args.only)  # optional: build only these manifest ids
     total = 0
     for row in load_sites():
         if only and row.id not in only:

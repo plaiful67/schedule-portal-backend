@@ -35,14 +35,23 @@ import hashlib
 import re
 from pathlib import Path
 
+# Default per-tenant origins. giready's production values; passing these
+# explicitly is a no-op (byte-identical _headers). A second tenant passes its
+# own analytics/api/asset origins down from the builder (which resolves them
+# from tenant.yaml) — this module stays stdlib-only and never imports a
+# resolver (R4 invariant), so the CALLER resolves and passes origins in.
+DEFAULT_ANALYTICS_ORIGIN = "https://analytics.giready.com"
+DEFAULT_API_ORIGIN = "https://api-schedule.giready.com"
+DEFAULT_ASSET_ORIGIN = "https://giready.com"
+
 _CSP_TEMPLATE = (
     "default-src 'self'; "
-    "script-src 'self'{script_hashes} https://analytics.giready.com; "
+    "script-src 'self'{script_hashes} {analytics_origin}; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
     "font-src 'self' https://fonts.gstatic.com; "
-    "img-src 'self' data: https://giready.com https://analytics.giready.com; "
-    "connect-src 'self' https://analytics.giready.com https://api-schedule.giready.com; "
-    "manifest-src 'self' https://giready.com; "
+    "img-src 'self' data: {asset_origin} {analytics_origin}; "
+    "connect-src 'self' {analytics_origin} {api_origin}; "
+    "manifest-src 'self' {asset_origin}; "
     "frame-src https://calendar.google.com; "
     "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
 )
@@ -95,21 +104,29 @@ def csp_script_hashes(repo_dir):
     return sorted(found)
 
 
-def build_csp(script_hashes=()):
+def build_csp(script_hashes=(), analytics_origin=DEFAULT_ANALYTICS_ORIGIN,
+              api_origin=DEFAULT_API_ORIGIN, asset_origin=DEFAULT_ASSET_ORIGIN):
     joined = "".join(" " + h for h in script_hashes)
-    return _CSP_TEMPLATE.format(script_hashes=joined)
+    return _CSP_TEMPLATE.format(script_hashes=joined, analytics_origin=analytics_origin,
+                                api_origin=api_origin, asset_origin=asset_origin)
 
 
-def build_headers_content(script_hashes=()):
-    return _HEADERS_TEMPLATE.format(csp=build_csp(script_hashes))
+def build_headers_content(script_hashes=(), analytics_origin=DEFAULT_ANALYTICS_ORIGIN,
+                          api_origin=DEFAULT_API_ORIGIN, asset_origin=DEFAULT_ASSET_ORIGIN):
+    return _HEADERS_TEMPLATE.format(csp=build_csp(
+        script_hashes, analytics_origin, api_origin, asset_origin))
 
 
-def write_headers(repo_dir):
+def write_headers(repo_dir, analytics_origin=DEFAULT_ANALYTICS_ORIGIN,
+                  api_origin=DEFAULT_API_ORIGIN, asset_origin=DEFAULT_ASSET_ORIGIN):
     """Rewrite ``repo_dir/_headers`` with a CSP whose ``script-src`` lists the
-    hashes of that repo's own inline scripts. Returns ``[path]`` if the file
-    changed, else ``[]`` (matches the builders' ``written`` accounting)."""
+    hashes of that repo's own inline scripts. Origins default to giready's
+    production values (byte-identical); a second tenant passes its own. Returns
+    ``[path]`` if the file changed, else ``[]`` (matches the builders'
+    ``written`` accounting)."""
     repo_dir = Path(repo_dir)
-    content = build_headers_content(csp_script_hashes(repo_dir))
+    content = build_headers_content(csp_script_hashes(repo_dir),
+                                    analytics_origin, api_origin, asset_origin)
     path = repo_dir / "_headers"
     current = path.read_text(encoding="utf-8") if path.exists() else None
     if current != content:

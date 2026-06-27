@@ -577,7 +577,7 @@ def _cup_tracker_html(band, lang, drink_cup, total_oz):
         f'<span aria-hidden="true">{i}</span></label>'
         for i in range(1, cups + 1)
     )
-    key = f"giready-cups-{band['id']}-{lang}"
+    key = f"{_storage_prefix()}-cups-{band['id']}-{lang}"
     if lang == "en":
         head = (f'\U0001F964 <strong>Cup tracker</strong> &mdash; tap each cup as your child '
                 f'finishes it. Aim for about <strong>{cups} cups</strong> (~{cup_oz} oz each), '
@@ -1950,6 +1950,10 @@ def render_html(template_path, replacements, out_path):
         omit_pat = re.compile(r'<div class="time-box">(?:(?!</div>).)*?' + re.escape(REMOVE_PARAGRAPH_MARKER) + r'(?:(?!</div>).)*?</div>\s*', re.DOTALL)
         html = omit_pat.sub("", html)
     html = _inject_shared_mobile_a11y(html)
+    # Tenant apex pass: rewrite hardcoded 'giready.com' host literals (favicon/
+    # apple-touch/legal/meds/analytics-beacon/breadcrumb/subdomain hosts) to the
+    # active tenant's apex. Identity for the giready tenant (byte-identity gate).
+    html = _apply_apex(html)
     with open(out_path, "w", encoding="utf-8") as f:
         f.write(html)
 
@@ -1971,7 +1975,7 @@ def _generate_mobile_qr(mobile_path, lang="en", subdomain="prep"):
         import io as _io
     except ImportError:
         return None
-    url = f"https://{subdomain}.giready.com/{mobile_path}/"
+    url = f"https://{subdomain}.{_apex()}/{mobile_path}/"
     if lang == "es":
         url = url + "es/"
     url = url + "?feedback=1&source=print"
@@ -1994,7 +1998,7 @@ def _generate_feedback_qr(mobile_path, lang="en", subdomain="prep"):
         import io as _io
     except ImportError:
         return None
-    url = f"https://{subdomain}.giready.com/{mobile_path}/"
+    url = f"https://{subdomain}.{_apex()}/{mobile_path}/"
     if lang == "es":
         url = url + "es/"
     url = url + "?feedback=1&source=print"
@@ -2040,6 +2044,79 @@ def _meds_giready_qr_data_uri():
 # and are read once at startup via _practice().
 _PRACTICE_CACHE = None
 
+# Active tenant id. Defaults to "giready" so every existing invocation behaves
+# identically; `--tenant <id>` (main()) overrides it before the first
+# _practice() call. The tenant overlay is deep-merged OVER the
+# practice-core+local result inside _practice(); see shared/tenant_resolver.py.
+_TENANT_ID = "giready"
+
+
+def _set_tenant(tenant_id):
+    """Set the active tenant and clear the practice cache so the overlay for
+    the new tenant is picked up. Called once from main() before rendering."""
+    global _TENANT_ID, _PRACTICE_CACHE
+    _TENANT_ID = tenant_id
+    _PRACTICE_CACHE = None
+
+
+def _tenant_overlay():
+    """Load the active tenant's overlay dict via the shared resolver (single
+    seam). Returns {} when the resolver or record is absent, so this is inert
+    for the default tenant until tenant records exist."""
+    sd = _shared_dir()
+    if not sd:
+        return {}
+    sd = str(sd)
+    if sd not in sys.path:
+        sys.path.insert(0, sd)
+    try:
+        import tenant_resolver
+        return tenant_resolver.resolve(_TENANT_ID) or {}
+    except Exception:
+        return {}
+
+
+def _tenant_cfg():
+    """The resolved `tenant.*` block (apex/storage_prefix/logos/...). Reads from
+    the already-merged practice config so it picks up the overlay. Returns {} if
+    no tenant block is present (pre-seam behaviour)."""
+    return _practice().get("tenant", {}) or {}
+
+
+def _apex():
+    """Active tenant's apex host (e.g. 'giready.com'). Falls back to giready.com
+    so a tenant record lacking the key still renders. This single read replaces
+    every hardcoded 'giready.com' host literal in render.py + the templates."""
+    return _tenant_cfg().get("apex", "giready.com")
+
+
+def _storage_prefix():
+    """Active tenant's localStorage key prefix (e.g. 'giready'). Falls back to
+    'giready'. Replaces the hardcoded 'giready-cups-' literal."""
+    return _tenant_cfg().get("storage_prefix", "giready")
+
+
+def _tenant_logos():
+    """Named cover-logo entries for the active tenant: {name: {file, alt}}.
+    Replaces the hardcoded `if logo == 'pmch'` special-case — giready carries a
+    `pmch` entry in its tenant.yaml so its internal Drive binder still renders
+    byte-identically. Returns {} if absent."""
+    return _tenant_cfg().get("logos", {}) or {}
+
+
+def _apply_apex(html: str) -> str:
+    """Final render pass: rewrite every 'giready.com' host literal baked into the
+    templates (favicon/apple-touch/legal/meds/analytics-beacon/QR-caption/
+    subdomain hosts) to the active tenant's apex. For the giready tenant
+    apex == 'giready.com' so this is identity (the byte-identity gate proves it).
+    'giready.com' only ever appears as a hostname in our templates — the brand
+    string is 'GI Ready' (with a space), never 'giready.com' — so this scoped
+    host swap cannot corrupt visible brand copy."""
+    apex = _apex()
+    if apex == "giready.com":
+        return html
+    return html.replace("giready.com", apex)
+
 
 def _shared_dir():
     """Resolve the shared/ dir in both layouts: vendored (vendor/shared, used by
@@ -2082,6 +2159,11 @@ def _practice():
             with open(core_path, encoding="utf-8") as f:
                 core = yaml.safe_load(f) or {}
             local = _deep_merge_under(core, local)
+        # Tenant overlay is the TOP layer (tenant wins). For the default tenant
+        # with a no-op overlay this is identity; the byte-identity gate proves it.
+        overlay = _tenant_overlay()
+        if overlay:
+            local = _deep_merge_under(local, overlay)
         _PRACTICE_CACHE = local
     return _PRACTICE_CACHE
 
@@ -2195,9 +2277,14 @@ def build_practice_placeholders(lang, logo="giready", doctors="none"):
     stack = (stack + ["", "", ""])[:3]
     logo_file = p.get("logo_filename", "")
     logo_alt = p.get("logo_alt", "")
-    if logo == "pmch":
-        logo_file = "logo-pmch.png"
-        logo_alt = "Peyton Manning Children's Hospital"
+    # Named cover-logo override: tenant.logos{<name>: {file, alt}}. The default
+    # logo (`giready`) has no entry and uses the practice.yaml defaults above;
+    # giready's tenant.yaml carries a `pmch` entry so the internal Drive binder
+    # (--logo pmch) renders byte-identically. A tenant can name its own logos.
+    logo_entry = _tenant_logos().get(logo)
+    if logo_entry:
+        logo_file = logo_entry.get("file", logo_file)
+        logo_alt = logo_entry.get("alt", logo_alt)
     return {
         "{{PRACTICE_STACK_LINE_1}}": stack[0],
         "{{PRACTICE_STACK_LINE_2}}": stack[1],
@@ -2385,7 +2472,7 @@ def render_pdf_print(template_path, replacements, out_path,
                     or (location or {}).get("mobile_subdomain", "prep")
     else:
         subdomain = (location or {}).get("mobile_subdomain", "prep")
-    mobile_url = f"https://{subdomain}.giready.com/{mobile_path}/" + ("es/" if lang == "es" else "") if mobile_path else ""
+    mobile_url = f"https://{subdomain}.{_apex()}/{mobile_path}/" + ("es/" if lang == "es" else "") if mobile_path else ""
     if location:
         maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or _scc_maps_url_for_lang(lang)
     else:
@@ -2467,6 +2554,11 @@ def render_pdf_print(template_path, replacements, out_path,
     # block. Template rules still win on override; the shared file adds
     # design tokens + feedback-cell fallbacks for future migration.
     html = _inject_shared_print_css(html)
+
+    # Tenant apex pass: rewrite hardcoded 'giready.com' host literals baked into
+    # the print templates (favicon/apple-touch/legal/meds/QR-caption/subdomain
+    # hosts) to the active tenant's apex. Identity for the giready tenant.
+    html = _apply_apex(html)
 
     # Resolve relative URLs (logos, maps, stub images) against the templates/
     # root, not the template's own directory — so templates in subfolders
@@ -2916,20 +3008,39 @@ def main():
                     help="Write all files directly into --out instead of nesting "
                          "under Language/Weight-band subfolders")
     # Fork toggles (print PDFs). Defaults = public-website behavior.
-    ap.add_argument("--logo", default="giready", choices=["giready", "pmch"],
-                    help="Cover logo: 'giready' (default, public brand) or 'pmch' (internal Drive binder).")
+    ap.add_argument("--logo", default="giready",
+                    help="Cover logo name: 'giready' (default, public brand uses practice.yaml "
+                         "logo) or any name defined in the tenant's tenant.logos{} (e.g. 'pmch' "
+                         "for giready's internal Drive binder).")
     ap.add_argument("--legal", default="on", choices=["on", "off"],
                     help="Legal footer (disclaimer + privacy/terms): 'on' (default) or 'off' "
                          "(internal Drive binder / scheduler).")
     ap.add_argument("--doctors", default="none", choices=["none", "all"],
                     help="Doctor names: 'none' (default — public PDFs carry no doctor names) or "
                          "'all' (internal Drive binder lists every partner).")
+    ap.add_argument("--tenant", default="giready",
+                    help="Tenant id whose overlay (tenants/<id>/tenant.yaml) is deep-merged "
+                         "over the practice config. Default 'giready' is a no-op (byte-identical).")
     args = ap.parse_args()
+
+    _set_tenant(args.tenant)
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
 
     dosing_data = load_dosing()
+
+    # Tenant locations overlay: a tenant may supply its own facility roster
+    # (address/phone/subdomain) on TOP of dosing.yaml's locations while still
+    # inheriting the shared dose tables. giready's overlay carries no
+    # `locations` key, so this is identity for the byte-identity gate.
+    _tloc = _tenant_cfg().get("locations")
+    if _tloc:
+        merged = dict(dosing_data.get("locations", {}))
+        for _lid, _lblock in _tloc.items():
+            base = merged.get(_lid, {})
+            merged[_lid] = _deep_merge_under(base, _lblock) if isinstance(base, dict) else _lblock
+        dosing_data["locations"] = merged
 
     # The cheat-sheet is a single, all-bands document that renders the public
     # doses.giready.com page + an internal staff PDF in one pass. It skips the

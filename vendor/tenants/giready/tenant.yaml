@@ -1,0 +1,25 @@
+# Tenant #1 — GI Ready itself, dogfooded through the multi-tenant seam.
+#
+# M0 scope: this overlay carries ONLY the new namespaced `tenant.*` keys, whose
+# default values equal what render.py currently hardcodes. Nothing consumes them
+# yet (M1 flips the hardcoded `giready.com` / `giready-cups-` literals to read
+# these), so this overlay is a deliberate NO-OP — `--tenant giready` must render
+# byte-identically to pre-seam output. That byte-identity is the M0 gate proving
+# the seam is lossless.
+#
+# Doctors / locations / qr_targets still live in practice.yaml + dosing.yaml and
+# are NOT duplicated here yet; later milestones may lift them into this record.
+tenant:
+  id: giready
+  display_name: "GI Ready"
+  apex: giready.com          # de-hardcodes the .giready.com asset/legal/meds/QR URLs (M1)
+  storage_prefix: giready    # de-hardcodes the "giready-cups-" localStorage key (M1)
+  theme: calm                # current production patient-PDF theme
+  # Named cover logos. The default `--logo giready` uses practice.yaml's
+  # logo_filename/logo_alt; the `pmch` entry below replaces render.py's old
+  # `if logo == "pmch"` hardcode so the internal Drive binder renders
+  # byte-identically. Filenames resolve under templates/ (M1).
+  logos:
+    pmch:
+      file: logo-pmch.png
+      alt: "Peyton Manning Children's Hospital"

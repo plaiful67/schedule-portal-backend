@@ -1,0 +1,89 @@
+# Tenant #2 — FICTIONAL second practice for the multi-tenant prototype demo.
+#
+# PURPOSE: prove a *second* practice renders branded handouts + a scheduler
+# control panel from a single config file, with ZERO code changes vs. tenant #1
+# (giready). This is the core multi-tenant thesis (plan M1–M4).
+#
+# WHAT'S REAL vs FAKED here:
+#   - REAL: branding/prose/roster/locations all flow through the same
+#     _practice() deep-merge + render.py the giready tenant uses.
+#   - INHERITED (NOT overridden): the clinical dose tables (data/dosing.yaml
+#     bands). The prototype thesis is "tenants supply prose + branding, not
+#     dose numbers" — Acme reuses giready's MiraLAX/Dulcolax math so the
+#     clinical validators stay valid. A real onboarding would supply its own.
+#   - STUB: logo asset reuses templates/giready-logo.png (no Acme artwork
+#     exists). Noted as `logo_filename` below; swap for real art at onboarding.
+#   - FICTIONAL: apex (acmepedsgi.example — RFC 2606 reserved TLD, never
+#     resolvable), addresses, phones, doctor names, profile URLs. Nothing here
+#     points at a real practice, person, or domain.
+
+tenant:
+  id: demo
+  display_name: "Acme Pediatric GI"
+  apex: acmepedsgi.example       # RFC 2606 .example — never resolves; kills every giready.com host literal
+  storage_prefix: acmepedsgi     # localStorage cup-tracker key prefix (was giready-cups-)
+  theme: calm                    # reuse the Calm visual language
+  # Acme has no internal-binder logo fork; the default logo is its only one.
+  # (giready uses a `pmch` entry here; Acme doesn't need one.)
+
+# Branding/identity overlay — replaces giready's values from practice-core.yaml.
+practice:
+  phone: "(555) 014-2200"
+  phone_tel: "5550142200"
+  cover_stack_en:
+    - "Acme Pediatric"
+    - "Gastroenterology"
+    - "(555) 014-2200"
+  cover_stack_es:
+    - "Gastroenterología"
+    - "Pediátrica Acme"
+    - "(555) 014-2200"
+  footer_en: "Acme Pediatric Gastroenterology  ·  (555) 014-2200"
+  footer_es: "Gastroenterología Pediátrica Acme  ·  (555) 014-2200"
+  logo_filename: "giready-logo.png"   # STUB — reuses giready artwork; replace with Acme logo at onboarding
+  logo_alt: "Acme Pediatric Gastroenterology"
+
+  # Fictional roster. `id` slugs are the scheduler physician_id values; the
+  # backend (M3) validates submitted physician_id against this list per tenant.
+  doctors:
+    - id: "rivera"
+      name_short: "Dr. Rivera"
+      profile_url: "https://acmepedsgi.example/providers/rivera"
+    - id: "okafor"
+      name_short: "Dr. Okafor"
+      profile_url: "https://acmepedsgi.example/providers/okafor"
+    - id: "patel"
+      name_short: "Dr. Patel"
+      profile_url: "https://acmepedsgi.example/providers/patel"
+
+# Patient-facing link targets. meds_giready_url points at Acme's apex so the
+# Medications-callout QR/link carries NO giready.com host (cross-brand grep gate).
+qr_targets:
+  youtube_url_en: "https://acmepedsgi.example/videos/colonoscopy-prep"
+  youtube_url_es: "https://acmepedsgi.example/videos/colonoscopy-prep-es"
+  portal_url:     "https://acmepedsgi.example/patient-portal"
+  gikids_url:     "https://gikids.org/tests-procedures/colonoscopy/"
+  meds_giready_url: "https://meds.acmepedsgi.example"
+
+# Facility roster overlay — merged ON TOP of dosing.yaml's locations. Acme keys
+# its single ambulatory site under `scc` so `--location scc` selects it without
+# any code/CLI change (the prototype renders the standard site).
+locations:
+  scc:
+    name_en: "Acme Endoscopy Center"
+    name_es: "Centro de Endoscopia Acme"
+    cheatsheet_name: "Acme Endoscopy Center"
+    address: "742 Evergreen Terrace, Springfield, IL 62704"
+    phone: "(555) 014-2210"
+    phone_label_en: "Endoscopy Center phone"
+    phone_label_es: "Teléfono del Centro de Endoscopia"
+    arrival_en: "Arrive 1 hour before your scheduled procedure"
+    arrival_es: "Llegue 1 hora antes de su procedimiento programado"
+    arrival_minutes_before: 60
+    arrival_facility_short_en: "the Endoscopy Center"
+    arrival_facility_short_es: "el Centro de Endoscopia"
+    maps_url_en: "https://maps.acmepedsgi.example/endoscopy-center"
+    maps_url_es: "https://maps.acmepedsgi.example/endoscopy-center?hl=es"
+    mobile_subdomain: "prep"
+    mobile_subdomain_combined: "egdcolon"
+    clears_npo_hours: 2

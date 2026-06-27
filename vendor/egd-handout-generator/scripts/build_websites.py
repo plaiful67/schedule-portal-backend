@@ -38,15 +38,28 @@ PDF_REVIEW_DIR = Path.home() / "Desktop" / "peds-gi-system" / "egd-pdf-review"
 # legacy navy "color" renders. Picks the matching `-print[-calm].pdf` file.
 HANDOUT_PDF_THEME = os.environ.get("HANDOUT_PDF_THEME", "calm").strip().lower()
 
-# Per-procedure × per-location target repo. egdph is PMCH-only.
+# Per-procedure × per-location subdomain. egdph is PMCH-only. The default
+# delivery target is the `<subdomain>-giready` site repo on the Desktop; when the
+# giready-sites monorepo drives the build it sets GIREADY_SITES_OUT to its
+# `sites/` root and output goes to `<root>/<subdomain>/` instead. Content is
+# byte-identical either way — only the destination path changes.
+SUBDOMAIN_BY_PROCEDURE = {
+    "egd":   {"scc": "egd", "pmch": "egd86"},
+    "egdph": {"pmch": "egdph"},
+}
+
+_SITES_OUT_ROOT = os.environ.get("GIREADY_SITES_OUT", "").strip()
+
+
+def _repo_out_dir(subdomain: str) -> Path:
+    if _SITES_OUT_ROOT:
+        return Path(_SITES_OUT_ROOT) / subdomain
+    return Path.home() / "Desktop" / "peds-gi-system" / f"{subdomain}-giready"
+
+
 SITE_OUT_BY_PROCEDURE = {
-    "egd": {
-        "scc":  Path.home() / "Desktop" / "peds-gi-system" / "egd-giready",
-        "pmch": Path.home() / "Desktop" / "peds-gi-system" / "egd86-giready",
-    },
-    "egdph": {
-        "pmch": Path.home() / "Desktop" / "peds-gi-system" / "egdph-giready",
-    },
+    proc: {loc: _repo_out_dir(sub) for loc, sub in locs.items()}
+    for proc, locs in SUBDOMAIN_BY_PROCEDURE.items()
 }
 
 # Per-procedure × per-location analytics site key. Matches the subdomain.

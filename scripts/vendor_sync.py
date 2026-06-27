@@ -17,6 +17,7 @@ from pathlib import Path
 
 HOME_SKILLS = Path.home() / ".claude" / "skills"
 SHARED_SRC = Path.home() / "peds-gi-prep-system" / "shared"
+TENANTS_SRC = Path.home() / "peds-gi-prep-system" / "tenants"
 VENDOR_DIR = Path(__file__).resolve().parent.parent / "vendor"
 
 SKILLS = [
@@ -59,6 +60,20 @@ def main():
         print(f"OK   shared → {shared_dst}")
     else:
         print(f"SKIP shared: source not at {SHARED_SRC}")
+
+    # Tenant records (tenants/<id>/tenant.yaml). The resolver
+    # (vendor/shared/tenant_resolver.py) looks for tenants/ as a sibling of
+    # shared/ first — so vendor/tenants must be a sibling of vendor/shared.
+    # Without this the backend's /config + per-tenant roster fall back to the
+    # giready default on Cloud Run (where ~/peds-gi-prep-system doesn't exist).
+    if TENANTS_SRC.exists():
+        tenants_dst = VENDOR_DIR / "tenants"
+        if tenants_dst.exists():
+            shutil.rmtree(tenants_dst)
+        shutil.copytree(TENANTS_SRC, tenants_dst, ignore=ignore)
+        print(f"OK   tenants → {tenants_dst}")
+    else:
+        print(f"SKIP tenants: source not at {TENANTS_SRC}")
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ from __future__ import annotations
 from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 
 # Weight bands as they appear in dosing.yaml (band.id values).
@@ -36,16 +36,25 @@ LACTULOSE_ALLOWED_BANDS: set[str] = {"under-15", "15-20", "21-30"}
 CLENPIQ_ALLOWED_BANDS:   set[str] = {"31-40", "41-50", "over-50"}
 SUPREP_ALLOWED_BANDS:    set[str] = {"over-50"}
 
-# Performing-physician slug. Mirrors the `id:` field on each entry in
-# ~/.claude/skills/bowel-prep-generator/practice.yaml `practice.doctors[]`.
-# Backend resolves slug → display name via app/physicians.py.
-PhysicianId = Literal["deivanayagam", "dunn", "schaefer", "tibesar", "zavoian"]
+# IDENTITY fields (physician_id, location_id) are NO LONGER Literal enums.
+# Unioning every tenant's roster/locations into a shared Literal would weld the
+# tenants together at the type level — the one M3 change that's expensive to
+# undo. They are now plain `str`, validated at RUNTIME against the *resolved
+# tenant config* passed via Pydantic validation context (see
+# _identity_membership below). CLINICAL cross-rules (band/prep-type gating)
+# stay shared sets — they are tenant-independent dose-safety facts. The demo
+# reuses giready's band set, so those validators stay valid.
+#
+# Validation context shape (set by the route, never by the client body):
+#   {"physician_ids": set[str], "location_ids": set[str]}
+# When absent (e.g. a direct unit-test construction with no context), the
+# membership check is skipped — the route ALWAYS supplies it for real requests.
 
 
 class _Base(BaseModel):
-    location_id: Literal["scc", "pmch"]
+    location_id: str
     language: Literal["en", "es"]
-    physician_id: PhysicianId
+    physician_id: str
     # Whether to bake the {location, lang} driving-directions PDF onto the
     # end of the prep handout. Defaults to True so older frontend builds
     # (or any direct API caller) still get directions without opting in.
@@ -74,6 +83,27 @@ class _Base(BaseModel):
             )
         if self.followup_date is not None and self.followup_date < self.appointment_date:
             raise ValueError("followup_date must be on or after appointment_date")
+        return self
+
+    @model_validator(mode="after")
+    def _identity_membership(self, info: ValidationInfo):
+        """Runtime tenant-membership check for the identity fields, replacing the
+        former Literal enums. The route supplies the resolved tenant's allowed
+        physician_ids / location_ids via validation context; absent context
+        (unit construction) skips the check."""
+        ctx = info.context or {}
+        allowed_phys = ctx.get("physician_ids")
+        if allowed_phys is not None and self.physician_id not in allowed_phys:
+            raise ValueError(
+                f"unknown physician_id={self.physician_id!r} for this practice "
+                f"(known: {sorted(allowed_phys)})"
+            )
+        allowed_loc = ctx.get("location_ids")
+        if allowed_loc is not None and self.location_id not in allowed_loc:
+            raise ValueError(
+                f"unknown location_id={self.location_id!r} for this practice "
+                f"(known: {sorted(allowed_loc)})"
+            )
         return self
 
 

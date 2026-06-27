@@ -23,4 +23,7 @@ from gi_header_config import (  # noqa: E402,F401
     csp_script_hashes,
     write_headers,
     HEADERS_CONTENT,
+    DEFAULT_ANALYTICS_ORIGIN,
+    DEFAULT_API_ORIGIN,
+    DEFAULT_ASSET_ORIGIN,
 )

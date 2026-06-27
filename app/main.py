@@ -13,10 +13,11 @@ import sys
 import time as _time
 from datetime import datetime, time
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import TypeAdapter, ValidationError
 
-from . import medications
+from . import medications, physicians, tenant
 from .adapters import bowel_prep, combined, composed, egd, egd_phmii
 from .adapters.bowel_prep import ComposedTemplateUnsupported
 from .adapters.composed import CompositionInputError
@@ -27,6 +28,8 @@ from .personalization import (
     format_time_12h,
 )
 from .schemas import RenderRequest
+
+_RENDER_ADAPTER = TypeAdapter(RenderRequest)
 
 app = FastAPI(title="schedule.giready.com", version="0.1.0")
 
@@ -93,11 +96,64 @@ def get_medications(lang: str = "en"):
     return medications.for_language(lang)
 
 
+@app.get("/config")
+def get_config(
+    jwt_tenant: str = Depends(tenant.get_tenant),
+    tenant_q: str | None = Query(default=None, alias="tenant"),
+):
+    """Tenant config for the frontend control panel: doctors, procedures, bands,
+    prep_types, locations. The tenant is resolved server-side from the Access
+    JWT (get_tenant dependency). `?tenant=<id>` is honored for any KNOWN tenant
+    — /config is read-only, tenant-scoped, carries no PHI and no patient data,
+    so letting the demo frontend select its tenant for display is safe. The
+    JWT-derived tenant is the default when no (valid) override is given. The
+    write path (/render) does NOT trust a header/query tenant unless the
+    PORTAL_ALLOW_HEADER_TENANT dev opt-in is set."""
+    tenant_id = jwt_tenant
+    requested = (tenant_q or "").strip()
+    if requested and requested in tenant.known_tenants():
+        tenant_id = requested
+    return tenant.config(tenant_id)
+
+
 @app.post("/render")
-def render(req: RenderRequest):
+async def render(request: Request, tenant_id: str = Depends(tenant.get_tenant)):
     _t0 = _time.monotonic()
+    # Parse the body WITH the resolved-tenant validation context so the schema's
+    # identity-membership validator checks physician_id/location_id against THIS
+    # tenant's roster/locations. tenant_id comes from the Access JWT dependency,
+    # never from the body. A body that carries its own `tenant`/`tenant_id` key
+    # is ignored (we strip it before validation).
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="invalid JSON body")
+    if isinstance(body, dict):
+        body.pop("tenant", None)
+        body.pop("tenant_id", None)
+    ctx = {
+        "physician_ids": tenant.physician_ids(tenant_id),
+        "location_ids": tenant.location_ids(tenant_id),
+    }
+    try:
+        req = _RENDER_ADAPTER.validate_python(body, context=ctx)
+    except ValidationError as e:
+        # e.errors() can carry the raised exception object in `ctx`, which isn't
+        # JSON-serializable; emit a clean, string-only detail (FastAPI-default
+        # 422 shape) so the client gets a 422, not a serialization 500.
+        detail = [
+            {"type": err.get("type"), "loc": list(err.get("loc", [])),
+             "msg": str(err.get("msg", ""))}
+            for err in e.errors()
+        ]
+        raise HTTPException(status_code=422, detail=detail)
+    # Make the resolved tenant the active one so the adapters' footer/roster
+    # lookups (physicians.footer_line / lookup, called without a tenant arg)
+    # resolve against THIS tenant. Defaults back to giready between requests.
+    physicians.set_active_tenant(tenant_id)
     _event = {
         "evt": "render",
+        "tenant_id": tenant_id,
         "procedure_type": req.procedure_type,
         "location_id": req.location_id,
         "physician_id": req.physician_id,
