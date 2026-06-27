@@ -487,13 +487,14 @@ def audit_calendar_events(update_golden=False):
     failures = []
 
     # --- prose ↔ structured-twin cross-checks --------------------------
-    # clears_start_hhmm must match the "After 2:00 PM" prose in the standard
-    # mobile templates (the canonical home of that time).
+    # clears_start_hhmm must match the "After 2:00 PM" prose in the shared
+    # day-before-diet partial (the canonical home of that time since the
+    # residue block was de-forked out of the individual mobile templates).
     clears12 = render._12h(cal["clears_start_hhmm"])
-    std_tmpl = (TEMPLATES / "colonoscopy-mobile.en.html").read_text(encoding="utf-8")
-    if f"After {clears12}" not in std_tmpl:
+    diet_partial = (TEMPLATES / "partials" / "_diet_residue_mobile.en.html").read_text(encoding="utf-8")
+    if f"After {clears12}" not in diet_partial:
         failures.append(f"calendar.clears_start_hhmm ({clears12}) not found in "
-                        "colonoscopy-mobile.en.html prose")
+                        "partials/_diet_residue_mobile.en.html prose")
     # CLENPIQ/SUPREP dose-1 window twins must match dose1_window_en prose.
     for band in data["bands"]:
         if "dose1_window_start_hhmm" not in band:

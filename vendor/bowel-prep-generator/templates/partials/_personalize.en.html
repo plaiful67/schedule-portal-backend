@@ -230,7 +230,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.querySelectorAll('[data-pz-cutoff-hours]').forEach(function(el) {
       var hrs = parseFloat(el.dataset.pzCutoffHours);
       var c = new Date(procDate); c.setHours(c.getHours() - hrs);
-      el.innerHTML = '<strong>Stop all clear liquids by ' + fmtTime(c) + ' (' + fmtDate(c) + ').</strong>';
+      el.innerHTML = '<strong>Clear liquids allowed until ' + fmtTime(c) + ' (' + fmtDate(c) + ').</strong> Nothing by mouth after that. No solid food the day of.';
     });
     document.querySelectorAll('[data-pz-time-mins]').forEach(function(el) {
       var mins = parseInt(el.dataset.pzTimeMins, 10);

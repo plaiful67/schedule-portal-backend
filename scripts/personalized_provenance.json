@@ -63,12 +63,12 @@
     },
     "bowel_prep/combined-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.en.html",
-      "canonical_sha256": "174e550e78606083dd954624892ba5d2bc4d2d530640888e5174f7b13c573997",
+      "canonical_sha256": "e11505bfa8ebcb1400c1f857eb2870d95486724bc2302dc757d6142da9eb8839",
       "status": "forked"
     },
     "bowel_prep/combined-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.es.html",
-      "canonical_sha256": "7bef8ea5b64789010db055c487b259258e940f0cb0a3e0f2153553c11c619228",
+      "canonical_sha256": "2887eeb32867134300bcd90826e44223dadfd9b055858d85687b120aee189d15",
       "status": "forked"
     },
     "bowel_prep/combined-suprep-standard-print-personalized.en.html": {
@@ -113,22 +113,22 @@
     },
     "bowel_prep/lactulose-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.en.html",
-      "canonical_sha256": "4fb47dbdcfd2752086623cb85ffdc77045d52b4d3b7c029b14d814eacc97bbe3",
+      "canonical_sha256": "449b97c7234cc037b14db38c20b9d3f1e94ff3af37896153ac845410e025ce13",
       "status": "forked"
     },
     "bowel_prep/lactulose-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/lactulose-standard-print.es.html",
-      "canonical_sha256": "a5f42ef7a5951f55ce6017b0194c2abd3865cea3cd2a7c2cca0b36a23256e1cd",
+      "canonical_sha256": "8c3b90ae3f55c1241acc9a2431cf7f67e3c6ff2f0ab12e34e78e97e7d8d36988",
       "status": "forked"
     },
     "bowel_prep/print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/standard-print.en.html",
-      "canonical_sha256": "472bbf35ad669c7cdce1b59040d184b9927b098846e8c5d736efe34d3f66c44c",
+      "canonical_sha256": "47b68e1ec206e2b56760d07e9b6823de3e908f3bfd0396d13568cd5c1abbafb6",
       "status": "forked"
     },
     "bowel_prep/print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/standard-print.es.html",
-      "canonical_sha256": "3053b0ff509e88536304d6ee86eeaac8d5e93da829bc8aaa7bcffb7e73061596",
+      "canonical_sha256": "8195e9484ef28e16a9fe5004be9104fb50adc2c84c177a57271d93dc947c6653",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {

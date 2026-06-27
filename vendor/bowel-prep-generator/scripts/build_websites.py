@@ -43,6 +43,19 @@ LOGO_PATH = TEMPLATES / "logo-pmch.png"
 PRACTICE_PATH = SKILL_DIR / "practice.yaml"
 DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 
+# Default delivery target: the per-variant `*-giready` site repos on the Desktop.
+# When the giready-sites monorepo drives the build it sets GIREADY_SITES_OUT to
+# its `sites/` root; then output goes to `<root>/<subdomain>/` (bare subdomain,
+# one dir per subdomain) instead of `<repo_name>/`. Content is identical either
+# way — only the destination path changes. See giready-sites/data/sites.yaml.
+_SITES_OUT_ROOT = os.environ.get("GIREADY_SITES_OUT", "").strip()
+
+
+def _repo_out_dir(repo_name: str, subdomain: str) -> Path:
+    if _SITES_OUT_ROOT:
+        return Path(_SITES_OUT_ROOT) / subdomain
+    return Path.home() / "Desktop" / "peds-gi-system" / repo_name
+
 # Pre-rendered print PDFs to copy alongside each band's mobile page so users
 # can print the canonical handout from the website. Populated by
 # scripts/render.py; if missing the build still succeeds but the PDF link is
@@ -1038,7 +1051,7 @@ def build_site(row: SiteRow, locations, bands_by_id, practice_cfg) -> int:
     strat = FAMILY_STRATEGY[row.family]
     written = 0
     for loc_id, repo_name in row.repos.items():
-        repo_dir = Path.home() / "Desktop" / "peds-gi-system" / repo_name
+        repo_dir = _repo_out_dir(repo_name, row.subdomains[loc_id])
         location = locations[loc_id]
         if row.landing == "picker":
             files = build_for_repo(

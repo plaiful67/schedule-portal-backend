@@ -285,16 +285,10 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: bowel prep 'day before' wrap",
     )
 
-    # 5. Step headings — add data-pz-day + data-pz-suffix attributes.
-    #    The 3-Days-Before heading now lives in {{PARTIAL_DIET_RESIDUE_PRINT}}
-    #    and carries its own data-pz-day=-3 stamp, so it is no longer patched here
-    #    (Phase A T5: diet single-sourced via the shared partial).
-    out = _replace_unique(
-        out,
-        '<h2 class="step"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>',
-        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Lunch"><span class="icon">&#128197;</span> 1 Day Before &mdash; Low-Residue Through Lunch</h2>',
-        where="combined en: 1-day-before heading",
-    )
+    # 5. Diet step headings now live ENTIRELY in {{PARTIAL_DIET_RESIDUE_PRINT}}
+    #    (1-day low-residue rework, 2026-06-27): the 3-days-before section was
+    #    removed and the 1-day-before heading + its data-pz-day stamp are in the
+    #    shared partial, so no diet-heading patch is needed here.
     out = _replace_unique(
         out,
         '<h2 class="step"><span class="icon">&#128197;</span> Day of Procedure</h2>',
@@ -302,13 +296,10 @@ def patch_combined_print_en(canonical: str) -> str:
         where="combined en: day-of heading",
     )
 
-    # 6. Day-of "Clear liquids only after 2 PM the day before."
-    out = _replace_unique(
-        out,
-        "<strong>Clear liquids only after 2 PM the day before.</strong>",
-        '<strong>Clear liquids only after 2 PM <span class="pz-only" data-pz-day="-1" data-pz-template="on {date}">the day before</span>.</strong>',
-        where="combined en: clear-liquids inline",
-    )
+    # 6. (Day-of "Clear liquids only after 2 PM the day before" bullet removed in
+    #    the 1-day low-residue rework, 2026-06-27 — the day-of now leads with the
+    #    "clear liquids allowed up until N hours before" hard-stop, so there is no
+    #    after-2PM bullet to date-stamp here.)
 
     # 7. Add-on slots — two injection points in the combined template:
     #    7a. {{ADDON_PROCEDURE_ITEMS}}: inside the procedures <ul>, immediately
@@ -407,14 +398,8 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: bowel prep 'day before' wrap",
     )
 
-    # 3-Days-Before heading now in {{PARTIAL_DIET_RESIDUE_PRINT}} with its own
-    # data-pz-day=-3 stamp (Phase A T5); no longer patched here.
-    out = _replace_unique(
-        out,
-        '<h2 class="step"><span class="icon">&#128197;</span> 1 Día Antes &mdash; Baja en Residuos Hasta el Almuerzo</h2>',
-        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Baja en Residuos Hasta el Almuerzo"><span class="icon">&#128197;</span> 1 Día Antes &mdash; Baja en Residuos Hasta el Almuerzo</h2>',
-        where="combined es: 1-day-before heading",
-    )
+    # Diet step headings now live ENTIRELY in {{PARTIAL_DIET_RESIDUE_PRINT}}
+    # (1-day low-residue rework, 2026-06-27); no diet-heading patch needed here.
     out = _replace_unique(
         out,
         '<h2 class="step"><span class="icon">&#128197;</span> Día del Procedimiento</h2>',
@@ -422,12 +407,8 @@ def patch_combined_print_es(canonical: str) -> str:
         where="combined es: day-of heading",
     )
 
-    out = _replace_unique(
-        out,
-        "<strong>Solo líquidos claros después de las 2 PM del día anterior.</strong>",
-        '<strong>Solo líquidos claros después de las 2 PM <span class="pz-only" data-pz-day="-1" data-pz-template="del día ({date})">del día anterior</span>.</strong>',
-        where="combined es: clear-liquids inline",
-    )
+    # (Day-of after-2PM bullet removed in the 1-day low-residue rework,
+    # 2026-06-27; no date-stamp patch needed here.)
 
     # 7. Add-on slots — two injection points in the combined template:
     #    7a. {{ADDON_PROCEDURE_ITEMS}}: inside the procedures <ul>, immediately
@@ -1547,13 +1528,9 @@ def patch_lactulose_standard_print_en(canonical: str) -> str:
         where="lactulose en: followup token + about-procedure comment",
     )
 
-    # 7. Add 3-DAYS-BEFORE section comment before {{PARTIAL_DIET_RESIDUE_PRINT}}
-    out = _replace_unique(
-        out,
-        "\n{{PARTIAL_DIET_RESIDUE_PRINT}}<h2 class=\"step\" data-pz-day=\"-1\"",
-        "\n<!-- ============================================================= -->\n<!-- 3 DAYS BEFORE                                                 -->\n<!-- ============================================================= -->\n{{PARTIAL_DIET_RESIDUE_PRINT}}<h2 class=\"step\" data-pz-day=\"-1\"",
-        where="lactulose en: 3-days-before comment",
-    )
+    # 7. (3-days-before section removed in the 1-day low-residue rework,
+    #    2026-06-27; the shared partial now opens with the 2-days-before block
+    #    and the 1-day diet, so no 3-days-before comment is inserted here.)
 
     # 8. Replace inline feedback-pair table with plain <ul>
     out = _replace_unique(
@@ -1625,13 +1602,8 @@ def patch_lactulose_standard_print_es(canonical: str) -> str:
         where="lactulose es: followup token + sobre-procedimiento comment",
     )
 
-    # 7. Add 3-DÍAS-ANTES section comment before {{PARTIAL_DIET_RESIDUE_PRINT}}
-    out = _replace_unique(
-        out,
-        "\n{{PARTIAL_DIET_RESIDUE_PRINT}}<h2 class=\"step\" data-pz-day=\"-1\"",
-        "\n<!-- ============================================================= -->\n<!-- 3 DÍAS ANTES                                                  -->\n<!-- ============================================================= -->\n{{PARTIAL_DIET_RESIDUE_PRINT}}<h2 class=\"step\" data-pz-day=\"-1\"",
-        where="lactulose es: 3-días-antes comment",
-    )
+    # 7. (3-días-antes section removed in the 1-day low-residue rework,
+    #    2026-06-27; no 3-días-antes comment is inserted here.)
 
     # 8. Replace inline feedback-pair table with plain <ul>
     out = _replace_unique(

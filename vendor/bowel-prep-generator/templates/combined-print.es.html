@@ -611,31 +611,7 @@
   </tbody>
 </table>
 
-{{PARTIAL_DIET_RESIDUE_PRINT}}<h2 class="step"><span class="icon">&#128197;</span> 1 Día Antes &mdash; Baja en Residuos Hasta el Almuerzo</h2>
-
-<p><strong>Después de las 2:00 PM &mdash; solo líquidos claros</strong> (vea las bebidas permitidas abajo). <strong>No más lácteos</strong> &mdash; nada de leche, yogur, helado, etc.</p>
-<table class="avoid-allowed">
-  <thead>
-    <tr>
-      <th scope="col" class="col-avoid">EVITAR</th>
-      <th scope="col" class="col-allowed">OK para comer / beber</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td class="col-avoid">Bebidas o alimentos <strong style="color:#c0392b;">ROJOS</strong> o <strong style="color:#6a1b9a;">MORADOS</strong></td>
-      <td class="col-allowed">Agua, jugo de manzana, jugo de uva blanca</td>
-    </tr>
-    <tr>
-      <td class="col-avoid">Lácteos (leche, yogur, helado); jugos con pulpa</td>
-      <td class="col-allowed">Limonada, refresco claro, caldo claro</td>
-    </tr>
-    <tr>
-      <td class="col-avoid">Cualquier comida sólida</td>
-      <td class="col-allowed">Paletas, Jell-O sin sabores, té/café sin leche</td>
-    </tr>
-  </tbody>
-</table>
+{{PARTIAL_DIET_RESIDUE_PRINT}}
 
 <h2 class="section-heading step big-prep"><span class="icon">&#129380;</span> LA GRAN PREPARACIÓN<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span> &mdash; tarde / noche</h2>
 <p class="note"><em>Mejor empezar justo despu&eacute;s de la escuela &mdash; no se demore o su ni&ntilde;o podr&iacute;a no terminar antes de dormir.</em></p>
@@ -670,9 +646,8 @@
 <h2 class="step"><span class="icon">&#128197;</span> Día del Procedimiento</h2>
 
 <ul>
-  <li><strong>Solo líquidos claros después de las 2 PM del día anterior.</strong> Sin alimentos sólidos.</li>
-  <li><strong>Mantenga a su niño bien hidratado</strong> &mdash; ofrezca pequeños sorbos de líquidos claros cada 30&ndash;60 minutos durante el día de preparación. Cada bebida: no más de <strong>{{HTML_DRINK_CUP}}</strong>. Beber poco y seguido es mejor que beber mucho de vez en cuando &mdash; mejor hidratación, más fácil para el estómago.</li>
-  <li><strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong></li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Se permiten líquidos claros hasta {{NPO_CLEARS_HOURS}} horas antes del procedimiento</strong> &mdash; nada por la boca después de eso. Sin alimentos sólidos el día del procedimiento.</li>
+  <li>Ofrezca pequeños sorbos de líquidos claros cada 30&ndash;60 minutos durante el día de preparación. Cada bebida: no más de <strong>{{HTML_DRINK_CUP}}</strong>.</li>
   <li>Traiga objetos de comodidad para su niño (juguete, manta, tableta, etc.).</li>
   <li>La EGD se realiza primero (por la boca), luego la colonoscopia. Ambas suceden durante la misma siesta.</li>
 </ul>

@@ -200,7 +200,7 @@ def apply_pz_substitutions(html: str, appt_dt: datetime, lang: str) -> str:
             → rewrite inner to: icon + prefix + date + suffix (preserves leading
               <span class="icon">…</span>; reads data-pz-prefix / data-pz-suffix)
       - data-pz-cutoff-hours="H"
-            → emit the localized "Stop all clear liquids by {time} ({date})." sentence
+            → emit the localized "Clear liquids allowed until {time} ({date})." sentence
       - data-pz-weekday="N" + data-pz-template="…{weekday}…"
             → substitute {weekday} = weekday name
     """
@@ -215,18 +215,21 @@ def apply_pz_substitutions(html: str, appt_dt: datetime, lang: str) -> str:
         weekday_off = _attr(attrs, "data-pz-weekday")
         cutoff_hours = _attr(attrs, "data-pz-cutoff-hours")
 
-        # data-pz-cutoff-hours: emit the hardcoded localized cutoff sentence,
-        # mirroring the mobile JS's line at _personalize.en.html:227.
+        # data-pz-cutoff-hours: emit the localized cutoff sentence (lead with the
+        # allowance, not "stop" — matches the day-of "allowed until" framing),
+        # mirroring the mobile JS in _personalize.{en,es}.html.
         if cutoff_hours is not None:
             cutoff_dt = appt_dt - timedelta(hours=float(cutoff_hours))
             time_str = cutoff_dt.strftime("%-I:%M %p")
             date_str = format_appt_date_short(cutoff_dt.date(), lang)
             if lang == "es":
-                new_inner = (f"<strong>Deje de tomar líquidos claros antes de "
-                             f"las {time_str} ({date_str}).</strong>")
+                new_inner = (f"<strong>Líquidos claros permitidos hasta las {time_str} "
+                             f"({date_str}).</strong> Nada por la boca después de eso. "
+                             f"Sin alimentos sólidos el día del procedimiento.")
             else:
-                new_inner = (f"<strong>Stop all clear liquids by {time_str} "
-                             f"({date_str}).</strong>")
+                new_inner = (f"<strong>Clear liquids allowed until {time_str} "
+                             f"({date_str}).</strong> Nothing by mouth after that. "
+                             f"No solid food the day of.")
             return f"<{tag} {attrs}>{new_inner}</{tag}>"
 
         # data-pz-day WITHOUT template: preserve leading icon, prepend prefix
