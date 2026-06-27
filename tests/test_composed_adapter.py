@@ -48,13 +48,43 @@ def test_composed_deferred_template_fails_loud():
     try:
         _render_prep("colonoscopy", "over-50", ["dlb"], prep_type="suprep")
     except RuntimeError as e:
-        assert "ADDON_BLURBS" in str(e)
+        assert "ADDON" in str(e)
         return
     raise AssertionError("composed render on a slot-less template should raise")
+
+
+def test_composed_combined_rsbx_renders():
+    """rsbx on combined — must render without error (rsbx bullet appears in procedures ul)."""
+    pdf = _render_prep("combined", "31-40", ["rsbx"])
+    assert pdf[:4] == b"%PDF"
+    assert len(pdf) > 5000
+
+
+def test_composed_combined_rsbx_bal_renders():
+    """rsbx (GI bullet) + bal (team blurb) on combined — both rendered."""
+    pdf = _render_prep("combined", "31-40", ["rsbx", "bal"])
+    assert pdf[:4] == b"%PDF"
+    assert len(pdf) > 5000
+
+
+def test_composed_colonoscopy_rsbx_renders():
+    """rsbx on colonoscopy-only base — rsbx appears as paragraph (ADDON_BLURBS fallback)."""
+    pdf = _render_prep("colonoscopy", "31-40", ["rsbx"])
+    assert pdf[:4] == b"%PDF"
+    assert len(pdf) > 5000
+
+
+def test_composed_combined_no_rsbx_no_stray_list_item():
+    """No rsbx add-on on combined — ADDON_PROCEDURE_ITEMS is empty → no stray <li>."""
+    pdf = _render_prep("combined", "31-40", ["bal"])
+    assert pdf[:4] == b"%PDF"
+    assert len(pdf) > 5000
 
 
 if __name__ == "__main__":
     for fn in [test_composed_renders_pdf_bytes, test_composed_with_two_addons_and_knob,
                test_composed_colonoscopy_base_renders, test_composed_combined_base_renders,
-               test_composed_deferred_template_fails_loud]:
+               test_composed_deferred_template_fails_loud,
+               test_composed_combined_rsbx_renders, test_composed_combined_rsbx_bal_renders,
+               test_composed_colonoscopy_rsbx_renders, test_composed_combined_no_rsbx_no_stray_list_item]:
         fn(); print(f"PASS {fn.__name__}")

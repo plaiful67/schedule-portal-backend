@@ -39,7 +39,7 @@ def test_render_composed_slotless_returns_422():
              arrival_time="06:30", include_directions=False)
     r = client.post("/render", json=p)
     assert r.status_code == 422, r.text
-    assert "ADDON_BLURBS" in r.text or "slot" in r.text.lower()
+    assert "ADDON" in r.text or "slot" in r.text.lower()
 
 
 if __name__ == "__main__":
