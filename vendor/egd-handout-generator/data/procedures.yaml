@@ -15,6 +15,9 @@ bases:
   combined:
     title_fragment_en: "Upper Endoscopy (EGD) and Colonoscopy"
     title_fragment_es: "Endoscopia Superior (EGD) y Colonoscopia"  # ES-REVIEW
+  flexsig:
+    title_fragment_en: "Flexible Sigmoidoscopy"
+    title_fragment_es: "Sigmoidoscopia Flexible"
 
 # Add-ons are prep-neutral overlays. `specialty` links to a generic tier. `knobs` lists
 # knob ids this add-on owns. The `*_generic` add-ons carry only the specialty generic blurb.
