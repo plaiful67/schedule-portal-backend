@@ -36,14 +36,14 @@ add_ons:
     specialty: pulm
     title_fragment_en: "Bronchoalveolar Lavage"
     title_fragment_es: "Lavado Broncoalveolar"
-    blurb_en: "During the same anesthesia, the breathing team will also use a thin camera to look closely at your child's airway and lungs. No extra preparation is needed."
-    blurb_es: "Durante la misma anestesia, el equipo de vías respiratorias también usará una cámara delgada para examinar de cerca las vías respiratorias y los pulmones de su hijo. No se necesita preparación adicional."
+    blurb_en: "During the same anesthesia, the Pulmonary team will also use a thin camera to look closely at your child's airway and lungs. No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Neumología también usará una cámara delgada para examinar de cerca las vías respiratorias y los pulmones de su hijo. No se necesita preparación adicional."
   dise:
     specialty: pulm
     title_fragment_en: "Drug-Induced Sleep Endoscopy"
     title_fragment_es: "Endoscopia del Sueño Inducida por Medicamentos"
-    blurb_en: "During the same anesthesia, the breathing team will use a thin camera to watch your child's airway during light, medicine-induced sleep (a sleep endoscopy, DISE). No extra preparation is needed."
-    blurb_es: "Durante la misma anestesia, el equipo de vías respiratorias usará una cámara delgada para observar las vías respiratorias de su hijo durante un sueño ligero inducido por medicamentos (una endoscopia del sueño, DISE). No se necesita preparación adicional."
+    blurb_en: "During the same anesthesia, the Pulmonary team will use a thin camera to watch your child's airway during light, medicine-induced sleep (a sleep endoscopy, DISE). No extra preparation is needed."
+    blurb_es: "Durante la misma anestesia, el equipo de Neumología usará una cámara delgada para observar las vías respiratorias de su hijo durante un sueño ligero inducido por medicamentos (una endoscopia del sueño, DISE). No se necesita preparación adicional."
   dlb:
     specialty: ent
     title_fragment_en: "ENT Airway Exam (DLB)"
@@ -76,8 +76,8 @@ specialties:
     generic_blurb_en: "Your child's ENT (ear, nose & throat) team will also be present during the same anesthesia. No extra preparation is needed."
     generic_blurb_es: "El equipo de Otorrinolaringología de su hijo también estará presente durante la misma anestesia. No se necesita preparación adicional."
   pulm:
-    generic_blurb_en: "During the same anesthesia, your child's breathing team will use a thin camera to look at the airway. No extra preparation is needed."
-    generic_blurb_es: "Durante la misma anestesia, el equipo de vías respiratorias de su hijo usará una cámara delgada para observar las vías respiratorias. No se necesita preparación adicional."
+    generic_blurb_en: "During the same anesthesia, your child's Pulmonary team will use a thin camera to look at the airway. No extra preparation is needed."
+    generic_blurb_es: "Durante la misma anestesia, el equipo de Neumología de su hijo usará una cámara delgada para observar las vías respiratorias. No se necesita preparación adicional."
 
 knobs:
   ppi_handling:
