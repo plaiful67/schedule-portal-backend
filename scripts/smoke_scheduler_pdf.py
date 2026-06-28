@@ -95,6 +95,13 @@ CASES = [
     ("composed egd en",      dict(procedure_type="composed", base="egd",
                                   language="en", add_ons=["dise"], knob_picks={},
                                   expect="sleep endoscopy")),
+    # Flex sig — Increment 1: MiraLAX + lactulose paths, EN + ES.
+    ("flexsig miralax 31-40 en",  dict(procedure_type="flex_sig", weight_band="31-40",
+                                       language="en", prep_type="miralax",
+                                       expect="Flexible Sigmoidoscopy")),
+    ("flexsig lactulose 15-20 es", dict(procedure_type="flex_sig", weight_band="15-20",
+                                        language="es", prep_type="lactulose",
+                                        expect="Sigmoidoscopia Flexible")),
 ]
 
 
