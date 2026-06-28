@@ -301,6 +301,9 @@ def render_pdf(
     addon_title_suffix: str = "",
     addon_procedure_items_html: str = "",
     addon_team_blurbs_html: str = "",
+    procedure_heading: str = "",
+    procedure_about_html: str = "",
+    procedure_word: str = "",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -480,6 +483,37 @@ def render_pdf(
         "{{LOCATION_PHONE_TEL}}":  re.sub(r"\D", "", location.get("phone", "")),
     }
 
+    # Procedure-level token defaults (colonoscopy wording = exact original text).
+    # Callers such as flex_sig.py override these to relabel the procedure without
+    # touching the template HTML. Colonoscopy renders are byte-identical to before
+    # because the defaults reproduce the strings that were originally hardcoded.
+    _DEFAULT_PROCEDURE_HEADING = {"en": "Colonoscopy", "es": "Colonoscopia"}
+    _DEFAULT_PROCEDURE_ABOUT = {
+        "en": (
+            '<p>A <strong>colonoscopy</strong> is a short procedure done under anesthesia.'
+            ' A pediatric gastroenterologist passes a thin, flexible camera through the bottom'
+            ' to look at the large intestine. Small biopsies are usually taken.'
+            ' The procedure itself takes about <strong>20–45 minutes</strong>,'
+            ' but plan to be at the facility for several hours total.'
+            ' The colon must be clean for the camera to see well —'
+            " that's what the medicines below are for.</p>"
+        ),
+        "es": (
+            '<p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza'
+            ' bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y'
+            ' flexible por el ano para examinar el intestino grueso. Generalmente se toman'
+            ' pequeñas biopsias. El procedimiento dura aproximadamente'
+            ' <strong>20–45 minutos</strong>, pero planee estar en el centro varias'
+            ' horas en total. El colon debe estar limpio para que la cámara pueda ver bien'
+            ' — para eso son los medicamentos a continuación.</p>'
+        ),
+    }
+    _DEFAULT_PROCEDURE_WORD = {"en": "colonoscopy", "es": "colonoscopia"}
+
+    resolved_procedure_heading = procedure_heading or _DEFAULT_PROCEDURE_HEADING.get(lang, "Colonoscopy")
+    resolved_procedure_about = procedure_about_html or _DEFAULT_PROCEDURE_ABOUT.get(lang, _DEFAULT_PROCEDURE_ABOUT["en"])
+    resolved_procedure_word = procedure_word or _DEFAULT_PROCEDURE_WORD.get(lang, "colonoscopy")
+
     # Personalized callout placeholders.
     personalization_replacements = {
         "{{APPT_DATE_HUMAN}}":         appt_date_human,
@@ -490,6 +524,9 @@ def render_pdf(
         "{{ADDON_TITLE_SUFFIX}}":      addon_title_suffix,
         "{{ADDON_PROCEDURE_ITEMS}}":   addon_procedure_items_html,
         "{{ADDON_TEAM_BLURBS}}":       addon_team_blurbs_html,
+        "{{PROCEDURE_HEADING}}":       resolved_procedure_heading,
+        "{{PROCEDURE_ABOUT}}":         resolved_procedure_about,
+        "{{PROCEDURE_WORD}}":          resolved_procedure_word,
     }
     if composed_title:
         personalization_replacements["{{HTML_TITLE}}"] = composed_title
