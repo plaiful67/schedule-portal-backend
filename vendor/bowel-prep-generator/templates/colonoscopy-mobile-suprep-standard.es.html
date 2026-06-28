@@ -259,9 +259,6 @@ details.post-procedure strong{color:var(--ink)}
   <div class="arrival">{{LOCATION_ARRIVAL}}<span class="pz-only" data-pz-time-mins="-{{LOCATION_ARRIVAL_MINUTES}}" data-pz-template=" — a las {time} el {date}"></span></div>
 </div>
 
-<h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
-<p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por el ano para examinar el intestino grueso. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>20–45 minutos</strong>, pero planee estar en el centro varias horas en total. El colon debe estar limpio para que la cámara pueda ver bien — para eso es el medicamento a continuación.</p>
-
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -277,6 +274,9 @@ details.post-procedure strong{color:var(--ink)}
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
+
+<h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
+<p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por el ano para examinar el intestino grueso. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>20–45 minutos</strong>, pero planee estar en el centro varias horas en total. El colon debe estar limpio para que la cámara pueda ver bien — para eso es el medicamento a continuación.</p>
 
 {{HTML_PRECLEANOUT_BLOCK}}
 
@@ -305,7 +305,8 @@ details.post-procedure strong{color:var(--ink)}
   ⚠️ <strong>NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación.</strong> SUPREP ya contiene sales estimulantes de sulfato; combinar laxantes estimulantes puede aumentar el riesgo de daño mucoso o colitis isquémica.
 </div>
 
-{{PARTIAL_DIET_CLEAR_MOBILE}}<h2 class="step big-prep"><span class="icon">🥤</span> DOSIS 1 — La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
+{{PARTIAL_DIET_RESIDUE_MOBILE}}
+<h2 class="step big-prep"><span class="icon">🥤</span> DOSIS 1 — La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
 <p class="note"><em>SUPREP tiene sabor salado/ácido. Beberlo frío y con una pajilla puede ayudar.</em></p>
 
 <div class="time-box">
@@ -346,8 +347,9 @@ details.post-procedure strong{color:var(--ink)}
 
 <h2 class="step" data-pz-day="0" data-pz-prefix="Día del Procedimiento — "><span class="icon">📅</span> Día del Procedimiento</h2>
 <ul>
-  <li><strong>Solo líquidos claros.</strong> Sin alimentos sólidos.</li>
-  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong></li>
+  <li><strong>Dé la Dosis 2 de SUPREP esta mañana</strong> (vea la Dosis 2 arriba) — termine al menos {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Se permiten líquidos claros hasta {{NPO_CLEARS_HOURS}} horas antes del procedimiento</strong> — nada por la boca después de eso. Sin alimentos sólidos el día del procedimiento.</li>
+  <li>Ofrezca pequeños sorbos de líquidos claros cada 30–60 minutos durante la mañana. Cada bebida: no más de <strong>{{HTML_DRINK_CUP}}</strong>.</li>
   <li class="pz-only" data-pz-time-mins="-{{LOCATION_ARRIVAL_MINUTES}}" data-pz-template="<strong>Llegada a las {time} ({date}).</strong>"></li>
   <li>Traiga objetos de comodidad para su niño (juguete, manta, tableta, etc.).</li>
 </ul>

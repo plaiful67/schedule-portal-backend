@@ -267,9 +267,6 @@ details.post-procedure strong{color:var(--ink)}
 </ul>
 <p>Both procedures together take about <strong>30–60 minutes</strong>. Your child will not feel anything.</p>
 
-<h2 class="step"><span class="icon">📖</span> About the Bowel Prep</h2>
-<p>The colon must be clean for the doctor to see clearly during the colonoscopy. The medicine below cleans the colon (empties it) before the procedure. The EGD itself does not need bowel prep — only the fasting times.</p>
-
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -285,6 +282,9 @@ details.post-procedure strong{color:var(--ink)}
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
+
+<h2 class="step"><span class="icon">📖</span> About the Bowel Prep</h2>
+<p>The colon must be clean for the doctor to see clearly during the colonoscopy. The medicine below cleans the colon (empties it) before the procedure. The EGD itself does not need bowel prep — only the fasting times.</p>
 
 {{HTML_PRECLEANOUT_BLOCK}}
 
@@ -313,8 +313,10 @@ details.post-procedure strong{color:var(--ink)}
   ⚠️ <strong>CLENPIQ already contains a stimulant laxative (sodium picosulfate).</strong> Do NOT give Dulcolax (bisacodyl) or any other laxative with this prep unless your doctor specifically tells you to.
 </div>
 
-{{PARTIAL_DIET_CLEAR_MOBILE}}<h2 class="step big-prep"><span class="icon">🥤</span> DOSE 1 — Evening Before the Procedure<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
-<p class="note"><em>Best to refrigerate the bottles ahead of time — CLENPIQ tastes better cold.</em></p>
+<h2 class="step" data-pz-day="-2" data-pz-suffix=" — Get Ready"><span class="icon">📅</span> 2 Days Before — Get Ready</h2>
+<p>Put the CLENPIQ bottles in the refrigerator. CLENPIQ is ready to drink (no mixing needed) and tastes better cold.</p>
+{{PARTIAL_DIET_RESIDUE_MOBILE}}
+<h2 class="step big-prep"><span class="icon">🥤</span> DOSE 1 — Evening Before the Procedure<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
 
 <div class="time-box">
   <div class="when">Between {{HTML_CLENPIQ_DOSE1_WINDOW}}</div>
@@ -353,8 +355,9 @@ details.post-procedure strong{color:var(--ink)}
 
 <h2 class="step" data-pz-day="0" data-pz-prefix="Day of Procedure — "><span class="icon">📅</span> Day of Procedure</h2>
 <ul>
-  <li><strong>Clear liquids only.</strong> No solid food.</li>
-  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Stop all clear liquids {{NPO_CLEARS_HOURS}} hours before the procedure.</strong></li>
+  <li><strong>Give CLENPIQ Dose 2 this morning</strong> (see Dose 2 above) — finish at least {{NPO_CLEARS_HOURS}} hours before the procedure.</li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Clear liquids are allowed up until {{NPO_CLEARS_HOURS}} hours before the procedure</strong> — nothing by mouth after that. No solid food the day of.</li>
+  <li>Offer small sips of clear liquids every 30–60 minutes through the morning. Each drink: no more than <strong>{{HTML_DRINK_CUP}}</strong>.</li>
   <li class="pz-only" data-pz-time-mins="-{{LOCATION_ARRIVAL_MINUTES}}" data-pz-template="<strong>Arrive at {{LOCATION_ARRIVAL_FACILITY_SHORT}} by {time} ({date}).</strong>"></li>
   <li>The EGD is done first (through the mouth), then the colonoscopy. Both happen during the same nap.</li>
   <li>Bring comfort items for your child (toy, blanket, tablet, etc.).</li>

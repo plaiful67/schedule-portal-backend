@@ -267,9 +267,6 @@ details.post-procedure strong{color:var(--ink)}
 </ul>
 <p>Ambos procedimientos juntos toman aproximadamente <strong>30–60 minutos</strong>. Su niño no sentirá nada.</p>
 
-<h2 class="step"><span class="icon">📖</span> Sobre la Preparación Intestinal</h2>
-<p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. El medicamento a continuación limpia el colon (lo vacía) antes del procedimiento. La EGD no necesita preparación intestinal — solo las reglas de ayuno.</p>
-
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -285,6 +282,9 @@ details.post-procedure strong{color:var(--ink)}
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
+
+<h2 class="step"><span class="icon">📖</span> Sobre la Preparación Intestinal</h2>
+<p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. El medicamento a continuación limpia el colon (lo vacía) antes del procedimiento. La EGD no necesita preparación intestinal — solo las reglas de ayuno.</p>
 
 {{HTML_PRECLEANOUT_BLOCK}}
 
@@ -313,8 +313,10 @@ details.post-procedure strong{color:var(--ink)}
   ⚠️ <strong>CLENPIQ ya contiene un laxante estimulante (picosulfato de sodio).</strong> NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación a menos que su médico se lo indique específicamente.
 </div>
 
-{{PARTIAL_DIET_CLEAR_MOBILE}}<h2 class="step big-prep"><span class="icon">🥤</span> DOSIS 1 — La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
-<p class="note"><em>Mejor refrigerar las botellas con anticipación — CLENPIQ sabe mejor frío.</em></p>
+<h2 class="step" data-pz-day="-2" data-pz-suffix=" — Preparación"><span class="icon">📅</span> 2 Días Antes — Preparación</h2>
+<p>Ponga las botellas de CLENPIQ en el refrigerador. CLENPIQ está listo para beber (no requiere mezcla) y sabe mejor frío.</p>
+{{PARTIAL_DIET_RESIDUE_MOBILE}}
+<h2 class="step big-prep"><span class="icon">🥤</span> DOSIS 1 — La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
 
 <div class="time-box">
   <div class="when">Entre {{HTML_CLENPIQ_DOSE1_WINDOW}}</div>
@@ -353,8 +355,9 @@ details.post-procedure strong{color:var(--ink)}
 
 <h2 class="step" data-pz-day="0" data-pz-prefix="Día del Procedimiento — "><span class="icon">📅</span> Día del Procedimiento</h2>
 <ul>
-  <li><strong>Solo líquidos claros.</strong> Sin alimentos sólidos.</li>
-  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong></li>
+  <li><strong>Dé la Dosis 2 de CLENPIQ esta mañana</strong> (vea la Dosis 2 arriba) — termine al menos {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Se permiten líquidos claros hasta {{NPO_CLEARS_HOURS}} horas antes del procedimiento</strong> — nada por la boca después de eso. Sin alimentos sólidos el día del procedimiento.</li>
+  <li>Ofrezca pequeños sorbos de líquidos claros cada 30–60 minutos durante la mañana. Cada bebida: no más de <strong>{{HTML_DRINK_CUP}}</strong>.</li>
   <li class="pz-only" data-pz-time-mins="-{{LOCATION_ARRIVAL_MINUTES}}" data-pz-template="<strong>Llegada a las {time} ({date}).</strong>"></li>
   <li>La EGD se realiza primero (por la boca), luego la colonoscopia. Ambas suceden durante la misma siesta.</li>
   <li>Traiga objetos de comodidad para su niño (juguete, manta, tableta, etc.).</li>

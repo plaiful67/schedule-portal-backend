@@ -53,12 +53,21 @@ TEMPLATES = SKILL_DIR / "templates"
 DOSING_PATH = SKILL_DIR / "data" / "dosing.yaml"
 PRACTICE_PATH = SKILL_DIR / "practice.yaml"
 
+
+def _meta_root():
+    """Root of the peds-gi-prep-system meta repo (holds shared/ + tenants/).
+    Override with GIREADY_META_ROOT — e.g. a git worktree — so an isolated
+    session reads that checkout's shared/ instead of the main one. Defaults to
+    ~/peds-gi-prep-system, so unset behavior is byte-identical to before."""
+    env = os.environ.get("GIREADY_META_ROOT", "").strip()
+    return Path(env) if env else Path.home() / "peds-gi-prep-system"
+
 # Shared design tokens + feedback-cell layout. Auto-prepended to every
 # template's <head> so future cross-skill style changes (color tokens,
 # font stack, feedback CTA layout) live in ONE file. Templates' own
 # <style> blocks still load AFTER and win on override. See
 # ~/peds-gi-prep-system/shared/print-base.css for the source.
-_SHARED_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "print-base.css"
+_SHARED_PRINT_CSS_PATH = _meta_root() / "shared" / "print-base.css"
 try:
     _SHARED_PRINT_CSS = _SHARED_PRINT_CSS_PATH.read_text(encoding="utf-8") if _SHARED_PRINT_CSS_PATH.exists() else ""
 except OSError:
@@ -75,7 +84,7 @@ def _inject_shared_print_css(html: str) -> str:
 # The Calm print design lives in ONE shared stylesheet; for --theme calm we swap
 # it in for the base template's own <style>, so every family gets the Calm look
 # without a duplicated calm/ template. Keyed to the shared print class vocabulary.
-_CALM_PRINT_CSS_PATH = Path.home() / "peds-gi-prep-system" / "shared" / "calm-print.css"
+_CALM_PRINT_CSS_PATH = _meta_root() / "shared" / "calm-print.css"
 try:
     _CALM_PRINT_CSS = _CALM_PRINT_CSS_PATH.read_text(encoding="utf-8") if _CALM_PRINT_CSS_PATH.exists() else ""
 except OSError:
@@ -98,7 +107,7 @@ def _swap_calm_style(html: str) -> str:
 # for the checklist, feedback FAB, and tables (JS). One source for every
 # current and future mobile site, sibling to print-base.css above. See
 # ~/peds-gi-prep-system/shared/mobile-base.css + mobile-a11y.js.
-_SHARED_DIR = Path.home() / "peds-gi-prep-system" / "shared"
+_SHARED_DIR = _meta_root() / "shared"
 try:
     _SHARED_MOBILE_CSS = (_SHARED_DIR / "mobile-base.css").read_text(encoding="utf-8")
 except OSError:
@@ -2053,7 +2062,7 @@ def _shared_dir():
     """Resolve the shared/ dir in both layouts: vendored (vendor/shared, used by
     the backend Cloud Run image) first, then the local meta-repo checkout."""
     for c in (SKILL_DIR.parent / "shared",
-              Path.home() / "peds-gi-prep-system" / "shared"):
+              _meta_root() / "shared"):
         if c.is_dir():
             return c
     return None
@@ -2135,7 +2144,7 @@ def _load_partials(lang):
 # Cross-skill shared partials (footer/legal, feedback bar, NPO table) live in the
 # meta repo so a one-line edit propagates to every skill. The backend re-points
 # _SHARED_PARTIALS_DIR to its vendored copy (vendor/shared/partials).
-_SHARED_PARTIALS_DIR = Path.home() / "peds-gi-prep-system" / "shared" / "partials"
+_SHARED_PARTIALS_DIR = _meta_root() / "shared" / "partials"
 _SHARED_PARTIALS_CACHE = {}  # {lang: {token: content}}
 
 
