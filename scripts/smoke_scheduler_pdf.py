@@ -94,7 +94,7 @@ CASES = [
                                   expect="endoscopia del sueño")),
     ("composed egd en",      dict(procedure_type="composed", base="egd",
                                   language="en", add_ons=["dise"], knob_picks={},
-                                  expect="drug-induced sleep")),
+                                  expect="sleep endoscopy")),
 ]
 
 
