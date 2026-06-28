@@ -17,7 +17,7 @@ from fastapi import FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import medications
-from .adapters import bowel_prep, combined, composed, egd, egd_phmii
+from .adapters import bowel_prep, combined, composed, egd, egd_phmii, flex_sig
 from .adapters.bowel_prep import ComposedTemplateUnsupported
 from .adapters.composed import CompositionInputError
 from .adapters._paths import skill_source
@@ -200,6 +200,10 @@ def _render_impl(req: RenderRequest):
             )
         except (ComposedTemplateUnsupported, CompositionInputError) as e:
             raise HTTPException(status_code=422, detail=str(e))
+    elif req.procedure_type == "flex_sig":
+        pdf_bytes = flex_sig.render_pdf(
+            weight_band=req.weight_band, prep_type=req.prep_type, **common
+        )
     else:
         raise HTTPException(
             status_code=501,

@@ -126,7 +126,18 @@ class CombinedRequest(_BowelPrepBase):
 
 class FlexSigRequest(_Base):
     procedure_type: Literal["flex_sig"]
-    weight_band: FlexSigBand
+    # Increment 1: flex sig as a "short colonoscopy" — reuses the colonoscopy
+    # bowel-prep bands + prep. Enema (FlexSigBand) is added in Increment 2.
+    weight_band: BowelPrepBand
+    prep_type: Literal["miralax", "lactulose"] = "miralax"
+
+    @model_validator(mode="after")
+    def _flexsig_prep_band_check(self):
+        if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
+            raise ValueError(
+                "lactulose prep is only available for under-15 / 15-20 / 21-30 kg bands"
+            )
+        return self
 
 
 class ComposedRequest(_Base):
