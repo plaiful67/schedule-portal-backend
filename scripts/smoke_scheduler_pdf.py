@@ -98,12 +98,16 @@ CASES = [
     # Flex sig — Increment 1: MiraLAX only (relabels the standard colonoscopy
     # template). Lactulose/clenpiq/suprep/enema have their own templates (different
     # hardcoded headings) → tokenized in a later increment.
+    # Guard on the single distinctive word, not the two-word title: pypdf
+    # sometimes drops the inter-word space on extraction (e.g. ES renders
+    # "Sigmoidoscopia Flexible" visually but extracts as "SigmoidoscopiaFlexible").
+    # "Sigmoidoscop*" never appears in a colonoscopy handout, so it proves the relabel.
     ("flexsig miralax 31-40 en",  dict(procedure_type="flex_sig", weight_band="31-40",
                                        language="en", prep_type="miralax",
-                                       expect="Flexible Sigmoidoscopy")),
+                                       expect="Sigmoidoscopy")),
     ("flexsig miralax 21-30 es",  dict(procedure_type="flex_sig", weight_band="21-30",
                                        language="es", prep_type="miralax",
-                                       expect="Sigmoidoscopia Flexible")),
+                                       expect="Sigmoidoscopia")),
 ]
 
 
