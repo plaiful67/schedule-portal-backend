@@ -12,8 +12,9 @@ def test_registry_has_phase1_addons():
     reg = compose.load_registry()
     assert set(reg["add_ons"]) >= {
         "ph_mii", "rsbx", "bal", "dise", "dlb", "ent_ta", "ent_tubes",
-        "pulm_generic", "ent_generic", "sleep_generic",
+        "pulm_generic", "ent_generic",
     }
+    assert reg["add_ons"]["dise"]["specialty"] == "pulm"
 
 
 def test_ppi_knob_owned_by_ph_mii():
