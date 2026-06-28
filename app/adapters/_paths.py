@@ -17,7 +17,13 @@ from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 HOME_SKILLS = Path.home() / ".claude" / "skills"
-HOME_SHARED = Path.home() / "peds-gi-prep-system" / "shared"
+# Meta-repo root for the local-dev `shared/` fallback. Override with
+# GIREADY_META_ROOT (e.g. a git worktree) for isolated dev; production (Cloud
+# Run) carries no such env and uses VENDOR_DIR, so prod is unaffected.
+_META_ROOT = (Path(os.environ["GIREADY_META_ROOT"].strip())
+              if os.environ.get("GIREADY_META_ROOT", "").strip()
+              else Path.home() / "peds-gi-prep-system")
+HOME_SHARED = _META_ROOT / "shared"
 VENDOR_DIR = BACKEND_DIR / "vendor"
 
 _FORCE = os.environ.get("PORTAL_SKILL_SOURCE", "").strip().lower()

@@ -16,13 +16,19 @@ a 500 — the assert_calm smoke is what proves Calm actually applied in prod.
 from __future__ import annotations
 
 import functools
+import os
 import re
 from pathlib import Path
 
 _BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
+# Dev `shared/` fallback honors GIREADY_META_ROOT (git-worktree isolation);
+# production uses vendor/shared (listed first), so prod is unaffected.
+_META_ROOT = (Path(os.environ["GIREADY_META_ROOT"].strip())
+              if os.environ.get("GIREADY_META_ROOT", "").strip()
+              else Path.home() / "peds-gi-prep-system")
 _SHARED_DIRS = (
     _BACKEND_DIR / "vendor" / "shared",
-    Path.home() / "peds-gi-prep-system" / "shared",
+    _META_ROOT / "shared",
 )
 _STYLE_RE = re.compile(r"<style>.*?</style>", re.S)
 _IMPORT_RE = re.compile(r"@import\s+url\([^)]*\)\s*;", re.S)
