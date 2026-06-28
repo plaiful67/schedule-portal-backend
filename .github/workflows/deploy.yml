@@ -1,0 +1,85 @@
+name: deploy (Cloud Run, smoke-gated)
+
+# Auto-deploy-on-merge with a no-traffic candidate that is smoke-gated BEFORE it
+# serves any user. A failing smoke never migrates traffic (the prior revision
+# keeps serving — that IS the rollback). See docs/CI.md.
+#
+# Builds from the COMMITTED vendor/ (the runner has no ~/.claude/skills to
+# vendor-sync from). `make vendor-check` is the LOCAL pre-push guard against a
+# stale vendor/. Keyless GCP auth via Workload Identity Federation (run
+# scripts/setup_wif.sh once — no service-account key).
+
+on:
+  workflow_dispatch: {}
+  # ── ENABLE AT CUTOVER (Sebastian's explicit go) ──
+  # Until this is uncommented, deploys are manual-only (Actions → Run workflow),
+  # so the first runs are deliberate. Uncommenting flips on auto-deploy-on-merge.
+  # push:
+  #   branches: [main]
+
+permissions:
+  id-token: write      # mint the WIF OIDC token
+  contents: read
+
+concurrency:           # never run two deploys at once
+  group: deploy-schedule-portal
+  cancel-in-progress: false
+
+env:
+  SERVICE: schedule-portal
+  REGION: us-central1
+  PROJECT: giready-portal
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/417139937755/locations/global/workloadIdentityPools/github-actions/providers/schedule-portal-backend
+          service_account: gha-deploy-schedule@giready-portal.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install smoke deps
+        run: pip install "pypdf==6.11.0"
+
+      - name: Deploy candidate revision (NO traffic)
+        id: deploy
+        run: |
+          set -euo pipefail
+          gcloud run deploy "$SERVICE" --source . \
+            --project "$PROJECT" --region "$REGION" \
+            --no-traffic --tag candidate \
+            --platform managed --allow-unauthenticated \
+            --memory 1Gi --cpu 1 --min-instances 0 --max-instances 5 \
+            --concurrency 4 --timeout 60s \
+            --set-env-vars "^|^ALLOWED_ORIGINS=https://schedule.giready.com,https://meds.giready.com|QR_BASE_URL=https://schedule.giready.com/v|PORTAL_SKILL_SOURCE=vendor"
+          CAND=$(gcloud run services describe "$SERVICE" --project "$PROJECT" --region "$REGION" \
+            --format=json | jq -r '.status.traffic[] | select(.tag=="candidate") | .url')
+          test -n "$CAND" || { echo "::error::could not resolve candidate URL"; exit 1; }
+          echo "candidate_url=$CAND" >> "$GITHUB_OUTPUT"
+          echo "candidate → $CAND (0% traffic)"
+
+      - name: Smoke the candidate (no users on it yet)
+        run: python scripts/smoke_scheduler_pdf.py --base-url "${{ steps.deploy.outputs.candidate_url }}"
+
+      - name: Migrate 100% traffic (smoke passed)
+        run: |
+          gcloud run services update-traffic "$SERVICE" \
+            --project "$PROJECT" --region "$REGION" --to-tags candidate=100
+          echo "✓ traffic migrated to the smoked candidate."
+
+      - name: On failure — leave prior revision serving
+        if: failure()
+        run: |
+          echo "::error::deploy/smoke FAILED. Traffic was NOT migrated; the prior revision keeps serving."
+          echo "Candidate (0% traffic) left for triage: ${{ steps.deploy.outputs.candidate_url || 'n/a' }}"
+          echo "Manual rollback if needed: make rollback REV=<prior>  (see 'make revisions')."

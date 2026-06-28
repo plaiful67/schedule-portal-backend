@@ -17,7 +17,10 @@ physician are not PHI by construction).
 
 Usage:
   python scripts/smoke_scheduler_pdf.py                 # auto-resolve Cloud Run URL via gcloud
-  python scripts/smoke_scheduler_pdf.py --base https://schedule-portal-xxxx-uc.a.run.app
+  python scripts/smoke_scheduler_pdf.py --base-url https://schedule-portal-xxxx-uc.a.run.app
+  python scripts/smoke_scheduler_pdf.py --base-url https://candidate---schedule-portal-...a.run.app  # tagged candidate revision (CI)
+
+  (`--base` is kept as a back-compat alias for `--base-url`.)
 """
 from __future__ import annotations
 
@@ -31,7 +34,11 @@ from io import BytesIO
 from pathlib import Path
 from urllib import request as urlreq
 
-sys.path.insert(0, str(Path.home() / "peds-gi-prep-system" / "scripts"))
+# calm_assert lives in the meta repo for local dev; on a bare CI runner (no meta
+# checkout) fall back to the copy vendored beside this script. Dev path is inserted
+# last so it wins when present; the _ci fallback covers GitHub Actions.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "_ci"))          # CI fallback
+sys.path.insert(0, str(Path.home() / "peds-gi-prep-system" / "scripts"))  # dev (meta repo)
 from calm_assert import is_calm  # noqa: E402
 
 # A future date keeps the schema's "today or later" validator happy.
@@ -143,9 +150,13 @@ def checks(pdf: bytes, lang: str) -> list[str]:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--base", default=None, help="backend base URL (default: resolve via gcloud)")
+    ap.add_argument("--base-url", dest="base_url", default=None,
+                    help="backend base URL to smoke, e.g. a tagged candidate revision "
+                         "(default: resolve the live schedule-portal URL via gcloud)")
+    ap.add_argument("--base", dest="base_url", default=None,
+                    help=argparse.SUPPRESS)  # back-compat alias for --base-url
     args = ap.parse_args()
-    base = args.base or resolve_base()
+    base = (args.base_url or resolve_base()).rstrip("/")
     print(f"smoke → {base}/render  (appt {APPT}, physician {PHYS})\n")
 
     failed = 0
