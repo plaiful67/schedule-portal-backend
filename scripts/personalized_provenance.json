@@ -3,12 +3,12 @@
   "templates": {
     "bowel_prep/clenpiq-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.en.html",
-      "canonical_sha256": "b47354b254a73dd4f5ac60c9949020d787f59de86a994a2b354fb68007b0960f",
+      "canonical_sha256": "35e25b8e7b29aee34fe26b42cf16b2799d6eed30a4f937254342e69e39cf6476",
       "status": "forked"
     },
     "bowel_prep/clenpiq-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/clenpiq-standard-print.es.html",
-      "canonical_sha256": "df51c82b777a22c061b947214c39ee8f47f867746b3b737f7f3a4df660526038",
+      "canonical_sha256": "14c84b7fd947d212426ad6461e490af5425938acbe89dabd112999727c929cea",
       "status": "forked"
     },
     "bowel_prep/combined-clenpiq-standard-print-personalized.en.html": {
@@ -133,12 +133,12 @@
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.en.html",
-      "canonical_sha256": "305fe8d3d4353fb53d9a4f8c6e1439a97ca825a76fada4dacfe18dd801d0e232",
+      "canonical_sha256": "26ce542ccc4d4504ea31d0364842f606902938e1b4cbc2ea24fd05c0c2d97e80",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.es.html",
-      "canonical_sha256": "b7de378b4be5630bc525fe594d04f0afaa9752862e6a5e8b35d2944223749d16",
+      "canonical_sha256": "8111554645f3893ec40b2f36327bec1468b6ec618a1eeb9b94294138e09f8161",
       "status": "forked"
     },
     "composed/print-personalized.en.html": {

@@ -1147,12 +1147,14 @@ def patch_suprep_standard_print_en(canonical: str) -> str:
         where="suprep en: performing-physician + appt-callout + location + followup block",
     )
 
-    # 4. Remove blank line between {{PARTIAL_DIET_CLEAR_PRINT}} and DOSE 1 comment.
+    # 4. Remove blank line between {{PARTIAL_DIET_RESIDUE_PRINT}} and DOSE 1 comment.
+    #    (SUPREP now uses the same {{PARTIAL_DIET_RESIDUE_PRINT}} as the MiraLAX
+    #    cleanout — 1-day low-residue rework, 2026-06-27.)
     out = _replace_unique(
         out,
-        "{{PARTIAL_DIET_CLEAR_PRINT}}\n\n<!-- ============================================================= -->\n<!-- DOSE 1 (evening before)                                       -->",
-        "{{PARTIAL_DIET_CLEAR_PRINT}}<!-- ============================================================= -->\n<!-- DOSE 1 (evening before)                                       -->",
-        where="suprep en: collapse blank line after PARTIAL_DIET_CLEAR_PRINT",
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}\n\n<!-- ============================================================= -->\n<!-- DOSE 1 (evening before)                                       -->",
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}<!-- ============================================================= -->\n<!-- DOSE 1 (evening before)                                       -->",
+        where="suprep en: collapse blank line after PARTIAL_DIET_RESIDUE_PRINT",
     )
 
     # 5. Move FEEDBACK_BAR from before Day-of-Procedure to after HELPFUL_RESOURCES;
@@ -1230,12 +1232,14 @@ def patch_suprep_standard_print_es(canonical: str) -> str:
         where="suprep es: performing-physician + appt-callout + location + followup block",
     )
 
-    # 4. Remove blank line between {{PARTIAL_DIET_CLEAR_PRINT}} and DOSIS 1 comment.
+    # 4. Remove blank line between {{PARTIAL_DIET_RESIDUE_PRINT}} and DOSIS 1 comment.
+    #    (SUPREP now uses the same {{PARTIAL_DIET_RESIDUE_PRINT}} as the MiraLAX
+    #    cleanout — 1-day low-residue rework, 2026-06-27.)
     out = _replace_unique(
         out,
-        "{{PARTIAL_DIET_CLEAR_PRINT}}\n\n<!-- ============================================================= -->\n<!-- DOSIS 1 (tarde antes)                                         -->",
-        "{{PARTIAL_DIET_CLEAR_PRINT}}<!-- ============================================================= -->\n<!-- DOSIS 1 (tarde antes)                                         -->",
-        where="suprep es: collapse blank line after PARTIAL_DIET_CLEAR_PRINT",
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}\n\n<!-- ============================================================= -->\n<!-- DOSIS 1 (tarde antes)                                         -->",
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}<!-- ============================================================= -->\n<!-- DOSIS 1 (tarde antes)                                         -->",
+        where="suprep es: collapse blank line after PARTIAL_DIET_RESIDUE_PRINT",
     )
 
     # 5. Move FEEDBACK_BAR from before Día del Procedimiento to after HELPFUL_RESOURCES;
@@ -1321,17 +1325,18 @@ def patch_clenpiq_standard_print_en(canonical: str) -> str:
         where="clenpiq en: appt-callout + followup insertion",
     )
 
-    # 6. Collapse the blank line between PARTIAL_DIET_CLEAR_PRINT and the
-    #    next section comment.
+    # 6. Collapse the blank line between the shared diet partial and the
+    #    next section comment. (CLENPIQ now uses the same {{PARTIAL_DIET_RESIDUE_PRINT}}
+    #    as the MiraLAX cleanout — 1-day low-residue rework, 2026-06-27.)
     out = _replace_unique(
         out,
-        "{{PARTIAL_DIET_CLEAR_PRINT}}\n\n"
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}\n\n"
         "<!-- ============================================================= -->\n"
         "<!-- DOSE 1 (evening before)                                       -->",
-        "{{PARTIAL_DIET_CLEAR_PRINT}}"
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}"
         "<!-- ============================================================= -->\n"
         "<!-- DOSE 1 (evening before)                                       -->",
-        where="clenpiq en: collapse blank line after PARTIAL_DIET_CLEAR_PRINT",
+        where="clenpiq en: collapse blank line after PARTIAL_DIET_RESIDUE_PRINT",
     )
 
     # 7a. Remove {{PARTIAL_FEEDBACK_BAR}} from before Day-of-Procedure section.
@@ -1426,16 +1431,18 @@ def patch_clenpiq_standard_print_es(canonical: str) -> str:
         where="clenpiq es: appt-callout + followup insertion",
     )
 
-    # 6. Collapse the blank line after PARTIAL_DIET_CLEAR_PRINT (ES section name).
+    # 6. Collapse the blank line after PARTIAL_DIET_RESIDUE_PRINT (ES section name).
+    #    (CLENPIQ now uses the same {{PARTIAL_DIET_RESIDUE_PRINT}} as the MiraLAX
+    #    cleanout — 1-day low-residue rework, 2026-06-27.)
     out = _replace_unique(
         out,
-        "{{PARTIAL_DIET_CLEAR_PRINT}}\n\n"
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}\n\n"
         "<!-- ============================================================= -->\n"
         "<!-- DOSIS 1 (tarde antes)                                         -->",
-        "{{PARTIAL_DIET_CLEAR_PRINT}}"
+        "{{PARTIAL_DIET_RESIDUE_PRINT}}"
         "<!-- ============================================================= -->\n"
         "<!-- DOSIS 1 (tarde antes)                                         -->",
-        where="clenpiq es: collapse blank line after PARTIAL_DIET_CLEAR_PRINT",
+        where="clenpiq es: collapse blank line after PARTIAL_DIET_RESIDUE_PRINT",
     )
 
     # 7a. Remove {{PARTIAL_FEEDBACK_BAR}} from before Day-of-Procedure section.

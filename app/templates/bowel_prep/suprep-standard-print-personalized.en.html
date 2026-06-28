@@ -634,13 +634,11 @@
 <!-- ============================================================= -->
 <!-- ABOUT THE PROCEDURE                                           -->
 <!-- ============================================================= -->
-<h2 class="step"><span class="icon">📖</span> About the Procedure</h2>
-<p>A <strong>colonoscopy</strong> is a short procedure done under anesthesia. A pediatric gastroenterologist passes a thin, flexible camera through the bottom to look at the large intestine. Small biopsies are usually taken. The procedure itself takes about <strong>20–45 minutes</strong>, but plan to be at the facility for several hours total. The colon must be clean for the camera to see well — that's what the medicines below are for.</p>
-
-<!-- SUPREP-specific medications callout: extends the standard meds note
-     with the SUPREP drug-interaction window (2 h before / 6 h after each
-     SUPREP dose for tetracyclines, fluoroquinolones, iron, digoxin,
-     chlorpromazine, penicillamine) and the 1-hour all-oral-meds blackout. -->
+<!-- SUPREP-specific medications callout: moved ABOVE "About the Procedure" to
+     use the first-page space. Extends the standard meds note with the SUPREP
+     drug-interaction window (2 h before / 6 h after each SUPREP dose for
+     tetracyclines, fluoroquinolones, iron, digoxin, chlorpromazine,
+     penicillamine) and the 1-hour all-oral-meds blackout. -->
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medications</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -656,6 +654,9 @@
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="meds.giready.com QR code" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
+
+<h2 class="step"><span class="icon">📖</span> About the Procedure</h2>
+<p>A <strong>colonoscopy</strong> is a short procedure done under anesthesia. A pediatric gastroenterologist passes a thin, flexible camera through the bottom to look at the large intestine. Small biopsies are usually taken. The procedure itself takes about <strong>20–45 minutes</strong>, but plan to be at the facility for several hours total. The colon must be clean for the camera to see well — that's what the medicines below are for.</p>
 
 {{PARTIAL_PRECLEANOUT_CALLOUT}}
 
@@ -687,13 +688,16 @@
 <div class="warning">&#9888;&#65039; <strong>Do NOT give Dulcolax (bisacodyl) or any other laxative with this prep.</strong> SUPREP already contains sulfate-based stimulant salts; combining stimulant laxatives can increase the risk of mucosal injury or ischemic colitis.</div>
 
 <!-- ============================================================= -->
-<!-- 3 DAYS BEFORE                                                 -->
+<!-- 2 DAYS BEFORE — get the prep ready (first calendar milestone)  -->
 <!-- ============================================================= -->
-{{PARTIAL_DIET_CLEAR_PRINT}}<!-- ============================================================= -->
+<h2 class="step" data-pz-day="-2" data-pz-suffix=" &mdash; Get Ready"><span class="icon">&#128197;</span> 2 Days Before &mdash; Get Ready</h2>
+<p>Have the SUPREP kit and its mixing container ready. SUPREP must be diluted in water before drinking &mdash; do NOT drink it straight from the bottle. SUPREP tastes salty/tart. Drinking it cold and through a straw can help.</p>
+
+<!-- 1 DAY BEFORE diet — same shared block as the MiraLAX cleanout -->
+{{PARTIAL_DIET_RESIDUE_PRINT}}<!-- ============================================================= -->
 <!-- DOSE 1 (evening before)                                       -->
 <!-- ============================================================= -->
 <h2 class="section-heading step big-prep"><span class="icon">&#129380;</span> DOSE 1 &mdash; Evening Before the Procedure<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
-<p class="note"><em>SUPREP tastes salty/tart. Drinking it cold and through a straw can help.</em></p>
 
 <div class="time-box">
   <div class="when">{{HTML_SUPREP_DOSE1_WINDOW}}</div>
@@ -742,8 +746,9 @@
 <!-- ============================================================= -->
 <h2 class="step"><span class="icon">&#128197;</span> Day of Procedure</h2>
 <ul>
-  <li><strong>Clear liquids only.</strong> No solid food.</li>
-  <li><strong>Stop all clear liquids {{NPO_CLEARS_HOURS}} hours before the procedure.</strong></li>
+  <li><strong>Give SUPREP Dose 2 this morning</strong> (see Dose 2 above) &mdash; finish at least {{NPO_CLEARS_HOURS}} hours before the procedure.</li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Clear liquids are allowed up until {{NPO_CLEARS_HOURS}} hours before the procedure</strong> &mdash; nothing by mouth after that. No solid food the day of.</li>
+  <li>Offer small sips of clear liquids every 30&ndash;60 minutes through the morning. Each drink: no more than <strong>{{HTML_DRINK_CUP}}</strong>.</li>
   <li>Bring comfort items for your child (toy, blanket, tablet, etc.).</li>
 </ul>
 

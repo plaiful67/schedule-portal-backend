@@ -1105,6 +1105,10 @@ def build_clenpiq_strings(band, lang, location=None):
     bottle_ml = band["clenpiq_bottle_ml"]
     total_bottles = band["clenpiq_total_bottles"]
     return {
+        # No bedtime Dulcolax for CLENPIQ (laxative prohibited) → the shared diet
+        # partial's 2-days-before block is empty; CLENPIQ's 2-days step is the
+        # explicit "Get Ready / refrigerate" section in the template.
+        "{{HTML_TWO_DAYS_BEFORE_BLOCK}}":         "",
         "{{HTML_TITLE}}":                         band[f"html_title_{lang}"],
         # The handout cover uses the unified summary label so all three
         # eligible weight bands see the same "31 kg and up — CLENPIQ" text.
@@ -1156,6 +1160,10 @@ def build_suprep_strings(band, lang, location=None):
     with the standard / lactulose / clenpiq families.
     """
     return {
+        # No bedtime Dulcolax for SUPREP (laxative prohibited) → the shared diet
+        # partial's 2-days-before block is empty; SUPREP's 2-days step is the
+        # explicit "Get Ready / mix + refrigerate" section in the template.
+        "{{HTML_TWO_DAYS_BEFORE_BLOCK}}":         "",
         "{{HTML_TITLE}}":                         band[f"html_title_{lang}"],
         "{{BAND_LABEL}}":                         band.get(f"summary_label_{lang}",
                                                             band[f"label_{lang}"]),

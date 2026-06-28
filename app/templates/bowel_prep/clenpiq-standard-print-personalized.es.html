@@ -634,10 +634,9 @@
 <!-- ============================================================= -->
 <!-- SOBRE EL PROCEDIMIENTO                                        -->
 <!-- ============================================================= -->
-<h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
-<p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por el ano para examinar el intestino grueso. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>20–45 minutos</strong>, pero planee estar en el centro varias horas en total. El colon debe estar limpio para que la cámara pueda ver bien — para eso son los medicamentos a continuación.</p>
-
-<!-- Medicamentos específicos para CLENPIQ: añade la regla de espaciamiento -->
+<!-- Medicamentos específicos para CLENPIQ: movido ARRIBA de "Sobre el
+     Procedimiento" para usar el espacio de la primera página. Añade la regla
+     de espaciamiento (2 h antes / 6 h después de CLENPIQ). -->
 <div class="callout">
   <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
   <div style="display:flex;align-items:flex-start;gap:10px;">
@@ -653,6 +652,9 @@
     <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
   </div>
 </div>
+
+<h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
+<p>La <strong>colonoscopia</strong> es un procedimiento corto que se realiza bajo anestesia. Un gastroenterólogo pediátrico pasa una cámara delgada y flexible por el ano para examinar el intestino grueso. Generalmente se toman pequeñas biopsias. El procedimiento dura aproximadamente <strong>20–45 minutos</strong>, pero planee estar en el centro varias horas en total. El colon debe estar limpio para que la cámara pueda ver bien — para eso son los medicamentos a continuación.</p>
 
 {{PARTIAL_PRECLEANOUT_CALLOUT}}
 
@@ -684,13 +686,16 @@
 <div class="warning">&#9888;&#65039; <strong>CLENPIQ ya contiene un laxante estimulante (picosulfato de sodio).</strong> NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación a menos que su médico se lo indique específicamente.</div>
 
 <!-- ============================================================= -->
-<!-- 3 DÍAS ANTES                                                  -->
+<!-- 2 DÍAS ANTES — preparar la prep (primer hito del calendario)   -->
 <!-- ============================================================= -->
-{{PARTIAL_DIET_CLEAR_PRINT}}<!-- ============================================================= -->
+<h2 class="step" data-pz-day="-2" data-pz-suffix=" &mdash; Preparaci&oacute;n"><span class="icon">&#128197;</span> 2 D&iacute;as Antes &mdash; Preparaci&oacute;n</h2>
+<p>Ponga las botellas de CLENPIQ en el refrigerador. CLENPIQ est&aacute; listo para beber (no requiere mezcla) y sabe mejor fr&iacute;o.</p>
+
+<!-- 1 DÍA ANTES dieta — mismo bloque compartido que la limpieza con MiraLAX -->
+{{PARTIAL_DIET_RESIDUE_PRINT}}<!-- ============================================================= -->
 <!-- DOSIS 1 (tarde antes)                                         -->
 <!-- ============================================================= -->
 <h2 class="section-heading step big-prep"><span class="icon">&#129380;</span> DOSIS 1 &mdash; La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
-<p class="note"><em>Mejor refrigerar las botellas con anticipación &mdash; CLENPIQ sabe mejor frío.</em></p>
 
 <div class="time-box">
   <div class="when">{{HTML_CLENPIQ_DOSE1_WINDOW}}</div>
@@ -737,9 +742,10 @@
 <!-- ============================================================= -->
 <h2 class="step"><span class="icon">&#128197;</span> Día del Procedimiento</h2>
 <ul>
-  <li><strong>Solo líquidos claros.</strong> Sin alimentos sólidos.</li>
-  <li><strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong></li>
-  <li>Traiga objetos de comodidad para su niño (juguete, manta, tableta, etc.).</li>
+  <li><strong>D&eacute; la Dosis 2 de CLENPIQ esta ma&ntilde;ana</strong> (vea la Dosis 2 arriba) &mdash; termine al menos {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</li>
+  <li data-pz-cutoff-hours="{{NPO_CLEARS_HOURS}}"><strong>Se permiten l&iacute;quidos claros hasta {{NPO_CLEARS_HOURS}} horas antes del procedimiento</strong> &mdash; nada por la boca despu&eacute;s de eso. Sin alimentos s&oacute;lidos el d&iacute;a del procedimiento.</li>
+  <li>Ofrezca peque&ntilde;os sorbos de l&iacute;quidos claros cada 30&ndash;60 minutos durante la ma&ntilde;ana. Cada bebida: no m&aacute;s de <strong>{{HTML_DRINK_CUP}}</strong>.</li>
+  <li>Traiga objetos de comodidad para su ni&ntilde;o (juguete, manta, tableta, etc.).</li>
 </ul>
 
 <div class="warning">&#9888;&#65039; Si la preparación no se sigue exactamente, la colonoscopia puede retrasarse o cancelarse.</div>
