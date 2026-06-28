@@ -11,11 +11,12 @@ name: deploy (Cloud Run, smoke-gated)
 
 on:
   workflow_dispatch: {}
-  # ── ENABLE AT CUTOVER (Sebastian's explicit go) ──
-  # Until this is uncommented, deploys are manual-only (Actions → Run workflow),
-  # so the first runs are deliberate. Uncommenting flips on auto-deploy-on-merge.
-  # push:
-  #   branches: [main]
+  # Auto-deploy on merge to main — CUTOVER enabled 2026-06-28. Safety proven first:
+  # 3 red runs (missing AR repo, stale vendor, gitignored template) each left prod
+  # untouched, then a green no-traffic→smoke→migrate. Manual `make deploy`/`rollback`
+  # remain as fallbacks.
+  push:
+    branches: [main]
 
 permissions:
   id-token: write      # mint the WIF OIDC token
