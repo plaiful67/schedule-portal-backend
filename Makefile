@@ -62,6 +62,14 @@ vendor-check:
 		echo "❌ vendor/ is STALE — run 'make vendor-sync' and commit it before pushing."; \
 		git --no-pager diff --stat -- vendor/; exit 1; \
 	else echo "✓ vendor/ is in sync with the skills."; fi
+	@# The CI image builds from git, so a present-but-gitignored template is MISSING
+	@# from the image → a clean-build 500 (as combined-print-personalized.* was).
+	@ignored=$$(git status --ignored --porcelain app/templates/ 2>/dev/null | grep '^!!' || true); \
+	if [ -n "$$ignored" ]; then \
+		echo "❌ gitignored template(s) under app/templates/ — they will be MISSING from the CI image:"; \
+		echo "$$ignored"; \
+		echo "   commit them (the image builds from git), or the deploy will 500 on those procedures."; exit 1; \
+	else echo "✓ no app/templates file is gitignored (all present templates are tracked)."; fi
 
 # Traffic ops (CI deploys are smoke-gated, but a post-migration regression the
 # smoke can't catch is rolled back here):

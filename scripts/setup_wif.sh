@@ -62,6 +62,7 @@ SA_NAME="gha-deploy-schedule"
 SA_EMAIL="${SA_NAME}@${PROJECT_ID}.iam.gserviceaccount.com"
 GITHUB_REPO="plaiful67/schedule-portal-backend"
 GITHUB_REF="refs/heads/main"
+REGION="us-central1"   # Cloud Run + Artifact Registry region (must match deploy.yml)
 
 # The Cloud Run RUNTIME service account the service executes as (read off the
 # live service: 417139937755-compute@developer.gserviceaccount.com). The deploy
@@ -87,6 +88,18 @@ gcloud services enable \
   artifactregistry.googleapis.com \
   --project="${PROJECT_ID}"
 
+# ── 0b. Artifact Registry repo for `gcloud run deploy --source` (create-or-skip) ─
+# --source builds push images here. Pre-creating it lets the deploy SA stay at
+# artifactregistry.writer (it does NOT need repositories.create / admin).
+if gcloud artifacts repositories describe cloud-run-source-deploy \
+     --location="${REGION}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
+  echo "= AR repo cloud-run-source-deploy already exists"
+else
+  echo "+ creating AR repo cloud-run-source-deploy (${REGION})"
+  gcloud artifacts repositories create cloud-run-source-deploy \
+    --repository-format=docker --location="${REGION}" --project="${PROJECT_ID}"
+fi
+
 # ── 1. Deploy service account (create-or-skip) ───────────────────────────────
 if gcloud iam service-accounts describe "${SA_EMAIL}" --project="${PROJECT_ID}" >/dev/null 2>&1; then
   echo "= deploy SA ${SA_EMAIL} already exists"
@@ -95,6 +108,14 @@ else
   gcloud iam service-accounts create "${SA_NAME}" \
     --project="${PROJECT_ID}" \
     --display-name="GitHub Actions deploy (schedule-portal, keyless WIF)"
+  # A freshly-created SA is not immediately usable in IAM bindings (propagation
+  # lag) — wait until it is describable so the role bindings below don't fail
+  # with 'does not exist' (which previously forced a manual re-run).
+  echo "  waiting for the SA to propagate…"
+  for _ in $(seq 1 30); do
+    gcloud iam service-accounts describe "${SA_EMAIL}" --project="${PROJECT_ID}" >/dev/null 2>&1 && break
+    sleep 2
+  done
 fi
 
 # ── 2. Least-privilege project roles on the deploy SA (idempotent add) ────────
