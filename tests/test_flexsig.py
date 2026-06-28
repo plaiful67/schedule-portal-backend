@@ -25,13 +25,15 @@ def test_flexsig_schema_accepts_prep_type():
     assert r.prep_type == "miralax"
 
 
-def test_flexsig_lactulose_band_gating():
+def test_flexsig_rejects_non_miralax_prep():
+    # Increment 1 is MiraLAX-only: any other prep (lactulose/enema/clenpiq/suprep)
+    # must be rejected at the schema (their templates aren't tokenized yet).
     from app.schemas import FlexSigRequest
     try:
-        FlexSigRequest(procedure_type="flex_sig", weight_band="over-50", prep_type="lactulose", **BASE)
+        FlexSigRequest(procedure_type="flex_sig", weight_band="21-30", prep_type="lactulose", **BASE)
     except pydantic.ValidationError:
         return
-    raise AssertionError("lactulose on over-50 band should raise ValidationError")
+    raise AssertionError("non-miralax prep on flex_sig should raise ValidationError")
 
 
 def test_registry_has_flexsig_base():
@@ -80,9 +82,9 @@ def test_render_flexsig_miralax_returns_pdf():
     assert "FlexSig" in r.headers.get("content-disposition", "")
 
 
-def test_render_flexsig_lactulose_returns_pdf():
-    # lactulose is only valid for under-30 kg bands per FlexSigRequest schema
-    p = dict(procedure_type="flex_sig", weight_band="21-30", prep_type="lactulose",
+def test_render_flexsig_miralax_small_band_returns_pdf():
+    # A second MiraLAX band to exercise the relabel path across bands.
+    p = dict(procedure_type="flex_sig", weight_band="21-30", prep_type="miralax",
              **_RENDER_BASE)
     r = client.post("/render", json=p)
     assert r.status_code == 200, r.text
@@ -115,9 +117,9 @@ def test_render_flexsig_pdf_says_flexible_sigmoidoscopy():
 
 if __name__ == "__main__":
     for fn in [test_flexsig_schema_accepts_prep_type,
-               test_flexsig_lactulose_band_gating,
+               test_flexsig_rejects_non_miralax_prep,
                test_registry_has_flexsig_base,
                test_render_flexsig_miralax_returns_pdf,
-               test_render_flexsig_lactulose_returns_pdf]:
+               test_render_flexsig_miralax_small_band_returns_pdf]:
         fn()
         print(f"PASS {fn.__name__}")

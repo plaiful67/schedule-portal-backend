@@ -126,18 +126,14 @@ class CombinedRequest(_BowelPrepBase):
 
 class FlexSigRequest(_Base):
     procedure_type: Literal["flex_sig"]
-    # Increment 1: flex sig as a "short colonoscopy" — reuses the colonoscopy
-    # bowel-prep bands + prep. Enema (FlexSigBand) is added in Increment 2.
+    # Increment 1: flex sig as a "short colonoscopy" — relabels the standard
+    # MiraLAX colonoscopy template (the only prep-variant template tokenized so
+    # far). Lactulose/clenpiq/suprep have their own templates with different
+    # hardcoded headings; enema needs its own (FlexSigBand) template. All added
+    # in a later increment — until then prep_type is MiraLAX-only so a direct
+    # API call can't produce a wrong-heading flex-sig PDF.
     weight_band: BowelPrepBand
-    prep_type: Literal["miralax", "lactulose"] = "miralax"
-
-    @model_validator(mode="after")
-    def _flexsig_prep_band_check(self):
-        if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
-            raise ValueError(
-                "lactulose prep is only available for under-15 / 15-20 / 21-30 kg bands"
-            )
-        return self
+    prep_type: Literal["miralax"] = "miralax"
 
 
 class ComposedRequest(_Base):
