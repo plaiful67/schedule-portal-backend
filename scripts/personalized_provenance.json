@@ -133,12 +133,12 @@
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.en.html",
-      "canonical_sha256": "26ce542ccc4d4504ea31d0364842f606902938e1b4cbc2ea24fd05c0c2d97e80",
+      "canonical_sha256": "fc8937277d7ff43f9c70ebce59276e312fca89522237370c2c4bf5c7680b3a4f",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/suprep-standard-print.es.html",
-      "canonical_sha256": "8111554645f3893ec40b2f36327bec1468b6ec618a1eeb9b94294138e09f8161",
+      "canonical_sha256": "31bdec409abc0c8d299f72e60d1d8fc4bac90f1f26f37ed2433f7aea0a770bc8",
       "status": "forked"
     },
     "composed/print-personalized.en.html": {
