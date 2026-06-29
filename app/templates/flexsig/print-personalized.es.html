@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>{{HTML_TITLE}}</title>
+<style>
+  /* ---------------------------------------------------------------
+     Hoja de estilo lista para imprimir (WeasyPrint, enema flex-sig
+     personalizado). Este <style> "color" navy se REEMPLAZA en tiempo
+     de render por la hoja Calm compartida (_calm.swap_calm,
+     include_egd=True); solo importa como respaldo si falta la CSS Calm.
+     --------------------------------------------------------------- */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.65in 0.5in 0.65in;
+    @bottom-right {
+      content: counter(page) " de " counter(pages);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 8.5pt; color: #666;
+    }
+    @bottom-left {
+      content: "{{PRACTICE_FOOTER}}";
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 8.5pt; color: #666;
+    }
+  }
+  @page :first { @top-center { content: ""; } }
+  @page {
+    @top-center {
+      content: string(band-label);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 9pt; color: #555; letter-spacing: 0.02em;
+    }
+  }
+
+  html { font-size: 10.5pt; }
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a; line-height: 1.33;
+  }
+
+  h1, h2, h3, h4, .ui { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: #0e2233; }
+  h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 12.5pt; margin: 10pt 0 3pt 0; font-weight: 600; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600; break-after: avoid; }
+  p { margin: 3pt 0; orphans: 2; widows: 2; }
+  ul, ol { margin: 3pt 0 3pt 16pt; padding: 0; }
+  li { margin: 1pt 0; }
+  strong { font-weight: 700; }
+  a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  a.qr-caption { color: inherit; text-decoration: none; }
+  .qr-block { display: block; color: inherit; text-decoration: none; }
+  a.resource-card { color: inherit; text-decoration: none; }
+  a.qr-caption:hover { text-decoration: underline; }
+  .location-text a { color: inherit; text-decoration: none; }
+  .location-text a:hover { text-decoration: underline; }
+
+  .cover {
+    string-set: band-label "{{BAND_LABEL}}";
+    border-bottom: 2pt solid #0e2233;
+    padding-bottom: 8pt; margin-bottom: 10pt;
+  }
+  .cover-row { display: flex; align-items: center; justify-content: space-between; gap: 14pt; margin-bottom: 4pt; }
+  .practice-logo { height: 0.65in; width: auto; flex: 0 0 auto; }
+  .practice-stack {
+    flex: 1 1 auto; text-align: center;
+    font-family: "Inter", sans-serif; font-size: 11pt; font-weight: 600;
+    color: #0e2233; line-height: 1.2;
+  }
+  .practice-stack .phone { margin-top: 1pt; font-size: 10pt; font-weight: 500; color: #555; }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .cover-qr a.qr-block img { display: inline-block; vertical-align: middle; width: 0.7in; height: 0.7in; }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: "Inter", sans-serif; font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+  .cover-title-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12pt; margin-top: 2pt; }
+  .doc-title { font-size: 16pt; font-weight: 600; color: #0e2233; margin: 1pt 0 1pt 0; white-space: nowrap; }
+  .band-label { font-family: "Inter", sans-serif; font-size: 13pt; font-weight: 600; color: #b03a00; margin-top: 2pt; }
+  .performing-physician { font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 500; color: #555; margin-top: 3pt; }
+
+  .location {
+    display: flex; gap: 10pt; align-items: flex-start;
+    border: 1pt solid #c9d3dd; background: #f4f7fa;
+    border-radius: 4pt; padding: 5pt 9pt; margin-bottom: 6pt; break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; font-size: 9.5pt; }
+  .location-text .label { font-family: "Inter", sans-serif; font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.06em; color: #555; margin-bottom: 1pt; }
+  .location-text .name { font-weight: 700; font-size: 11pt; color: #0e2233; }
+  .location-text .addr { margin-top: 1pt; }
+  .location-text .arrival { margin-top: 3pt; font-family: "Inter", sans-serif; font-weight: 600; color: #b03a00; }
+  .location-qr { flex: 0 0 auto; }
+  .location-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .location-qr a.qr-block img { display: inline-block; vertical-align: middle; width: 0.7in; height: 0.7in; }
+  .location-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.95in; text-align: right;
+    font-family: "Inter", sans-serif; font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+
+  h2.step, h2.section-heading {
+    background: #0e2233; color: #ffffff;
+    padding: 3pt 8pt; border-radius: 3pt; margin: 7pt 0 3pt 0;
+    font-size: 11.5pt; break-after: avoid; font-family: "Inter", sans-serif;
+    print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  }
+  h2.step .icon, h2.section-heading .icon { display: inline-block; margin-right: 4pt; }
+  p.note { font-size: 9.5pt; color: #555; font-style: italic; margin: 3pt 0 0 0; }
+  h3.sub, h2.sub {
+    color: #0e2233; border-bottom: 1pt solid #c9d3dd; padding-bottom: 1pt;
+    break-after: avoid; font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600;
+  }
+
+  table { width: 100%; border-collapse: collapse; margin: 4pt 0 8pt 0; font-size: 10pt; break-inside: auto; }
+  thead { display: table-header-group; }
+  th { background: #e3eaf1; color: #0e2233; font-family: "Inter", sans-serif; font-size: 9.5pt; text-align: left; padding: 4pt 6pt; border-bottom: 1pt solid #c9d3dd; font-weight: 600; }
+  td { padding: 4pt 6pt; border-bottom: 0.5pt solid #d8dee5; vertical-align: top; }
+  tr { break-inside: avoid; }
+
+  table.avoid-allowed { border: 1pt solid #c9d3dd; border-radius: 4pt; overflow: hidden; }
+  table.avoid-allowed td { width: 50%; background: #ffffff; }
+  table.avoid-allowed td.col-avoid { border-right: 0.5pt solid #e6d8d4; }
+  table.avoid-allowed th { background: #f4f7fa; }
+  table.avoid-allowed th.col-avoid { color: #7a1f00; border-bottom: 1.5pt solid #c0392b; }
+  table.avoid-allowed th.col-allowed { color: #1f4d12; border-bottom: 1.5pt solid #2e7d32; border-left: 0.5pt solid #c9d3dd; }
+
+  table.npo { width: 100%; border-collapse: collapse; margin: 4pt 0 8pt 0; border: 1pt solid #c9d3dd; border-radius: 4pt; overflow: hidden; break-inside: avoid; }
+  table.npo th { background: #e3eaf1; color: #0e2233; font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 600; text-align: left; padding: 5pt 8pt; border-bottom: 1pt solid #c9d3dd; }
+  table.npo td { padding: 5pt 8pt; border-bottom: 0.5pt solid #d8dee5; vertical-align: top; font-size: 10pt; }
+  table.npo tr:last-child td { border-bottom: none; }
+  table.npo .col-stop { width: 40%; font-family: "Inter", sans-serif; font-weight: 600; color: #0d3a6b; }
+  table.npo .stop-hours { font-size: 11pt; }
+  table.npo .note { font-weight: 400; color: #555; font-style: italic; }
+
+  .time-box { display: block; box-sizing: border-box; width: 100%; background: #e8f1fb; border-left: 3pt solid #1565c0; border-radius: 3pt; padding: 5pt 10pt; margin: 3pt 0; break-inside: avoid; font-size: 10.5pt; }
+  .time-box .when { display: inline-block; background: #1565c0; color: #fff; font-family: "Inter", sans-serif; font-weight: 700; padding: 1.5pt 6pt; border-radius: 3pt; font-size: 10pt; margin-bottom: 0; margin-right: 6pt; }
+  .time-box .what { display: inline; }
+
+  .callout, .warning { border-radius: 4pt; padding: 6pt 9pt; margin: 6pt 0; break-inside: avoid; }
+  .callout { background: #fffaeb; border: 1pt solid #d4a017; }
+  .callout p, .callout li { font-size: 12px; line-height: 1.4; }
+  .callout-title { font-family: "Inter", sans-serif; font-weight: 700; color: #7a4f00; margin-bottom: 3pt; }
+  .warning { background: #fdecea; border: 1pt solid #c0392b; font-weight: 600; color: #7a1f00; }
+
+  .two-col { display: flex; gap: 8pt; align-items: flex-start; margin: 6pt 0; }
+  .two-col > * { flex: 1 1 0; }
+  .resource-card { display: flex; align-items: center; gap: 5pt; border: 1pt solid #c9d3dd; border-radius: 4pt; padding: 4pt 6pt; background: #f8fafc; break-inside: avoid; }
+  .resource-card img { width: 0.55in; height: 0.55in; flex: 0 0 auto; }
+  .resource-card .label { font-family: "Inter", sans-serif; font-size: 8pt; color: #333; line-height: 1.2; flex: 1 1 auto; }
+
+  .page-break { break-before: page; }
+  .keep-together { break-inside: avoid; }
+  .fineprint { font-size: 8.5pt; color: #555; font-style: italic; }
+
+  /* --- Recuadro de cita personalizada --- */
+  .appt-callout { margin: 6pt 0; padding: 5pt 14pt; border: 2pt solid #0e2233; border-radius: 6pt; background: #f7f8fa; page-break-inside: avoid; }
+  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }
+  .appt-block { flex: 1 1 0; min-width: 0; }
+  .appt-block.appt-block-date { flex: 2 1 0; }
+  .appt-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; color: #555; margin-bottom: 1pt; }
+  .appt-value { font-family: "Source Serif 4", Georgia, serif; font-size: 13pt; font-weight: 700; color: #0e2233; white-space: nowrap; }
+  /* --- Recuadro estrecho de cita de seguimiento --- */
+  .followup-callout { margin: 8pt 0; padding: 6pt 12pt; border-left: 3pt solid #0e4a82; background: #f5f8fb; display: flex; align-items: baseline; gap: 8pt; page-break-inside: avoid; }
+  .followup-callout .followup-label { font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em; color: #555; font-weight: 600; }
+  .followup-callout .followup-value { font-family: "Source Serif 4", Georgia, serif; font-size: 11pt; font-weight: 600; color: #0e2233; }
+  .followup-callout.fallback .followup-value { font-family: "Inter", sans-serif; font-size: 10pt; font-weight: 400; font-style: italic; color: #555; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================= -->
+<!-- PORTADA / PÁGINA 1                                            -->
+<!-- ============================================================= -->
+<section class="cover">
+  <div class="cover-row">
+    <img class="practice-logo" src="{{PRACTICE_LOGO_FILE}}" alt="{{PRACTICE_LOGO_ALT}}">
+    <div class="practice-stack">
+      <div>{{PRACTICE_STACK_LINE_1}}</div>
+      <div>{{PRACTICE_STACK_LINE_2}}</div>
+      <div class="phone">{{PRACTICE_STACK_LINE_3}}</div>
+    </div>
+    <div class="cover-qr">
+      <a class="qr-block" href="{{MOBILE_URL}}">
+        <span class="qr-caption">Escanee o visite<br>giready.com</span>
+        <img id="qr-mobile" src="qr-placeholder.png" alt="Código QR de la versión para móvil">
+      </a>
+    </div>
+  </div>
+  <div class="cover-title-row">
+    <h1 class="doc-title">{{PROCEDURE_HEADING}}</h1>
+    <div class="band-label">{{BAND_LABEL}}</div>
+    <div class="performing-physician">Médico que realiza el procedimiento:<br>{{PERFORMING_PHYSICIAN}}</div>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- RECUADRO DE CITA (solo hoja personalizada)                    -->
+<!-- ============================================================= -->
+<section class="appt-callout">
+  <div class="appt-row">
+    <div class="appt-block appt-block-date">
+      <div class="appt-label">Fecha del procedimiento</div>
+      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Llegada</div>
+      <div class="appt-value">{{ARRIVAL_TIME}}</div>
+    </div>
+    <div class="appt-block">
+      <div class="appt-label">Hora del procedimiento</div>
+      <div class="appt-value">{{APPT_TIME}}</div>
+    </div>
+  </div>
+</section>
+
+<!-- UBICACIÓN -->
+<section class="location">
+  <div class="location-text">
+    <div class="label">Lugar del Procedimiento</div>
+    <div class="name">{{LOCATION_NAME}}</div>
+    <div class="addr"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">{{LOCATION_ADDRESS}}</a></div>
+    <div class="addr">{{LOCATION_PHONE_LABEL}}: <a href="tel:{{LOCATION_PHONE_TEL}}"><strong>{{LOCATION_PHONE}}</strong></a></div>
+    <div class="arrival">{{LOCATION_ARRIVAL}}</div>
+  </div>
+  <div class="location-qr">
+    <a class="qr-block" href="{{MAPS_URL}}" target="_blank" rel="noopener">
+      <span class="qr-caption">Escanee para Google Maps</span>
+      <img id="qr-maps" src="qr-placeholder.png" alt="C&oacute;digo QR de direcciones de Google Maps">
+    </a>
+  </div>
+</section>
+
+<!-- Cita de seguimiento (recuadro estrecho independiente) -->
+{{FOLLOWUP_BLOCK_HTML}}
+
+<!-- ============================================================= -->
+<!-- SOBRE EL PROCEDIMIENTO                                        -->
+<!-- ============================================================= -->
+<h2 class="step"><span class="icon">📖</span> Sobre el Procedimiento</h2>
+{{PROCEDURE_ABOUT}}
+
+<!-- ============================================================= -->
+<!-- RECUADRO SOLO PARA NIÑOS PEQUEÑOS (menos de 15 kg)            -->
+<!-- ============================================================= -->
+<!--IF:INFANT_CALLOUT-->
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; Importante &mdash; niño pequeño</div>
+  <p>{{SHOPPING_TEXT}}</p>
+  <p><strong>{{INFANT_WARNING}}</strong></p>
+</div>
+<!--ENDIF:INFANT_CALLOUT-->
+
+<!-- ============================================================= -->
+<!-- MEDICAMENTOS                                                  -->
+<!-- ============================================================= -->
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
+  <p style="margin: 0 0 1pt;">Prepare una lista de medicamentos y est&eacute; listo para hablar de ellos con la enfermera o el programador cuando llamen.</p>
+  <p style="margin: 0 0 1pt;"><strong>Suspenda los medicamentos antidiarreicos (Imodium, Kaopectate) y los suplementos de fibra (Metamucil) 7 d&iacute;as antes</strong>.</p>
+  <!--IF:INCLUDE_GLP--><p style="margin: 0 0 1pt;"><strong>Suspenda los medicamentos GLP-1 (Ozempic, Wegovy, Mounjaro, Trulicity) 7 d&iacute;as antes</strong> &mdash; estos retrasan el vaciamiento del est&oacute;mago y aumentan el riesgo de la anestesia.</p><!--ENDIF:INCLUDE_GLP-->
+  <!--IF:SIMPLE_DIET--><p style="margin: 0 0 1pt;">D&eacute; los medicamentos de rutina de la ma&ntilde;ana con un peque&ntilde;o sorbo de agua o leche materna, a menos que se le indique lo contrario.</p><!--ENDIF:SIMPLE_DIET-->
+  <!--IF:FULL_DIET--><p style="margin: 0 0 1pt;">D&eacute; los medicamentos de rutina de la ma&ntilde;ana con un peque&ntilde;o sorbo de agua, a menos que se le indique lo contrario.</p><!--ENDIF:FULL_DIET-->
+  <p style="margin: 0;">Puede verificar qu&eacute; medicamentos podr&iacute;an necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.</p>
+</div>
+
+<!-- ============================================================= -->
+<!-- LISTA DE COMPRAS (solo bandas con dieta completa)             -->
+<!-- ============================================================= -->
+<!--IF:FULL_DIET-->
+<h2 class="sub">Qu&eacute; comprar al menos 2 d&iacute;as antes</h2>
+<p>{{SHOPPING_TEXT}}</p>
+<div class="warning">&#9888;&#65039; <strong>Use solamente enemas SALINAS.</strong><br>
+&#9888;&#65039; <strong>NO</strong> enemas de fosfato (phospho-soda) &mdash; peligrosas para ni&ntilde;os y adolescentes.<br>
+&#9888;&#65039; <strong>NO</strong> Fleet Mineral Oil Enema &mdash; producto diferente.<br>
+&#9888;&#65039; <strong>NO</strong> supositorios de glicerina Fleet ni ning&uacute;n supositorio de glicerina &mdash; producto diferente.</div>
+<!--ENDIF:FULL_DIET-->
+
+<!-- ============================================================= -->
+<!-- 1 DÍA ANTES — DIETA                                           -->
+<!-- ============================================================= -->
+<h2 class="step"><span class="icon">&#128197;</span> 1 D&iacute;a Antes del Procedimiento</h2>
+
+<!--IF:SIMPLE_DIET-->
+<p>Si su ni&ntilde;o come s&oacute;lidos, siga una dieta baja en residuos (&ldquo;blanca&rdquo;) hasta el almuerzo &mdash; despu&eacute;s solo l&iacute;quidos claros a partir de las 2:00 PM. Si su ni&ntilde;o solo toma leche materna o f&oacute;rmula, contin&uacute;e aliment&aacute;ndolo normalmente hasta los tiempos de ayuno indicados abajo.</p>
+<table class="avoid-allowed">
+  <thead>
+    <tr>
+      <th scope="col" class="col-avoid">EVITAR</th>
+      <th scope="col" class="col-allowed">OK para dar</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-avoid">Panes y cereales integrales</td>
+      <td class="col-allowed">Cereal de arroz simple, pan blanco, galletas simples</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Fruta cruda con c&aacute;scara o semillas (bayas, uvas, naranjas)</td>
+      <td class="col-allowed">Pl&aacute;tano, pur&eacute; de manzana, yogur simple o pudin de vainilla</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Frijoles, ma&iacute;z, palomitas, nueces</td>
+      <td class="col-allowed">Huevos revueltos o cocidos, pollo simple</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Cualquier cosa roja o morada</td>
+      <td class="col-allowed">Jugo de manzana, agua, Pedialyte (nada rojo ni morado)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="sub">Despu&eacute;s de las 2:00 PM &mdash; solo l&iacute;quidos claros (sin l&aacute;cteos)</h3>
+<p>OK: agua, Pedialyte, jugo de manzana (sin pulpa), jugo de uva blanca, gelatina simple (sin rojo/morado), paletas simples (sin rojo/morado, sin trozos de fruta), caldo de pollo claro.</p>
+<p>Evite: cualquier cosa roja o morada, leche, f&oacute;rmula (a menos que su equipo de atenci&oacute;n indique lo contrario), yogur, helado, jugo con pulpa, jugo de naranja o toronja.</p>
+<!--ENDIF:SIMPLE_DIET-->
+
+<!--IF:FULL_DIET-->
+<p>Coma una dieta baja en residuos (&ldquo;blanca&rdquo;) hasta el almuerzo. <strong>Despu&eacute;s de las 2:00 PM &mdash; solo l&iacute;quidos claros</strong> (sin l&aacute;cteos).</p>
+
+<table class="avoid-allowed">
+  <thead>
+    <tr>
+      <th scope="col" class="col-avoid">EVITAR (regla baja en residuos)</th>
+      <th scope="col" class="col-allowed">OK para comer</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-avoid">Pan integral, arroz integral, avena, granola</td>
+      <td class="col-allowed">Pan blanco, bagel simple, arroz blanco, pasta simple</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Frutas crudas con c&aacute;scara o semillas (bayas, uvas, naranjas, pi&ntilde;a)</td>
+      <td class="col-allowed">Pl&aacute;tano, pur&eacute; de manzana, yogur simple o de vainilla</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Verduras crudas, ensaladas, ma&iacute;z, br&oacute;coli, coliflor, repollo, guisantes</td>
+      <td class="col-allowed">Huevos, pollo simple, papa al horno (sin c&aacute;scara)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Frijoles, lentejas, nueces, semillas, palomitas</td>
+      <td class="col-allowed">Goldfish, galletas de animalitos o saladas, pretzels</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Barras de granola, mezcla de frutos secos, galletas con nueces o fruta seca</td>
+      <td class="col-allowed">Pudin de vainilla, gelatina simple (sin rojo/morado)</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 class="sub">Despu&eacute;s de las 2:00 PM &mdash; solo l&iacute;quidos claros (sin l&aacute;cteos)</h3>
+<table class="avoid-allowed">
+  <thead>
+    <tr>
+      <th scope="col" class="col-avoid">EVITAR</th>
+      <th scope="col" class="col-allowed">OK para beber</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td class="col-avoid">Cualquier cosa roja o morada</td>
+      <td class="col-allowed">Agua, Pedialyte, Gatorade o Powerade (sin rojo/morado)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">L&aacute;cteos (leche, yogur, helado, batidos)</td>
+      <td class="col-allowed">Jugo de manzana, uva blanca o ar&aacute;ndano blanco (sin pulpa)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Jugo de naranja o toronja; jugo con pulpa</td>
+      <td class="col-allowed">Limonada colada, ginger ale, Sprite, 7-Up</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">Sopas a base de crema, chocolate caliente</td>
+      <td class="col-allowed">Caldo claro de pollo, res o verduras; t&eacute; (sin leche)</td>
+    </tr>
+    <tr>
+      <td class="col-avoid">&nbsp;</td>
+      <td class="col-allowed">Gelatina simple, paletas (sin rojo/morado, sin trozos de fruta); caramelos duros, miel</td>
+    </tr>
+  </tbody>
+</table>
+<!--ENDIF:FULL_DIET-->
+
+<!-- ============================================================= -->
+<!-- DÍA DEL PROCEDIMIENTO — ENEMA                                 -->
+<!-- ============================================================= -->
+<h2 class="section-heading step big-prep"><span class="icon">&#128138;</span> D&iacute;a del Procedimiento &mdash; Enema</h2>
+
+<div class="time-box">
+  <div class="when">1&ndash;2 horas antes de salir</div>
+  <div class="what">{{ENEMA_TEXT}}</div>
+</div>
+
+<ul>
+  <li>Pida a su ni&ntilde;o que intente <strong>retener la enema por 5 a 10 minutos</strong> antes de ir al ba&ntilde;o, si puede.</li>
+  <li>Si no hay evacuaci&oacute;n despu&eacute;s de 30 minutos, puede administrar <strong>una enema adicional</strong>.</li>
+  <li>Es normal que haya algo de evacuaci&oacute;n acuosa y varias deposiciones despu&eacute;s de la enema.</li>
+</ul>
+
+<!-- Barra de retroalimentaci&oacute;n (partial compartido) -->
+{{PARTIAL_FEEDBACK_BAR}}
+
+<!-- ============================================================= -->
+<!-- DÍA DEL PROCEDIMIENTO — NPO                                   -->
+<!-- ============================================================= -->
+<h2 class="step"><span class="icon">&#9201;&#65039;</span> D&iacute;a del Procedimiento &mdash; Comer y Beber (NPO)</h2>
+<p>Por la seguridad de su ni&ntilde;o, la anestesia requiere un est&oacute;mago vac&iacute;o. Suspenda cada alimento o l&iacute;quido indicado abajo a la hora se&ntilde;alada, contando hacia atr&aacute;s desde la <strong>hora de llegada programada</strong> de su ni&ntilde;o:</p>
+
+{{PARTIAL_NPO_TABLE_NOTHICKENER_PRINT}}
+
+<ul>
+  <li><strong>Mantenga a su ni&ntilde;o bien hidratado</strong> la ma&ntilde;ana del procedimiento &mdash; ofrezca peque&ntilde;os sorbos de l&iacute;quidos claros cada 30&ndash;60 minutos. Cada bebida: no m&aacute;s de <strong>{{DRINK_CUP}}</strong>. Beber poco y seguido es mejor que mucho de una vez &mdash; mejor hidrataci&oacute;n y m&aacute;s f&aacute;cil para el est&oacute;mago.</li>
+  <li><strong>Suspenda todos los l&iacute;quidos claros {{NPO_CLEAR}} horas antes del procedimiento.</strong></li>
+  <li>Traiga objetos de confort para su ni&ntilde;o (juguete, manta, tableta, etc.).</li>
+</ul>
+
+<div class="warning">&#9888;&#65039; Si no se siguen la preparaci&oacute;n o los tiempos de ayuno, el {{PROCEDURE_WORD}} puede retrasarse o cancelarse.</div>
+
+<!-- ============================================================= -->
+<!-- RECURSOS ÚTILES                                               -->
+<!-- ============================================================= -->
+<h2 class="step">Recursos &Uacute;tiles y Preguntas</h2>
+<div class="two-col">
+  <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
+    <img id="qr-youtube" src="qr-placeholder.png" alt="C&oacute;digo QR del video de preparaci&oacute;n">
+    <div class="label"><strong>Video de preparaci&oacute;n</strong><br>Solo ejemplo &mdash; siga esta hoja, no el video.</div>
+  </a>
+  <a class="resource-card" href="{{PORTAL_URL}}" target="_blank" rel="noopener">
+    <img id="qr-portal" src="qr-placeholder.png" alt="C&oacute;digo QR del portal del paciente">
+    <div class="label"><strong>Portal del paciente</strong><br>Env&iacute;enos un mensaje<br>Urgente: (317) 338-9450</div>
+  </a>
+  <a class="resource-card" href="{{GIKIDS_URL}}" target="_blank" rel="noopener">
+    <img id="qr-gikids" src="qr-placeholder.png" alt="C&oacute;digo QR de recursos GIKids">
+    <div class="label"><strong>GIKids.org</strong><br>Informaci&oacute;n general sobre procedimientos GI pedi&aacute;tricos.</div>
+  </a>
+</div>
+</body>
+</html>

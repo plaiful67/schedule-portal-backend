@@ -124,17 +124,36 @@ class CombinedRequest(_BowelPrepBase):
     procedure_type: Literal["combined"]
 
 
+FLEXSIG_BANDS: set[str] = {"under-15kg", "20-40kg", "over-40kg"}
+
+
 class FlexSigRequest(_Base):
     procedure_type: Literal["flex_sig"]
-    # Flex sig as a "short colonoscopy": MiraLAX/Lactulose relabel the colonoscopy
-    # bowel-prep handout (those prep templates are tokenized for the relabel).
-    # CLENPIQ/SUPREP aren't ordered for flex sig; enema is a separate render path
-    # (FlexSigRequestEnema) with its own 3-band template.
-    weight_band: BowelPrepBand
-    prep_type: Literal["miralax", "lactulose"] = "miralax"
+    # Flex sig has two prep families with DIFFERENT weight-band vocabularies:
+    #   - miralax / lactulose: "short colonoscopy" relabel of the colonoscopy
+    #     bowel-prep handout → uses the colonoscopy BowelPrepBand ids.
+    #   - enema: the saline-enema prep with its own 3-band flex-sig template
+    #     → uses the FlexSigBand ids (under-15kg / 20-40kg / over-40kg).
+    # CLENPIQ/SUPREP aren't ordered for flex sig. weight_band accepts either
+    # vocabulary; the model_validator below enforces the right one per prep_type.
+    weight_band: BowelPrepBand | FlexSigBand
+    prep_type: Literal["miralax", "lactulose", "enema"] = "miralax"
 
     @model_validator(mode="after")
     def _flexsig_prep_band_check(self):
+        if self.prep_type == "enema":
+            if self.weight_band not in FLEXSIG_BANDS:
+                raise ValueError(
+                    f"prep_type=enema requires a flex-sig weight band "
+                    f"{sorted(FLEXSIG_BANDS)} (got {self.weight_band!r})"
+                )
+            return self
+        # miralax / lactulose use the colonoscopy weight-band vocabulary.
+        if self.weight_band not in BowelPrepBand.__args__:
+            raise ValueError(
+                f"prep_type={self.prep_type!r} requires a colonoscopy weight band "
+                f"{sorted(BowelPrepBand.__args__)} (got {self.weight_band!r})"
+            )
         if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
             raise ValueError(
                 "lactulose prep is only available for under-15 / 15-20 / 21-30 kg bands"

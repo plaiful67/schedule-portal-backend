@@ -41,14 +41,40 @@ def test_flexsig_rejects_lactulose_on_large_band():
 
 
 def test_flexsig_rejects_unsupported_prep():
-    # CLENPIQ/SUPREP/enema aren't valid for FlexSigRequest (clenpiq/suprep not
-    # ordered for flex sig; enema is a separate render path).
+    # CLENPIQ/SUPREP aren't valid for FlexSigRequest (not ordered for flex sig).
     from app.schemas import FlexSigRequest
     try:
         FlexSigRequest(procedure_type="flex_sig", weight_band="31-40", prep_type="clenpiq", **BASE)
     except pydantic.ValidationError:
         return
     raise AssertionError("clenpiq prep on flex_sig should raise ValidationError")
+
+
+def test_flexsig_enema_accepts_flexsig_band():
+    from app.schemas import FlexSigRequest
+    r = FlexSigRequest(procedure_type="flex_sig", weight_band="20-40kg", prep_type="enema", **BASE)
+    assert r.prep_type == "enema"
+    assert r.weight_band == "20-40kg"
+
+
+def test_flexsig_enema_rejects_bowelprep_band():
+    # enema + a colonoscopy BowelPrepBand ("31-40") must 422.
+    from app.schemas import FlexSigRequest
+    try:
+        FlexSigRequest(procedure_type="flex_sig", weight_band="31-40", prep_type="enema", **BASE)
+    except pydantic.ValidationError:
+        return
+    raise AssertionError("enema + a BowelPrepBand should raise ValidationError")
+
+
+def test_flexsig_miralax_rejects_flexsig_band():
+    # miralax + a flex-sig FlexSigBand ("20-40kg") must 422.
+    from app.schemas import FlexSigRequest
+    try:
+        FlexSigRequest(procedure_type="flex_sig", weight_band="20-40kg", prep_type="miralax", **BASE)
+    except pydantic.ValidationError:
+        return
+    raise AssertionError("miralax + a FlexSigBand should raise ValidationError")
 
 
 def test_registry_has_flexsig_base():
@@ -117,6 +143,27 @@ def test_render_flexsig_lactulose_returns_pdf():
     assert "FlexSig" in r.headers.get("content-disposition", "")
 
 
+def test_render_flexsig_enema_returns_pdf():
+    # Flex sig ENEMA: its own 3-band template (FlexSigBand id).
+    p = dict(procedure_type="flex_sig", weight_band="20-40kg", prep_type="enema",
+             **_RENDER_BASE)
+    r = client.post("/render", json=p)
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    assert "FlexSig" in r.headers.get("content-disposition", "")
+
+
+def test_render_flexsig_enema_es_returns_pdf():
+    p = dict(procedure_type="flex_sig", weight_band="under-15kg", prep_type="enema",
+             location_id="scc", language="es", physician_id="zavoian",
+             appointment_date="2099-01-01", appointment_time="07:30",
+             arrival_time="06:30", include_directions=False)
+    r = client.post("/render", json=p)
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    assert "FlexSig" in r.headers.get("content-disposition", "")
+
+
 def test_render_flexsig_pdf_says_flexible_sigmoidoscopy():
     """PDF text-content test — requires pdfminer.six in the backend venv.
     SKIPPED: pdfminer.six is not installed; status/PDF/filename asserted instead
@@ -145,9 +192,14 @@ if __name__ == "__main__":
                test_flexsig_accepts_lactulose_on_small_band,
                test_flexsig_rejects_lactulose_on_large_band,
                test_flexsig_rejects_unsupported_prep,
+               test_flexsig_enema_accepts_flexsig_band,
+               test_flexsig_enema_rejects_bowelprep_band,
+               test_flexsig_miralax_rejects_flexsig_band,
                test_registry_has_flexsig_base,
                test_render_flexsig_miralax_returns_pdf,
                test_render_flexsig_miralax_small_band_returns_pdf,
-               test_render_flexsig_lactulose_returns_pdf]:
+               test_render_flexsig_lactulose_returns_pdf,
+               test_render_flexsig_enema_returns_pdf,
+               test_render_flexsig_enema_es_returns_pdf]:
         fn()
         print(f"PASS {fn.__name__}")

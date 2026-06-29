@@ -111,6 +111,15 @@ CASES = [
     ("flexsig lactulose 21-30 en", dict(procedure_type="flex_sig", weight_band="21-30",
                                         language="en", prep_type="lactulose",
                                         expect="Sigmoidoscopy")),
+    # Flex sig ENEMA — its own 3-band template (flex-sig FlexSigBand ids), enema
+    # clinical text from the flex-sig skill. expect guards the relabel; the
+    # generic checks() guards Calm + tagged + feedback-bar + no-leak.
+    ("flexsig enema 20-40kg en", dict(procedure_type="flex_sig", weight_band="20-40kg",
+                                      language="en", prep_type="enema",
+                                      expect="Sigmoidoscopy")),
+    ("flexsig enema under-15kg es", dict(procedure_type="flex_sig", weight_band="under-15kg",
+                                         language="es", prep_type="enema",
+                                         expect="Sigmoidoscopia")),
 ]
 
 
