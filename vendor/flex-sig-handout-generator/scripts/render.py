@@ -369,7 +369,9 @@ def build_band_placeholders(procedure, band, lang, location=None):
 # The renderer keeps OR strips each block based on the band's flags.
 
 _IF_PAT = re.compile(
-    r"<!--IF:([A-Z_]+)-->(.*?)<!--ENDIF:\1-->",
+    # [A-Z0-9_]+ (digits allowed) so flags like INCLUDE_GLP1 actually gate — with
+    # [A-Z_]+ the block never matched and the GLP-1 warning leaked onto every band.
+    r"<!--IF:([A-Z0-9_]+)-->(.*?)<!--ENDIF:\1-->",
     re.DOTALL,
 )
 
