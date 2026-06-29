@@ -1523,8 +1523,51 @@ def patch_clenpiq_standard_print_es(canonical: str) -> str:
     return BANNER + out
 
 
+def _tokenize_procedure_relabel(out: str, *, lang: str, where_prefix: str) -> str:
+    """Replace the literal colonoscopy heading / About paragraph / warning word
+    with the {{PROCEDURE_HEADING/ABOUT/WORD}} relabel tokens, so the scheduler can
+    re-title this colonoscopy handout as "Flexible Sigmoidoscopy" at render time
+    (flex-sig + MiraLAX/Lactulose). The copy is EXTRACTED from the canonical by
+    anchor (never transcribed), so the rebuilt template stays byte-identical to the
+    committed personalized template. Mirrors the combined patch's title tokenization.
+    """
+    # Heading — the single cover doc-title.
+    h_open = '<h1 class="doc-title">'
+    s = out.index(h_open) + len(h_open)
+    e = out.index("</h1>", s)
+    out = _replace_unique(
+        out, h_open + out[s:e] + "</h1>", h_open + "{{PROCEDURE_HEADING}}</h1>",
+        where=f"{where_prefix}: title -> PROCEDURE_HEADING token",
+    )
+
+    # About paragraph — the <p>…</p> between the About-the-Procedure h2 and the
+    # shared medications-note partial.
+    about_h2 = ("About the Procedure</h2>\n" if lang == "en"
+                else "Sobre el Procedimiento</h2>\n")
+    s = out.index(about_h2) + len(about_h2)
+    e = out.index("\n\n{{PARTIAL_MEDICATIONS_NOTE}}", s)
+    out = _replace_unique(
+        out, out[s:e], "{{PROCEDURE_ABOUT}}",
+        where=f"{where_prefix}: about paragraph -> PROCEDURE_ABOUT token",
+    )
+
+    # Warning word — "colonoscopy" inside the prep-not-followed warning.
+    warn_old = ("the colonoscopy may be delayed or canceled." if lang == "en"
+                else "la colonoscopia puede retrasarse o cancelarse.")
+    warn_new = ("the {{PROCEDURE_WORD}} may be delayed or canceled." if lang == "en"
+                else "la {{PROCEDURE_WORD}} puede retrasarse o cancelarse.")
+    out = _replace_unique(
+        out, warn_old, warn_new,
+        where=f"{where_prefix}: warning word -> PROCEDURE_WORD token",
+    )
+    return out
+
+
 def patch_lactulose_standard_print_en(canonical: str) -> str:
     out = canonical
+
+    # 0. Procedure relabel tokens (so flex-sig can re-title this handout).
+    out = _tokenize_procedure_relabel(out, lang="en", where_prefix="lactulose en")
 
     # 1. Fix meals CSS selector: remove h3 from ".meals .meal h3, .meals .meal h4"
     out = _replace_unique(
@@ -1599,6 +1642,9 @@ def patch_lactulose_standard_print_en(canonical: str) -> str:
 
 def patch_lactulose_standard_print_es(canonical: str) -> str:
     out = canonical
+
+    # 0. Procedure relabel tokens (so flex-sig can re-title this handout).
+    out = _tokenize_procedure_relabel(out, lang="es", where_prefix="lactulose es")
 
     # 1. Fix meals CSS selector: remove h3 from ".meals .meal h3, .meals .meal h4"
     out = _replace_unique(
