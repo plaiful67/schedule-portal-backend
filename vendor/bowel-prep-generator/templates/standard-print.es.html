@@ -5,8 +5,12 @@
 <title>{{HTML_TITLE}}</title>
 <style>
   /* ---------------------------------------------------------------
-     Hoja de estilos para WeasyPrint (versión imprimible).
-     Espejo del diseño aprobado en standard-print.en.html.
+     Print-ready stylesheet for WeasyPrint.
+     - Source Serif 4 for headings/body, Inter for UI/sans labels.
+     - Letter paper, narrow medical-handout margins.
+     - Page header repeats band label; footer shows "page X of Y".
+     - Tables, callouts, warnings: avoid breaking inside.
+     - Step headings: keep with their first paragraph.
      --------------------------------------------------------------- */
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
 
@@ -26,7 +30,11 @@
       color: #666;
     }
   }
-  @page :first { @top-center { content: ""; } }
+  /* First page: no running header (the cover already shows the band). */
+  @page :first {
+    @top-center { content: ""; }
+  }
+  /* Inside-page running header shows the weight band. */
   @page {
     @top-center {
       content: string(band-label);
@@ -37,14 +45,15 @@
     }
   }
 
-  html { font-size: 10pt; }
+  html { font-size: 10.5pt; }
   body {
     margin: 0;
     font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
     color: #1a1a1a;
-    line-height: 1.3;
+    line-height: 1.33;
   }
 
+  /* Typography ------------------------------------------------------ */
   h1, h2, h3, h4, .ui {
     font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
     color: #0e2233;
@@ -57,15 +66,19 @@
   li { margin: 1pt 0; }
   strong { font-weight: 700; }
   a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  /* QR captions stay quiet — already-styled via .qr-caption color/size, just keep them clickable */
   a.qr-caption { color: inherit; text-decoration: none; }
   /* Whole-area QR anchor (image + caption inside one <a>) and resource-card anchor */
   .qr-block { display: block; color: inherit; text-decoration: none; }
   a.resource-card { color: inherit; text-decoration: none; }
   a.qr-caption:hover { text-decoration: underline; }
+  /* Address & phone links blend with body text but remain clickable */
   .location-text a { color: inherit; text-decoration: none; }
   .location-text a:hover { text-decoration: underline; }
 
-  /* Cover */
+  /* Layout chunks --------------------------------------------------- */
+
+  /* The cover/title block — sets the running-header string. */
   .cover {
     string-set: band-label "{{BAND_LABEL}}";
     border-bottom: 2pt solid #0e2233;
@@ -142,7 +155,7 @@
     margin-top: 2pt;
   }
 
-  /* Location */
+  /* Location block (just under cover) ------------------------------- */
   .location {
     display: flex;
     gap: 10pt;
@@ -184,7 +197,7 @@
     font-size: 8pt; color: #555; line-height: 1.18;
     white-space: normal; margin-right: 5pt;
   }
-/* Section headings */
+/* Section headings -- step blocks --------------------------------- */
   h2.step, h2.section-heading {
     background: #0e2233;
     color: #ffffff;
@@ -213,6 +226,7 @@
     display: inline-block;
     margin-right: 4pt;
   }
+  /* Muted note (e.g., "If you forget...") */
   p.note {
     font-size: 9.5pt;
     color: #555;
@@ -226,7 +240,7 @@
     break-after: avoid;
   }
 
-  /* Tables */
+  /* Tables (dosing, avoid/allowed) ---------------------------------- */
   table {
     width: 100%;
     border-collapse: collapse;
@@ -268,7 +282,7 @@
     color: #1f4d12; border-bottom: 1.5pt solid #2e7d32; border-left: 0.5pt solid #c9d3dd;
   }
 
-  /* Time-boxed dose lines — badge time-label at top, content below */
+  /* Time-boxed dose lines — badge time-label at top, content below ---- */
   .time-box {
     display: block;
     box-sizing: border-box; width: 100%;
@@ -295,7 +309,7 @@
     display: inline;
   }
 
-  /* Callouts & warnings */
+  /* Callouts & warnings -------------------------------------------- */
   .callout, .warning {
     border-radius: 4pt;
     padding: 6pt 9pt;
@@ -348,7 +362,7 @@
     color: #7a1f00;
   }
 
-  /* Two-column resources / packing */
+  /* Two-column resources / packing ---------------------------------- */
   .two-col {
     display: flex;
     gap: 8pt;
@@ -379,11 +393,47 @@
     flex: 1 1 auto;
   }
 
-  /* Page break helpers */
+  /* Detailed diet reference (page 3) — Category | OK | Avoid */
+  table.diet-ref {
+    width: 100%; border-collapse: collapse;
+    margin: 4pt 0 6pt 0;
+    border: 1pt solid #c9d3dd; border-radius: 4pt; overflow: hidden;
+    font-size: 8.5pt; line-height: 1.32;
+    break-inside: avoid;
+  }
+  table.diet-ref thead { display: table-header-group; }
+  table.diet-ref th {
+    background: #e3eaf1; color: #0e2233;
+    font-family: "Inter", sans-serif; font-size: 8.5pt; font-weight: 600;
+    text-align: left; padding: 4pt 6pt;
+    border-bottom: 1pt solid #c9d3dd;
+  }
+  table.diet-ref td {
+    padding: 4pt 6pt; vertical-align: top;
+    border-bottom: 0.5pt solid #d8dee5;
+  }
+  table.diet-ref tr:last-child td { border-bottom: none; }
+  table.diet-ref tr { break-inside: avoid; }
+  table.diet-ref .col-cat {
+    width: 18%; font-family: "Inter", sans-serif; font-weight: 600;
+    color: #0e2233;
+  }
+  table.diet-ref .col-ok    { width: 41%; }
+  table.diet-ref .col-avoid { width: 41%; color: #4a4a4a; }
+  table.diet-ref th.col-ok    { color: #1f4d12; border-bottom: 1.5pt solid #2e7d32; }
+  table.diet-ref th.col-avoid { color: #7a1f00; border-bottom: 1.5pt solid #c0392b; }
+  body.theme-print-light table.diet-ref th.col-ok    { border-bottom: 1.5pt solid #2e7d32; }
+  body.theme-print-light table.diet-ref th.col-avoid { border-bottom: 1.5pt solid #c0392b; }
+
+  /* Page break helpers --------------------------------------------- */
   .page-break { break-before: page; }
   .keep-together { break-inside: avoid; }
 
-  /* Toner-friendly theme */
+  /* ---------------------------------------------------------------
+     Toner-friendly theme. When body has class "theme-print-light",
+     swap large color fills for thin borders + dark text. Keeps the
+     visual hierarchy without burning through toner.
+     --------------------------------------------------------------- */
   body.theme-print-light h2.step {
     background: #ffffff;
     color: #0e2233;
@@ -416,7 +466,7 @@
   body.theme-print-light .resource-card { background: #ffffff; }
   body.theme-print-light .meals .meal { background: #ffffff; border: 1pt solid #b9b3a3; }
 
-  /* Sample meals grid */
+  /* Sample meals grid ---------------------------------------------- */
   .meals { display: flex; gap: 10pt; margin: 4pt 0; }
   .meals .meal {
     flex: 1 1 0;
@@ -435,6 +485,7 @@
   }
   .meals .meal ul { margin: 0 0 0 14pt; }
 
+  /* Small print ----------------------------------------------------- */
   .fineprint {
     font-size: 8.5pt;
     color: #555;

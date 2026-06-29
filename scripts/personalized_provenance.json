@@ -128,7 +128,7 @@
     },
     "bowel_prep/print-personalized.es.html": {
       "canonical": "bowel-prep-generator/templates/standard-print.es.html",
-      "canonical_sha256": "8195e9484ef28e16a9fe5004be9104fb50adc2c84c177a57271d93dc947c6653",
+      "canonical_sha256": "105f010b316294e274d38fdda77455266d04bfe034e60140138c5525f7d69cad",
       "status": "forked"
     },
     "bowel_prep/suprep-standard-print-personalized.en.html": {

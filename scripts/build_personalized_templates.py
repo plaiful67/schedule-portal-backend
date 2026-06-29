@@ -824,38 +824,15 @@ def patch_standard_print_en(canonical: str) -> str:
 
 
 def patch_standard_print_es(canonical: str) -> str:
-    """Reproduce the committed bowel_prep/print-personalized.es.html.
+    """Reproduce the committed bowel_prep/print-personalized.es.html from the
+    canonical standard-print.es.html.
 
-    The committed ES stylesheet is derived from the EN canonical's <style> (the
-    ES canonical's own <style> is stale — different comments, root size, and a
-    missing diet-ref table block). So transplant the EN canonical's <style> into
-    the ES canonical, localize the two ES strings (running footer + appt-callout
-    example date), then apply the shared personalization edits.
+    The ES canonical's <style> now mirrors EN's (with the ES running-footer
+    string) — fixed upstream 2026-06-29, so no cross-language transplant is
+    needed; see DECISIONS 2026-06-29. CSS is language-neutral; only the footer
+    string and the in-<style> appt-callout example-date differ by language.
     """
     out = canonical
-
-    # Transplant the EN canonical's <style>...</style> into the ES canonical.
-    en_canonical = (VENDOR_ROOT / "bowel-prep-generator" / "templates"
-                    / "standard-print.en.html").read_text(encoding="utf-8")
-    en_style_open = en_canonical.index("<style>")
-    en_style_end = en_canonical.index("</style>", en_style_open) + len("</style>")
-    en_style = en_canonical[en_style_open:en_style_end]
-
-    es_style_open = out.index("<style>")
-    es_style_end = out.index("</style>", es_style_open) + len("</style>")
-    es_style = out[es_style_open:es_style_end]
-    out = _replace_unique(
-        out, es_style, en_style,
-        where="standard es: transplant EN canonical <style> block",
-    )
-
-    # Localize the running-footer string EN -> ES inside the transplanted style.
-    out = _replace_unique(
-        out,
-        'content: counter(page) " of " counter(pages);',
-        'content: "Página " counter(page) " de " counter(pages);',
-        where="standard es: localize running-footer page string",
-    )
 
     # Body copy: the canonical ES "Best to start..." note uses HTML entities
     # (&eacute; &ntilde; &iacute;); the committed file uses literal accented
