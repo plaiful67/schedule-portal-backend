@@ -492,6 +492,388 @@ def patch_combined_print_es(canonical: str) -> str:
     return BANNER + out
 
 
+# -----------------------------------------------------------------------------
+# Standard MiraLAX standalone colonoscopy print template.
+#
+# The committed personalized template uses the SAME composed-handout slots as
+# combined ({{PROCEDURE_HEADING}} + addon-suffix span, {{PROCEDURE_ABOUT}} +
+# {{ADDON_BLURBS}}) plus the EGD-family appointment-callout / followup /
+# meds-reference design. NOTE: the committed *.es.html stylesheet is derived
+# from the EN canonical's <style> block (English CSS comments, 10.5pt root,
+# diet-ref table CSS, etc.) — NOT from the stale ES canonical's <style>. So the
+# ES patch transplants the EN canonical's <style> into the ES canonical, then
+# localizes the two ES strings (running footer + the appt-callout comment's
+# example date). Both then receive the identical personalization edits below.
+# -----------------------------------------------------------------------------
+
+# The canonical EN block from ".medical-disclaimer {" through "</head>": the
+# disclaimer + footer-policy + footer-copyright + topbar-logo CSS, the closing
+# </style>, and the favicon/manifest-comment/meta head extras.
+_STD_DISCLAIMER_FOOTER_HEAD_EN = (
+    ".medical-disclaimer {\n"
+    "  margin-top: 16px;\n"
+    "  padding-top: 12px;\n"
+    "  border-top: 1px solid #d0d0d0;\n"
+    "  font-size: 0.85em;\n"
+    "  line-height: 1.45;\n"
+    "  color: #555;\n"
+    "}\n"
+    "@media print {\n"
+    "  .medical-disclaimer {\n"
+    "    color: #333;\n"
+    "    border-top: 1px solid #888;\n"
+    "  }\n"
+    "}\n"
+    "\n"
+    ".footer-policy-links {\n"
+    "  margin: 12px 0 8px;\n"
+    "  text-align: center;\n"
+    "  font-size: 0.85em;\n"
+    "}\n"
+    ".footer-policy-links a {\n"
+    "  color: #0e4a82;\n"
+    "  text-decoration: none;\n"
+    "}\n"
+    ".footer-policy-links a:hover { text-decoration: underline; }\n"
+    ".footer-policy-links .sep { color: #999; margin: 0 6px; }\n"
+    "\n"
+    ".footer-copyright {\n"
+    "  margin: 6px 0 4px;\n"
+    "  text-align: center;\n"
+    "  font-size: 0.8em;\n"
+    "  color: #888;\n"
+    "}\n"
+    "\n"
+    ".topbar-logo {\n"
+    "  height: 48px;\n"
+    "  width: auto;\n"
+    "  flex: 0 0 auto;\n"
+    "  display: block;\n"
+    "}\n"
+    ".topbar-logo-link {\n"
+    "  display: inline-flex;\n"
+    "  align-items: center;\n"
+    "  flex: 0 0 auto;\n"
+    "  text-decoration: none;\n"
+    "}\n"
+    "</style>\n"
+    '<link rel="icon" type="image/png" sizes="32x32" href="https://giready.com/favicon-32.png">\n'
+    '<link rel="icon" type="image/png" sizes="16x16" href="https://giready.com/favicon-16.png">\n'
+    '<link rel="apple-touch-icon" sizes="180x180" href="https://giready.com/apple-touch-icon.png">\n'
+    "<!-- No manifest on handout pages: the apex site.webmanifest declares start_url:\"/\" + display:standalone and is served with ACAO:*, which would hijack Add-to-Home-Screen to open giready.com standalone — losing the page AND the personalization hash. Without a manifest, A2HS bookmarks the current URL (hash included), in the browser, which is exactly what we teach. -->\n"
+    '<meta name="apple-mobile-web-app-title" content="GI Ready">\n'
+    '<meta name="theme-color" content="#1A3F8C">\n'
+    "</head>"
+)
+
+# Replacement: the indented appt-callout + followup + meds-reference CSS, the
+# closing </style>, and a bare </head> (head extras dropped — personalized
+# print needs no favicon/manifest/mobile meta).
+_STD_NEW_CSS_AND_HEAD = (
+    "  /* --- Personalized appointment callout --- */\n"
+    "  .appt-callout {\n"
+    "    margin: 6pt 0;\n"
+    "    padding: 5pt 14pt;\n"
+    "    border: 2pt solid #0e2233;\n"
+    "    border-radius: 6pt;\n"
+    "    background: #f7f8fa;\n"
+    "    page-break-inside: avoid;\n"
+    "  }\n"
+    "  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }\n"
+    "  .appt-block { flex: 1 1 0; min-width: 0; }\n"
+    "  /* Date holds a longer string (\"{APPT_DATE_EXAMPLE}\"); give it ~2× the\n"
+    "     width so it never wraps and times stay readable on the right. */\n"
+    "  .appt-block.appt-block-date { flex: 2 1 0; }\n"
+    "  .appt-label {\n"
+    "    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;\n"
+    "    color: #555; margin-bottom: 1pt;\n"
+    "  }\n"
+    "  .appt-value {\n"
+    '    font-family: "Source Serif 4", Georgia, serif;\n'
+    "    font-size: 13pt; font-weight: 700; color: #0e2233;\n"
+    "    white-space: nowrap;\n"
+    "  }\n"
+    "  /* --- Standalone narrow follow-up appointment callout --- */\n"
+    "  .followup-callout {\n"
+    "    margin: 8pt 0; padding: 6pt 12pt;\n"
+    "    border-left: 3pt solid #0e4a82;\n"
+    "    background: #f5f8fb;\n"
+    "    display: flex; align-items: baseline; gap: 8pt;\n"
+    "    page-break-inside: avoid;\n"
+    "  }\n"
+    "  .followup-callout .followup-label {\n"
+    "    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;\n"
+    "    color: #555; font-weight: 600;\n"
+    "  }\n"
+    "  .followup-callout .followup-value {\n"
+    '    font-family: "Source Serif 4", Georgia, serif;\n'
+    "    font-size: 11pt; font-weight: 600; color: #0e2233;\n"
+    "  }\n"
+    "  .followup-callout.fallback .followup-value {\n"
+    '    font-family: "Inter", sans-serif;\n'
+    "    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;\n"
+    "  }\n"
+    "\n"
+    "  /* --- Meds-reference callout: per-med list + footer pointer --- */\n"
+    "  .meds-reference {\n"
+    "    margin: 10pt 0; padding: 8pt 12pt;\n"
+    "    border-left: 3pt solid #d4900b; background: #fff8e6;\n"
+    "    page-break-inside: avoid;\n"
+    "  }\n"
+    "  .meds-reference-row { display: flex; align-items: center; gap: 12pt; }\n"
+    "  .meds-reference h3 {\n"
+    "    font-size: 10pt; margin: 0 0 4pt 0; color: #8a5a00;\n"
+    "    text-transform: uppercase; letter-spacing: 0.03em;\n"
+    "  }\n"
+    "  .meds-reference p { margin: 0; font-size: 9.5pt; color: #333; }\n"
+    "  .meds-reference ul { margin: 4pt 0 6pt 0; padding-left: 18pt; }\n"
+    "  .meds-reference li { font-size: 10pt; margin: 1pt 0; color: #333; }\n"
+    "  .meds-reference .med-note {\n"
+    "    display: block; font-size: 8.5pt; color: #555; font-style: italic; margin-top: 1pt;\n"
+    "  }\n"
+    "  .meds-reference .meds-footer {\n"
+    "    display: flex; align-items: center; justify-content: space-between;\n"
+    "    gap: 10pt; padding-top: 6pt; margin-top: 4pt;\n"
+    "    border-top: 1pt solid #e8d49a;\n"
+    "    font-size: 8.5pt; font-style: italic; color: #555;\n"
+    "  }\n"
+    "  .meds-reference .meds-qr { width: 32pt; height: 32pt; flex-shrink: 0; }\n"
+    "</style>\n"
+    "</head>"
+)
+
+# Canonical rescue-tip comment (shared EN/ES; both canonicals carry the short form).
+_STD_RESCUE_COMMENT_OLD = (
+    "  /* Rescue / backup-plan tip — warm amber tint to distinguish from the\n"
+    "     blue drinking-tips block. */"
+)
+_STD_RESCUE_COMMENT_NEW = (
+    "  /* §4 rescue / backup-plan tip — warm amber tint to distinguish from the\n"
+    "     blue drinking-tips block. Shows the explicit \"If the prep isn't working\n"
+    "     — backup plan:\" lead in print. */"
+)
+
+# Two pz-only comment lines inserted after the ".tip.rescue strong" rule.
+_STD_RESCUE_STRONG_OLD = "  .tip.rescue strong { color: #1a1a1a; }\n"
+_STD_RESCUE_STRONG_NEW = (
+    "  .tip.rescue strong { color: #1a1a1a; }\n"
+    "  /* Hide the personalize-only morning cutoff time — print never has the URL hash. */\n"
+    "  /* .pz-only inside the rescue tip is replaced with personalized timestamps server-side (apply_pz_substitutions); keep visible */\n"
+)
+
+
+def _patch_standard_print_style(out: str, *, appt_date_example: str) -> str:
+    """Apply the in-<style> personalization edits shared by EN/ES standard-print.
+
+    `appt_date_example` is the language-specific example date that appears in the
+    .appt-block-date CSS comment ("Wednesday, May 27, 2026" / "miércoles, 27 de
+    mayo de 2026").
+    """
+    # box-sizing rule, right after the @import line.
+    out = _replace_unique(
+        out,
+        "&display=swap');\n\n  @page {",
+        "&display=swap');\n\n  *, *::before, *::after { box-sizing: border-box; }\n\n  @page {",
+        where="standard: box-sizing reset after @import",
+    )
+
+    # .performing-physician CSS, right after the .band-label rule closes.
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n"
+        "  .performing-physician {\n"
+        '    font-family: "Inter", sans-serif;\n'
+        "    font-size: 10pt;\n"
+        "    font-weight: 500;\n"
+        "    color: #555;\n"
+        "    margin-top: 3pt;\n"
+        "  }\n",
+        where="standard: .performing-physician CSS after .band-label",
+    )
+
+    # Rescue-tip comment expansion + pz-only comment lines.
+    out = _replace_unique(
+        out, _STD_RESCUE_COMMENT_OLD, _STD_RESCUE_COMMENT_NEW,
+        where="standard: rescue-tip comment expansion",
+    )
+    out = _replace_unique(
+        out, _STD_RESCUE_STRONG_OLD, _STD_RESCUE_STRONG_NEW,
+        where="standard: pz-only rescue comments",
+    )
+
+    # Meals heading selector: drop h3.
+    out = _replace_unique(
+        out, "  .meals .meal h3, .meals .meal h4 {", "  .meals .meal h4 {",
+        where="standard: meals heading selector h3+h4 -> h4 only",
+    )
+
+    # Replace disclaimer/footer/topbar CSS + head extras with the
+    # appt/followup/meds-reference CSS + bare </head>.
+    new_css = _STD_NEW_CSS_AND_HEAD.replace("{APPT_DATE_EXAMPLE}", appt_date_example)
+    out = _replace_unique(
+        out, _STD_DISCLAIMER_FOOTER_HEAD_EN, new_css,
+        where="standard: disclaimer/footer/topbar CSS + head extras -> personalized CSS",
+    )
+    return out
+
+
+def _patch_standard_print_body(out: str, *, lang: str) -> str:
+    """Apply the shared body personalization edits to a standard-print template.
+
+    Title -> {{PROCEDURE_HEADING}} + addon-suffix span (like combined);
+    performing-physician div under band-label; appt-callout before LOCATION;
+    followup token after the location box; about paragraph -> {{PROCEDURE_ABOUT}}
+    + {{ADDON_BLURBS}}; warning word -> {{PROCEDURE_WORD}}; drop {{DOCTORS_BLOCK}}
+    + {{PARTIAL_FOOTER_LEGAL}}.
+    """
+    if lang == "en":
+        perf_html = _PERFORMING_PHYSICIAN_HTML_EN
+        appt_html = _APPT_CALLOUT_EN
+        loc_open = "<!-- LOCATION -->"
+        loc_new = "<!-- LOCATION (moved up to sit right under the appointment callout) -->"
+        followup_comment = "<!-- Follow-up appointment (narrow standalone callout) -->"
+        about_h2 = "About the Procedure</h2>\n"
+        warn_old = "the colonoscopy may be delayed or canceled."
+        warn_new = "the {{PROCEDURE_WORD}} may be delayed or canceled."
+    else:
+        perf_html = _PERFORMING_PHYSICIAN_HTML_ES
+        appt_html = _APPT_CALLOUT_ES
+        loc_open = "<!-- LOCALIZACIÓN -->"
+        loc_new = "<!-- LOCALIZACIÓN (subida para quedar bajo el callout de la cita) -->"
+        followup_comment = "<!-- Cita de seguimiento (callout estrecho independiente) -->"
+        about_h2 = "Sobre el Procedimiento</h2>\n"
+        warn_old = "la colonoscopia puede retrasarse o cancelarse."
+        warn_new = "la {{PROCEDURE_WORD}} puede retrasarse o cancelarse."
+
+    # Title — full doc-title text -> PROCEDURE_HEADING + addon-suffix span.
+    h_open = '<h1 class="doc-title">'
+    s = out.index(h_open) + len(h_open)
+    e = out.index("</h1>", s)
+    out = _replace_unique(
+        out,
+        h_open + out[s:e] + "</h1>",
+        h_open + "{{PROCEDURE_HEADING}}<span class=\"addon-suffix\">{{ADDON_TITLE_SUFFIX}}</span></h1>",
+        where=f"standard {lang}: title -> PROCEDURE_HEADING + addon-suffix span",
+    )
+
+    # Performing-physician div after band-label, inside cover-title-row.
+    out = _replace_unique(
+        out,
+        "    <div class=\"band-label\">{{BAND_LABEL}}</div>\n",
+        "    <div class=\"band-label\">{{BAND_LABEL}}</div>\n"
+        + "    " + perf_html.strip() + "\n",
+        where=f"standard {lang}: performing-physician div under band-label",
+    )
+
+    # Appointment callout before the LOCATION comment; relabel that comment.
+    out = _replace_unique(
+        out,
+        loc_open + "\n{{PARTIAL_LOCATION_BOX}}",
+        appt_html + "\n" + loc_new + "\n{{PARTIAL_LOCATION_BOX}}",
+        where=f"standard {lang}: appt-callout + relabel LOCATION comment",
+    )
+
+    # Followup token after the location box, before the ABOUT comment block.
+    out = _replace_unique(
+        out,
+        "{{PARTIAL_LOCATION_BOX}}\n\n<!-- ===",
+        "{{PARTIAL_LOCATION_BOX}}\n\n" + followup_comment + "\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- ===",
+        where=f"standard {lang}: followup token after location box",
+    )
+
+    # About paragraph -> {{PROCEDURE_ABOUT}} + {{ADDON_BLURBS}} (consumes the
+    # blank line before the PLAN-AHEAD comment, like combined).
+    s = out.index(about_h2) + len(about_h2)
+    e = out.index("\n\n", s)
+    out = _replace_unique(
+        out,
+        out[s:e] + "\n\n",
+        "{{PROCEDURE_ABOUT}}\n{{ADDON_BLURBS}}\n",
+        where=f"standard {lang}: about paragraph -> PROCEDURE_ABOUT + ADDON_BLURBS",
+    )
+
+    # Warning word -> {{PROCEDURE_WORD}}.
+    out = _replace_unique(
+        out, warn_old, warn_new,
+        where=f"standard {lang}: warning word -> PROCEDURE_WORD token",
+    )
+
+    # Drop {{DOCTORS_BLOCK}} + {{PARTIAL_FOOTER_LEGAL}} at the end (ES carries an
+    # extra REVIEW comment before the footer token, like lactulose es).
+    end_old = (
+        "{{PARTIAL_HELPFUL_RESOURCES}}\n\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>"
+        if lang == "en"
+        else "{{PARTIAL_HELPFUL_RESOURCES}}\n\n{{DOCTORS_BLOCK}}\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>"
+    )
+    out = _replace_unique(
+        out, end_old, "{{PARTIAL_HELPFUL_RESOURCES}}\n</body>",
+        where=f"standard {lang}: drop DOCTORS_BLOCK + FOOTER_LEGAL",
+    )
+    return out
+
+
+def patch_standard_print_en(canonical: str) -> str:
+    """Reproduce the committed bowel_prep/print-personalized.en.html from the
+    canonical standard-print.en.html."""
+    out = canonical
+    out = _patch_standard_print_style(out, appt_date_example="Wednesday, May 27, 2026")
+    out = _patch_standard_print_body(out, lang="en")
+    # NOTE: the committed standard print-personalized templates carry no BANNER.
+    return out
+
+
+def patch_standard_print_es(canonical: str) -> str:
+    """Reproduce the committed bowel_prep/print-personalized.es.html.
+
+    The committed ES stylesheet is derived from the EN canonical's <style> (the
+    ES canonical's own <style> is stale — different comments, root size, and a
+    missing diet-ref table block). So transplant the EN canonical's <style> into
+    the ES canonical, localize the two ES strings (running footer + appt-callout
+    example date), then apply the shared personalization edits.
+    """
+    out = canonical
+
+    # Transplant the EN canonical's <style>...</style> into the ES canonical.
+    en_canonical = (VENDOR_ROOT / "bowel-prep-generator" / "templates"
+                    / "standard-print.en.html").read_text(encoding="utf-8")
+    en_style_open = en_canonical.index("<style>")
+    en_style_end = en_canonical.index("</style>", en_style_open) + len("</style>")
+    en_style = en_canonical[en_style_open:en_style_end]
+
+    es_style_open = out.index("<style>")
+    es_style_end = out.index("</style>", es_style_open) + len("</style>")
+    es_style = out[es_style_open:es_style_end]
+    out = _replace_unique(
+        out, es_style, en_style,
+        where="standard es: transplant EN canonical <style> block",
+    )
+
+    # Localize the running-footer string EN -> ES inside the transplanted style.
+    out = _replace_unique(
+        out,
+        'content: counter(page) " of " counter(pages);',
+        'content: "Página " counter(page) " de " counter(pages);',
+        where="standard es: localize running-footer page string",
+    )
+
+    # Body copy: the canonical ES "Best to start..." note uses HTML entities
+    # (&eacute; &ntilde; &iacute;); the committed file uses literal accented
+    # characters. De-entitize that one note line.
+    out = _replace_unique(
+        out,
+        "Mejor empezar justo despu&eacute;s de la escuela &mdash; no se demore o su ni&ntilde;o podr&iacute;a no terminar antes de dormir.",
+        "Mejor empezar justo después de la escuela &mdash; no se demore o su niño podría no terminar antes de dormir.",
+        where="standard es: de-entitize 'Best to start' note",
+    )
+
+    # Apply the in-<style> personalization edits with the ES example date.
+    out = _patch_standard_print_style(out, appt_date_example="miércoles, 27 de mayo de 2026")
+    out = _patch_standard_print_body(out, lang="es")
+    # NOTE: the committed standard print-personalized templates carry no BANNER.
+    return out
+
+
 # =========================================================================
 # De-fork families (Phase 4) — constants + patch functions.
 # Each patch_* reproduces the committed fork byte-for-byte from the vendored
@@ -3052,6 +3434,9 @@ VARIANTS = [
     ("bowel-prep-generator", "clenpiq-standard-print.es.html", "bowel_prep", "clenpiq-standard-print-personalized.es.html", patch_clenpiq_standard_print_es),
     ("bowel-prep-generator", "lactulose-standard-print.en.html", "bowel_prep", "lactulose-standard-print-personalized.en.html", patch_lactulose_standard_print_en),
     ("bowel-prep-generator", "lactulose-standard-print.es.html", "bowel_prep", "lactulose-standard-print-personalized.es.html", patch_lactulose_standard_print_es),
+    # --- standard MiraLAX standalone colonoscopy (bowel-prep skill) ---
+    ("bowel-prep-generator", "standard-print.en.html", "bowel_prep", "print-personalized.en.html", patch_standard_print_en),
+    ("bowel-prep-generator", "standard-print.es.html", "bowel_prep", "print-personalized.es.html", patch_standard_print_es),
     # --- EGD family (egd-handout skill) ---
     ("egd-handout-generator", "egd-print.en.html", "egd", "print-personalized.en.html", patch_egd_print_en),
     ("egd-handout-generator", "egd-print.es.html", "egd", "print-personalized.es.html", patch_egd_print_es),
