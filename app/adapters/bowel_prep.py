@@ -304,6 +304,8 @@ def render_pdf(
     procedure_heading: str = "",
     procedure_about_html: str = "",
     procedure_word: str = "",
+    combined_lower_desc_html: str = "",
+    combined_lower_word: str = "",
 ) -> bytes:
     """Produce a personalized bowel-prep (or combined EGD+colonoscopy) PDF.
 
@@ -518,10 +520,44 @@ def render_pdf(
     }
     _DEFAULT_PROCEDURE_WORD = {"en": "colonoscopy", "es": "colonoscopia"}
 
-    _heading_default = _DEFAULT_PROCEDURE_HEADING.get(prep_type, _DEFAULT_PROCEDURE_HEADING["miralax"])
-    resolved_procedure_heading = procedure_heading or _heading_default.get(lang, "Colonoscopy")
+    # Combined (EGD + lower scope) heading defaults — keyed by prep because the
+    # combined templates' H1 diverged: the miralax combined H1 was the bare
+    # "EGD and Colonoscopy" (the addon-suffix span is template-literal, NOT part
+    # of this token), while the lactulose combined H1 kept the "Prep" /
+    # "Preparación para" wording. Each default reproduces ITS template's original
+    # H1 so EGD+colonoscopy renders stay byte-identical; flex_sig overrides them
+    # uniformly via procedure_heading. Combined heading is per-prep but NOT keyed
+    # by the standard _DEFAULT_PROCEDURE_HEADING (those are colonoscopy-only).
+    _DEFAULT_COMBINED_HEADING = {
+        "miralax":   {"en": "EGD and Colonoscopy", "es": "EGD y Colonoscopia"},
+        "lactulose": {"en": "EGD and Colonoscopy Prep", "es": "Preparación para EGD y Colonoscopia"},
+    }
+    # The lower-procedure <li> + sequencing word in the combined templates.
+    # Defaults reproduce the original colonoscopy strings exactly (byte-identity).
+    _DEFAULT_COMBINED_LOWER_DESC = {
+        "en": ('<li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed '
+               'through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>'),
+        "es": ('<li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el '
+               'recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>'),
+    }
+    _DEFAULT_COMBINED_LOWER_WORD = {"en": "colonoscopy", "es": "colonoscopia"}
+
+    if variant == "combined":
+        _combined_heading_default = _DEFAULT_COMBINED_HEADING.get(
+            prep_type, _DEFAULT_COMBINED_HEADING["miralax"]
+        )
+        resolved_procedure_heading = procedure_heading or _combined_heading_default.get(
+            lang, "EGD and Colonoscopy"
+        )
+    else:
+        _heading_default = _DEFAULT_PROCEDURE_HEADING.get(prep_type, _DEFAULT_PROCEDURE_HEADING["miralax"])
+        resolved_procedure_heading = procedure_heading or _heading_default.get(lang, "Colonoscopy")
     resolved_procedure_about = procedure_about_html or _DEFAULT_PROCEDURE_ABOUT.get(lang, _DEFAULT_PROCEDURE_ABOUT["en"])
     resolved_procedure_word = procedure_word or _DEFAULT_PROCEDURE_WORD.get(lang, "colonoscopy")
+    resolved_combined_lower_desc = combined_lower_desc_html or _DEFAULT_COMBINED_LOWER_DESC.get(
+        lang, _DEFAULT_COMBINED_LOWER_DESC["en"]
+    )
+    resolved_combined_lower_word = combined_lower_word or _DEFAULT_COMBINED_LOWER_WORD.get(lang, "colonoscopy")
 
     # Personalized callout placeholders.
     personalization_replacements = {
@@ -536,6 +572,8 @@ def render_pdf(
         "{{PROCEDURE_HEADING}}":       resolved_procedure_heading,
         "{{PROCEDURE_ABOUT}}":         resolved_procedure_about,
         "{{PROCEDURE_WORD}}":          resolved_procedure_word,
+        "{{COMBINED_LOWER_DESC}}":     resolved_combined_lower_desc,
+        "{{COMBINED_LOWER_WORD}}":     resolved_combined_lower_word,
     }
     if composed_title:
         personalization_replacements["{{HTML_TITLE}}"] = composed_title

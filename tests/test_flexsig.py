@@ -77,6 +77,36 @@ def test_flexsig_miralax_rejects_flexsig_band():
     raise AssertionError("miralax + a FlexSigBand should raise ValidationError")
 
 
+def test_flexsig_include_egd_accepts_bowelprep_band():
+    from app.schemas import FlexSigRequest
+    r = FlexSigRequest(procedure_type="flex_sig", include_egd=True, weight_band="31-40",
+                       prep_type="miralax", **BASE)
+    assert r.include_egd is True
+    assert r.weight_band == "31-40"
+
+
+def test_flexsig_include_egd_rejects_enema():
+    # include_egd + enema must 422 (enema+EGD deferred).
+    from app.schemas import FlexSigRequest
+    try:
+        FlexSigRequest(procedure_type="flex_sig", include_egd=True, weight_band="20-40kg",
+                       prep_type="enema", **BASE)
+    except pydantic.ValidationError:
+        return
+    raise AssertionError("include_egd + enema should raise ValidationError")
+
+
+def test_flexsig_include_egd_rejects_flexsig_band():
+    # include_egd uses the colonoscopy band vocabulary; a FlexSigBand must 422.
+    from app.schemas import FlexSigRequest
+    try:
+        FlexSigRequest(procedure_type="flex_sig", include_egd=True, weight_band="20-40kg",
+                       prep_type="miralax", **BASE)
+    except pydantic.ValidationError:
+        return
+    raise AssertionError("include_egd + a FlexSigBand should raise ValidationError")
+
+
 def test_registry_has_flexsig_base():
     import importlib.util
     p = pathlib.Path(__file__).resolve().parent.parent / "vendor" / "egd-handout-generator" / "scripts" / "compose.py"
@@ -164,6 +194,37 @@ def test_render_flexsig_enema_es_returns_pdf():
     assert "FlexSig" in r.headers.get("content-disposition", "")
 
 
+def test_render_egd_flexsig_miralax_returns_pdf():
+    # EGD + flex sig combined (miralax): reuses the combined bowel-prep handout
+    # relabeled for flex sig. Filename carries the EGDFlexSig token.
+    p = dict(procedure_type="flex_sig", include_egd=True, weight_band="31-40",
+             prep_type="miralax", **_RENDER_BASE)
+    r = client.post("/render", json=p)
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    assert "EGDFlexSig" in r.headers.get("content-disposition", "")
+
+
+def test_render_egd_flexsig_lactulose_es_returns_pdf():
+    p = dict(procedure_type="flex_sig", include_egd=True, weight_band="21-30",
+             prep_type="lactulose",
+             location_id="scc", language="es", physician_id="zavoian",
+             appointment_date="2099-01-01", appointment_time="07:30",
+             arrival_time="06:30", include_directions=False)
+    r = client.post("/render", json=p)
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    assert "EGDFlexSig" in r.headers.get("content-disposition", "")
+
+
+def test_render_egd_flexsig_enema_rejected():
+    # include_egd + enema is a 422 at the API boundary.
+    p = dict(procedure_type="flex_sig", include_egd=True, weight_band="20-40kg",
+             prep_type="enema", **_RENDER_BASE)
+    r = client.post("/render", json=p)
+    assert r.status_code == 422, r.text
+
+
 def test_render_flexsig_pdf_says_flexible_sigmoidoscopy():
     """PDF text-content test — requires pdfminer.six in the backend venv.
     SKIPPED: pdfminer.six is not installed; status/PDF/filename asserted instead
@@ -195,11 +256,17 @@ if __name__ == "__main__":
                test_flexsig_enema_accepts_flexsig_band,
                test_flexsig_enema_rejects_bowelprep_band,
                test_flexsig_miralax_rejects_flexsig_band,
+               test_flexsig_include_egd_accepts_bowelprep_band,
+               test_flexsig_include_egd_rejects_enema,
+               test_flexsig_include_egd_rejects_flexsig_band,
                test_registry_has_flexsig_base,
                test_render_flexsig_miralax_returns_pdf,
                test_render_flexsig_miralax_small_band_returns_pdf,
                test_render_flexsig_lactulose_returns_pdf,
                test_render_flexsig_enema_returns_pdf,
-               test_render_flexsig_enema_es_returns_pdf]:
+               test_render_flexsig_enema_es_returns_pdf,
+               test_render_egd_flexsig_miralax_returns_pdf,
+               test_render_egd_flexsig_lactulose_es_returns_pdf,
+               test_render_egd_flexsig_enema_rejected]:
         fn()
         print(f"PASS {fn.__name__}")

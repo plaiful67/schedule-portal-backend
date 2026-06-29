@@ -240,8 +240,8 @@ def patch_combined_print_en(canonical: str) -> str:
     out = _replace_unique(
         out,
         '<h1 class="doc-title">EGD and Colonoscopy Prep</h1>',
-        '<h1 class="doc-title">EGD and Colonoscopy<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
-        where="combined en: title drop Prep + addon-suffix span",
+        '<h1 class="doc-title">{{PROCEDURE_HEADING}}<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
+        where="combined en: title -> PROCEDURE_HEADING token + addon-suffix span",
     )
 
     # 1. CSS for appt-callout + performing-physician + followup-callout
@@ -347,6 +347,28 @@ def patch_combined_print_en(canonical: str) -> str:
     #  and the clear-liquids/no-dairy note moved into the 1-Day-Before line, so
     #  there is no longer a meals-intro paragraph to wrap with pz spans.)
 
+    # 8. Lower-procedure relabel tokens — let the EGD+flex-sig path swap the
+    #    colonoscopy framing for the approved flexible-sigmoidoscopy framing
+    #    WITHOUT a separate template. The adapter supplies byte-identical
+    #    defaults for the colonoscopy combined render (see bowel_prep.render_pdf
+    #    _DEFAULT_COMBINED_LOWER_* maps), so EGD+colonoscopy is unchanged.
+    #    8a. The whole colonoscopy <li> -> {{COMBINED_LOWER_DESC}} (runs AFTER the
+    #        7a ADDON_PROCEDURE_ITEMS insert, so the <li> still carries its
+    #        original text here).
+    out = _replace_unique(
+        out,
+        '<li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>',
+        '{{COMBINED_LOWER_DESC}}',
+        where="combined en: COMBINED_LOWER_DESC token (colonoscopy <li>)",
+    )
+    #    8b. The "colonoscopy" word in the EGD-first sequencing line.
+    out = _replace_unique(
+        out,
+        "The EGD is done first (through the mouth), then the colonoscopy. Both happen during the same nap.",
+        "The EGD is done first (through the mouth), then the {{COMBINED_LOWER_WORD}}. Both happen during the same nap.",
+        where="combined en: COMBINED_LOWER_WORD token (sequencing line)",
+    )
+
     return BANNER + out
 
 
@@ -362,8 +384,8 @@ def patch_combined_print_es(canonical: str) -> str:
     out = _replace_unique(
         out,
         '<h1 class="doc-title">Preparación para EGD y Colonoscopia</h1>',
-        '<h1 class="doc-title">EGD y Colonoscopia<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
-        where="combined es: title drop Preparación para + addon-suffix span",
+        '<h1 class="doc-title">{{PROCEDURE_HEADING}}<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span></h1>',
+        where="combined es: title -> PROCEDURE_HEADING token + addon-suffix span",
     )
 
     out = _inject_personalization_css(out)
@@ -450,6 +472,22 @@ def patch_combined_print_es(canonical: str) -> str:
 
     # (Caja de "Comidas de Muestra" eliminada de la plantilla canónica; ya no hay
     #  párrafo de introducción de comidas que envolver con spans pz.)
+
+    # 8. Tokens de relabel del procedimiento inferior — ver patch_combined_print_en.
+    #    8a. El <li> de colonoscopia -> {{COMBINED_LOWER_DESC}} (después del 7a).
+    out = _replace_unique(
+        out,
+        '<li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>',
+        '{{COMBINED_LOWER_DESC}}',
+        where="combined es: COMBINED_LOWER_DESC token (colonoscopia <li>)",
+    )
+    #    8b. La palabra "colonoscopia" en la línea de secuencia EGD-primero.
+    out = _replace_unique(
+        out,
+        "La EGD se realiza primero (por la boca), luego la colonoscopia. Ambas suceden durante la misma siesta.",
+        "La EGD se realiza primero (por la boca), luego la {{COMBINED_LOWER_WORD}}. Ambas suceden durante la misma siesta.",
+        where="combined es: COMBINED_LOWER_WORD token (línea de secuencia)",
+    )
 
     return BANNER + out
 

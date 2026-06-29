@@ -202,7 +202,8 @@ def _render_impl(req: RenderRequest):
             raise HTTPException(status_code=422, detail=str(e))
     elif req.procedure_type == "flex_sig":
         pdf_bytes = flex_sig.render_pdf(
-            weight_band=req.weight_band, prep_type=req.prep_type, **common
+            weight_band=req.weight_band, prep_type=req.prep_type,
+            include_egd=req.include_egd, **common
         )
     else:
         raise HTTPException(
@@ -221,7 +222,12 @@ def _render_impl(req: RenderRequest):
     parts = ["prep", req.appointment_date.isoformat(), req.physician_id.title()]
     if weight_band:
         parts.append(f"{weight_band}kg")
-    parts.append(VARIANT_TOKEN[req.procedure_type])
+    # EGD + flexible sigmoidoscopy combined gets its own token (mirrors EGDColon)
+    # so a printed stack distinguishes it from a standalone flex sig.
+    if req.procedure_type == "flex_sig" and getattr(req, "include_egd", False):
+        parts.append("EGDFlexSig")
+    else:
+        parts.append(VARIANT_TOKEN[req.procedure_type])
     parts.append(FACILITY_TOKEN[req.location_id])
     if req.language == "es":
         parts.append("ES")

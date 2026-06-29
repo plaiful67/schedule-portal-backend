@@ -170,6 +170,16 @@
       "canonical": "egd-handout-generator/templates/egdph-print.es.html",
       "canonical_sha256": "f1e0d39780f46faf4b8a822e1c0fdf4476c0e65d688c659d0968762cacfd7b55",
       "status": "forked"
+    },
+    "flexsig/print-personalized.en.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+    },
+    "flexsig/print-personalized.es.html": {
+      "canonical": null,
+      "status": "backend-only",
+      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
     }
   }
 }

@@ -71,6 +71,27 @@ _FLEXSIG_ABOUT_ES = (
 _FLEXSIG_ABOUT = {"en": _FLEXSIG_ABOUT_EN, "es": _FLEXSIG_ABOUT_ES}
 _FLEXSIG_WORD = {"en": "procedure", "es": "procedimiento"}
 
+# EGD + flexible sigmoidoscopy COMBINED relabels. These swap the colonoscopy
+# framing in the combined EGD+colonoscopy bowel-prep handout for the approved
+# flex-sig framing (same bowel prep, same weight bands). Verbatim approved
+# wording — the lower-scope <li> and the heading/sequencing word.
+_EGD_FLEXSIG_HEADING = {
+    "en": "EGD and Flexible Sigmoidoscopy",
+    "es": "EGD y Sigmoidoscopia Flexible",
+}
+_EGD_FLEXSIG_LOWER_DESC = {
+    "en": ('<li><strong>Flexible sigmoidoscopy</strong> &mdash; the same kind of camera is passed '
+           'through the bottom to look at the last part of the colon and the rectum. '
+           'Small biopsies are usually taken.</li>'),
+    "es": ('<li><strong>Sigmoidoscopia flexible</strong> &mdash; el mismo tipo de cámara se pasa por el '
+           'recto para examinar la última parte del colon y el recto. '
+           'Por lo general se toman pequeñas biopsias.</li>'),
+}
+_EGD_FLEXSIG_LOWER_WORD = {
+    "en": "flexible sigmoidoscopy",
+    "es": "sigmoidoscopia flexible",
+}
+
 # Valid enema weight bands (mirror schemas.FlexSigBand / procedure.yaml ids).
 ENEMA_BANDS: set[str] = {"under-15kg", "20-40kg", "over-40kg"}
 
@@ -320,7 +341,31 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     include_directions: bool = True,
+    include_egd: bool = False,
 ) -> bytes:
+    # EGD + flexible sigmoidoscopy combined: reuse the EGD+colonoscopy COMBINED
+    # bowel-prep handout (same miralax/lactulose prep, same 6 weight bands),
+    # relabeled so the lower scope reads as a flex sig. enema+EGD is out of scope
+    # this increment (the schema rejects it), so this path is miralax/lactulose only.
+    if include_egd:
+        return bowel_prep.render_pdf(
+            band_id=weight_band,
+            location_id=location_id,
+            lang=lang,
+            physician_id=physician_id,
+            appt_date_human=appt_date_human,
+            appt_time_display=appt_time_display,
+            arrival_time_display=arrival_time_display,
+            followup_block_html=followup_block_html,
+            appt_dt=appt_dt,
+            variant="combined",
+            prep_type=prep_type,
+            include_directions=include_directions,
+            procedure_heading=_EGD_FLEXSIG_HEADING.get(lang, _EGD_FLEXSIG_HEADING["en"]),
+            combined_lower_desc_html=_EGD_FLEXSIG_LOWER_DESC.get(lang, _EGD_FLEXSIG_LOWER_DESC["en"]),
+            combined_lower_word=_EGD_FLEXSIG_LOWER_WORD.get(lang, _EGD_FLEXSIG_LOWER_WORD["en"]),
+        )
+
     if prep_type == "enema":
         return _render_enema(
             weight_band=weight_band,

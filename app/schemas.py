@@ -138,9 +138,31 @@ class FlexSigRequest(_Base):
     # vocabulary; the model_validator below enforces the right one per prep_type.
     weight_band: BowelPrepBand | FlexSigBand
     prep_type: Literal["miralax", "lactulose", "enema"] = "miralax"
+    # include_egd: EGD + flexible sigmoidoscopy combined — the most common way a
+    # peds flex sig is ordered. Reuses the EGD+colonoscopy COMBINED bowel-prep
+    # handout, RELABELED so the lower scope reads as a flex sig. Only the oral
+    # combined preps (miralax / lactulose) are in scope this increment; enema+EGD
+    # is deferred, so include_egd=True requires a colonoscopy BowelPrepBand.
+    include_egd: bool = False
 
     @model_validator(mode="after")
     def _flexsig_prep_band_check(self):
+        if self.include_egd:
+            if self.prep_type not in ("miralax", "lactulose"):
+                raise ValueError(
+                    f"include_egd=True (EGD + flex sig) requires prep_type "
+                    f"miralax or lactulose (got {self.prep_type!r}); enema+EGD is not supported"
+                )
+            if self.weight_band not in BowelPrepBand.__args__:
+                raise ValueError(
+                    f"include_egd=True requires a colonoscopy weight band "
+                    f"{sorted(BowelPrepBand.__args__)} (got {self.weight_band!r})"
+                )
+            if self.prep_type == "lactulose" and self.weight_band not in LACTULOSE_ALLOWED_BANDS:
+                raise ValueError(
+                    "lactulose prep is only available for under-15 / 15-20 / 21-30 kg bands"
+                )
+            return self
         if self.prep_type == "enema":
             if self.weight_band not in FLEXSIG_BANDS:
                 raise ValueError(

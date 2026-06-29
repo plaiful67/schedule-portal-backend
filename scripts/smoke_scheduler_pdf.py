@@ -120,6 +120,16 @@ CASES = [
     ("flexsig enema under-15kg es", dict(procedure_type="flex_sig", weight_band="under-15kg",
                                          language="es", prep_type="enema",
                                          expect="Sigmoidoscopia")),
+    # EGD + flexible sigmoidoscopy combined — reuses the combined EGD+colonoscopy
+    # bowel-prep handout, relabeled so the lower scope is a flex sig. "Sigmoidoscop*"
+    # proves the relabel; the combined prep + EGD framing comes from the combined
+    # template (same miralax/lactulose prep, same 6 weight bands).
+    ("egd+flexsig miralax 31-40 en", dict(procedure_type="flex_sig", include_egd=True,
+                                          weight_band="31-40", language="en",
+                                          prep_type="miralax", expect="Sigmoidoscop")),
+    ("egd+flexsig lactulose 21-30 es", dict(procedure_type="flex_sig", include_egd=True,
+                                            weight_band="21-30", language="es",
+                                            prep_type="lactulose", expect="Sigmoidoscop")),
 ]
 
 
