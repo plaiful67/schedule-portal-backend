@@ -108,6 +108,9 @@ CASES = [
     ("flexsig miralax 21-30 es",  dict(procedure_type="flex_sig", weight_band="21-30",
                                        language="es", prep_type="miralax",
                                        expect="Sigmoidoscopia")),
+    ("flexsig lactulose 21-30 en", dict(procedure_type="flex_sig", weight_band="21-30",
+                                        language="en", prep_type="lactulose",
+                                        expect="Sigmoidoscopy")),
 ]
 
 

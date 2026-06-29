@@ -487,7 +487,15 @@ def render_pdf(
     # Callers such as flex_sig.py override these to relabel the procedure without
     # touching the template HTML. Colonoscopy renders are byte-identical to before
     # because the defaults reproduce the strings that were originally hardcoded.
-    _DEFAULT_PROCEDURE_HEADING = {"en": "Colonoscopy", "es": "Colonoscopia"}
+    # Heading default is per-prep because the prep-variant templates diverged:
+    # the standard (miralax) template's H1 is "Colonoscopy", but the lactulose
+    # template's is "Colonoscopy Bowel Prep". Each default reproduces ITS template's
+    # original H1 so colonoscopy renders stay byte-identical; flex_sig overrides
+    # them uniformly via procedure_heading.
+    _DEFAULT_PROCEDURE_HEADING = {
+        "miralax":   {"en": "Colonoscopy", "es": "Colonoscopia"},
+        "lactulose": {"en": "Colonoscopy Bowel Prep", "es": "Preparación para Colonoscopia"},
+    }
     _DEFAULT_PROCEDURE_ABOUT = {
         "en": (
             '<p>A <strong>colonoscopy</strong> is a short procedure done under anesthesia.'
@@ -510,7 +518,8 @@ def render_pdf(
     }
     _DEFAULT_PROCEDURE_WORD = {"en": "colonoscopy", "es": "colonoscopia"}
 
-    resolved_procedure_heading = procedure_heading or _DEFAULT_PROCEDURE_HEADING.get(lang, "Colonoscopy")
+    _heading_default = _DEFAULT_PROCEDURE_HEADING.get(prep_type, _DEFAULT_PROCEDURE_HEADING["miralax"])
+    resolved_procedure_heading = procedure_heading or _heading_default.get(lang, "Colonoscopy")
     resolved_procedure_about = procedure_about_html or _DEFAULT_PROCEDURE_ABOUT.get(lang, _DEFAULT_PROCEDURE_ABOUT["en"])
     resolved_procedure_word = procedure_word or _DEFAULT_PROCEDURE_WORD.get(lang, "colonoscopy")
 

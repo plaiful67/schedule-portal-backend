@@ -25,15 +25,30 @@ def test_flexsig_schema_accepts_prep_type():
     assert r.prep_type == "miralax"
 
 
-def test_flexsig_rejects_non_miralax_prep():
-    # Increment 1 is MiraLAX-only: any other prep (lactulose/enema/clenpiq/suprep)
-    # must be rejected at the schema (their templates aren't tokenized yet).
+def test_flexsig_accepts_lactulose_on_small_band():
+    from app.schemas import FlexSigRequest
+    r = FlexSigRequest(procedure_type="flex_sig", weight_band="21-30", prep_type="lactulose", **BASE)
+    assert r.prep_type == "lactulose"
+
+
+def test_flexsig_rejects_lactulose_on_large_band():
     from app.schemas import FlexSigRequest
     try:
-        FlexSigRequest(procedure_type="flex_sig", weight_band="21-30", prep_type="lactulose", **BASE)
+        FlexSigRequest(procedure_type="flex_sig", weight_band="over-50", prep_type="lactulose", **BASE)
     except pydantic.ValidationError:
         return
-    raise AssertionError("non-miralax prep on flex_sig should raise ValidationError")
+    raise AssertionError("lactulose on over-50 band should raise ValidationError")
+
+
+def test_flexsig_rejects_unsupported_prep():
+    # CLENPIQ/SUPREP/enema aren't valid for FlexSigRequest (clenpiq/suprep not
+    # ordered for flex sig; enema is a separate render path).
+    from app.schemas import FlexSigRequest
+    try:
+        FlexSigRequest(procedure_type="flex_sig", weight_band="31-40", prep_type="clenpiq", **BASE)
+    except pydantic.ValidationError:
+        return
+    raise AssertionError("clenpiq prep on flex_sig should raise ValidationError")
 
 
 def test_registry_has_flexsig_base():
@@ -92,6 +107,16 @@ def test_render_flexsig_miralax_small_band_returns_pdf():
     assert "FlexSig" in r.headers.get("content-disposition", "")
 
 
+def test_render_flexsig_lactulose_returns_pdf():
+    # Lactulose flex sig: relabels the lactulose colonoscopy template (≤30 kg band).
+    p = dict(procedure_type="flex_sig", weight_band="21-30", prep_type="lactulose",
+             **_RENDER_BASE)
+    r = client.post("/render", json=p)
+    assert r.status_code == 200, r.text
+    assert r.content[:4] == b"%PDF"
+    assert "FlexSig" in r.headers.get("content-disposition", "")
+
+
 def test_render_flexsig_pdf_says_flexible_sigmoidoscopy():
     """PDF text-content test — requires pdfminer.six in the backend venv.
     SKIPPED: pdfminer.six is not installed; status/PDF/filename asserted instead
@@ -117,9 +142,12 @@ def test_render_flexsig_pdf_says_flexible_sigmoidoscopy():
 
 if __name__ == "__main__":
     for fn in [test_flexsig_schema_accepts_prep_type,
-               test_flexsig_rejects_non_miralax_prep,
+               test_flexsig_accepts_lactulose_on_small_band,
+               test_flexsig_rejects_lactulose_on_large_band,
+               test_flexsig_rejects_unsupported_prep,
                test_registry_has_flexsig_base,
                test_render_flexsig_miralax_returns_pdf,
-               test_render_flexsig_miralax_small_band_returns_pdf]:
+               test_render_flexsig_miralax_small_band_returns_pdf,
+               test_render_flexsig_lactulose_returns_pdf]:
         fn()
         print(f"PASS {fn.__name__}")
