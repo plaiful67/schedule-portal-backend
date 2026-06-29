@@ -3400,6 +3400,774 @@ def patch_egd_phmii_print_es(canonical: str) -> str:
 # (vendor_skill, canonical_name, out_subdir, out_name, patch_fn)
 # vendor canonical: vendor/<vendor_skill>/templates/<canonical_name>
 # output:           app/templates/<out_subdir>/<out_name>
+# =============================================================================
+# Infant personalized print forks (de-fork 2026-06-29, de-drift Phase 4).
+# Previously hand-maintained forks tracked only by the canonical-sha provenance
+# gate; brought under the generator so check_template_drift gates them
+# byte-identically. Infants keep their own diet/taper model (NOT folded into the
+# adult {{PARTIAL_DIET_RESIDUE_*}} single-sourcing), so the diet section is
+# byte-identical to the canonical — only personalization decorations differ.
+# The committed infant forks carry NO BANNER (like standard-print), so these
+# functions `return out` without prepending BANNER.
+# =============================================================================
+
+# Shared appt + followup CSS for the infant forks: identical to
+# _STD_NEW_CSS_AND_HEAD but WITHOUT the .meds-reference block and the
+# .appt-block-date example-date comment (infants carry neither).
+_INFANT_NEW_CSS_AND_HEAD = (
+    "  /* --- Personalized appointment callout --- */\n"
+    "  .appt-callout {\n"
+    "    margin: 6pt 0;\n"
+    "    padding: 5pt 14pt;\n"
+    "    border: 2pt solid #0e2233;\n"
+    "    border-radius: 6pt;\n"
+    "    background: #f7f8fa;\n"
+    "    page-break-inside: avoid;\n"
+    "  }\n"
+    "  .appt-row { display: flex; justify-content: space-between; gap: 16pt; align-items: baseline; }\n"
+    "  .appt-block { flex: 1 1 0; min-width: 0; }\n"
+    "  .appt-block.appt-block-date { flex: 2 1 0; }\n"
+    "  .appt-label {\n"
+    "    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;\n"
+    "    color: #555; margin-bottom: 1pt;\n"
+    "  }\n"
+    "  .appt-value {\n"
+    '    font-family: "Source Serif 4", Georgia, serif;\n'
+    "    font-size: 13pt; font-weight: 700; color: #0e2233;\n"
+    "    white-space: nowrap;\n"
+    "  }\n"
+    "  /* --- Standalone narrow follow-up appointment callout --- */\n"
+    "  .followup-callout {\n"
+    "    margin: 8pt 0; padding: 6pt 12pt;\n"
+    "    border-left: 3pt solid #0e4a82;\n"
+    "    background: #f5f8fb;\n"
+    "    display: flex; align-items: baseline; gap: 8pt;\n"
+    "    page-break-inside: avoid;\n"
+    "  }\n"
+    "  .followup-callout .followup-label {\n"
+    "    font-size: 8.5pt; text-transform: uppercase; letter-spacing: 0.04em;\n"
+    "    color: #555; font-weight: 600;\n"
+    "  }\n"
+    "  .followup-callout .followup-value {\n"
+    '    font-family: "Source Serif 4", Georgia, serif;\n'
+    "    font-size: 11pt; font-weight: 600; color: #0e2233;\n"
+    "  }\n"
+    "  .followup-callout.fallback .followup-value {\n"
+    '    font-family: "Inter", sans-serif;\n'
+    "    font-size: 10pt; font-weight: 400; font-style: italic; color: #555;\n"
+    "  }\n"
+    "</style>\n"
+    "</head>"
+)
+# ES variant: same bytes, the two CSS section comments localized (the committed
+# ES stylesheet derives from the EN canonical <style>).
+_INFANT_NEW_CSS_AND_HEAD_ES = _INFANT_NEW_CSS_AND_HEAD.replace(
+    "  /* --- Personalized appointment callout --- */\n",
+    "  /* --- Callout de la cita personalizada --- */\n",
+).replace(
+    "  /* --- Standalone narrow follow-up appointment callout --- */\n",
+    "  /* --- Callout estrecho independiente de cita de seguimiento --- */\n",
+)
+# performing-physician CSS rule, appended after the .band-label rule closes.
+_INFANT_PERF_CSS_BLOCK = (
+    "  .performing-physician {\n"
+    '    font-family: "Inter", sans-serif;\n'
+    "    font-size: 10pt;\n"
+    "    font-weight: 500;\n"
+    "    color: #555;\n"
+    "    margin-top: 3pt;\n"
+    "  }\n"
+)
+
+
+def _patch_infant_print(out: str, *, lang: str) -> str:
+    """Reproduce the committed bowel_prep/infant-print-personalized.{en,es}.html.
+
+    The infant-print fork (standalone MiraLAX colonoscopy, infant taper) has no
+    title/about/PROCEDURE_WORD tokenization. Operations: perf-physician CSS, the
+    disclaimer/footer/topbar CSS + head-extras swap, the perf-physician div, the
+    appt-callout, the followup token, the "NOT chewables" <br><span> -> <div>
+    re-wrap, data-pz stamps on the three step <h2>s, dropping the duplicate
+    feedback resource-card, and the DOCTORS_BLOCK/FOOTER_LEGAL tail ->
+    {{PARTIAL_FEEDBACK_BAR}}. Diet/dosing/NPO prose is byte-identical to canonical.
+    """
+    perf_html = _PERFORMING_PHYSICIAN_HTML_EN if lang == "en" else _PERFORMING_PHYSICIAN_HTML_ES
+    appt_html = _APPT_CALLOUT_EN if lang == "en" else _APPT_CALLOUT_ES
+    new_css = _INFANT_NEW_CSS_AND_HEAD if lang == "en" else _INFANT_NEW_CSS_AND_HEAD_ES
+    if lang == "en":
+        followup_comment = "<!-- Follow-up appointment (narrow standalone callout) -->"
+        loc_comment = "<!-- LOCATION -->"
+        weight_comment = "<!-- WEIGHT-BAND NOTICE -->"
+        chew_old = (
+            "  <li><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, or other store brand) &mdash; only a small amount needed; see dose table below.<br>"
+            '<span style="font-size: 8.5pt; color: #7a1f00;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</span></li>'
+        )
+        chew_new = (
+            "  <li><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, or other store brand) &mdash; only a small amount needed; see dose table below.\n"
+            '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</div>\n'
+            "  </li>"
+        )
+        h2_specs = [
+            ('<h2 class="step"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>',
+             '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &amp; the next day &mdash; MiraLAX dosing"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>'),
+            ('<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+             '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Evening"><span class="icon">&#128197;</span> Day Before the Procedure</h2>'),
+            ('<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+             '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Fasting Rules"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>'),
+        ]
+        feedback_card = (
+            '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+            '    <img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR">\n'
+            '    <div class="label"><strong>Tell us what you think</strong><br>of these instructions</div>\n'
+            "  </a>\n"
+        )
+        tail_old = "\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>"
+    else:
+        followup_comment = "<!-- Cita de seguimiento (callout estrecho independiente) -->"
+        loc_comment = "<!-- UBICACIÓN -->"
+        weight_comment = "<!-- AVISO DE PESO -->"
+        chew_old = (
+            "  <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) &mdash; solo se necesita una cantidad pequeña; vea la tabla de dosis abajo.<br>"
+            '<span style="font-size: 8.5pt; color: #7a1f00;">&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</span></li>'
+        )
+        chew_new = (
+            "  <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) &mdash; solo se necesita una cantidad pequeña; vea la tabla de dosis abajo.\n"
+            '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</div>\n'
+            "  </li>"
+        )
+        h2_specs = [
+            ('<h2 class="step"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>',
+             '<h2 class="step" data-pz-day="-3" data-pz-suffix=" y el día siguiente &mdash; Dosis de MiraLAX"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>'),
+            ('<h2 class="step"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+             '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Bajo en residuos hasta la noche"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>'),
+            ('<h2 class="step"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+             '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Reglas de ayuno"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>'),
+        ]
+        feedback_card = (
+            '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+            '    <img id="qr-feedback" src="qr-placeholder.png" alt="QR de comentarios">\n'
+            '    <div class="label"><strong>Díganos qué piensa</strong><br>de estas instrucciones</div>\n'
+            "  </a>\n"
+        )
+        tail_old = (
+            "\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n"
+            "{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>"
+        )
+
+    # 1. .performing-physician CSS after the .band-label rule.
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where=f"infant {lang}: .performing-physician CSS",
+    )
+    # 2. disclaimer/footer/topbar CSS + head extras -> appt/followup CSS + bare </head>.
+    out = _replace_unique(out, _STD_DISCLAIMER_FOOTER_HEAD_EN, new_css,
+                          where=f"infant {lang}: CSS+head swap")
+    # 3. performing-physician div under band-label.
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n' + "    " + perf_html.strip() + "\n",
+        where=f"infant {lang}: performing-physician div",
+    )
+    # 4. appt-callout between cover </section> and the LOCATION comment.
+    out = _replace_unique(
+        out,
+        "</section>\n\n" + loc_comment,
+        "</section>\n\n" + appt_html + "\n" + loc_comment,
+        where=f"infant {lang}: appt-callout before LOCATION",
+    )
+    # 5. followup token after the location box, before WEIGHT-BAND NOTICE.
+    out = _replace_unique(
+        out,
+        "</section>\n\n" + weight_comment,
+        "</section>\n\n" + followup_comment + "\n{{FOLLOWUP_BLOCK_HTML}}\n\n" + weight_comment,
+        where=f"infant {lang}: followup token after location",
+    )
+    # 6. "NOT chewables" warning: <br><span> -> <div>.
+    out = _replace_unique(out, chew_old, chew_new, where=f"infant {lang}: chewables br/span -> div")
+    # 7. data-pz-day stamp the three step <h2> headings.
+    for old, new in h2_specs:
+        out = _replace_unique(out, old, new, where=f"infant {lang}: data-pz h2 {old[:40]}")
+    # 8. Drop the feedback resource-card (feedback now lives in PARTIAL_FEEDBACK_BAR).
+    out = _replace_unique(out, feedback_card, "", where=f"infant {lang}: drop feedback resource-card")
+    # 9. Tail: DOCTORS_BLOCK + FOOTER_LEGAL -> {{PARTIAL_FEEDBACK_BAR}}.
+    out = _replace_unique(out, tail_old, "{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+                          where=f"infant {lang}: tail -> PARTIAL_FEEDBACK_BAR")
+    return out
+
+
+def patch_infant_print_en(canonical: str) -> str:
+    return _patch_infant_print(canonical, lang="en")
+
+
+def patch_infant_print_es(canonical: str) -> str:
+    return _patch_infant_print(canonical, lang="es")
+
+
+def patch_combined_infant_print_en(canonical: str) -> str:
+    """Reproduce bowel_prep/combined-infant-print-personalized.en.html."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where="combined-infant en: .performing-physician CSS after .band-label",
+    )
+    out = _strip_legal_footer(out, lang="en")
+    out = _replace_unique(
+        out,
+        _TOPBAR_AND_HEAD_EXTRAS,
+        "\n" + _INFANT_NEW_CSS_AND_HEAD,
+        where="combined-infant en: topbar/head -> appt/followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n' + _PERFORMING_PHYSICIAN_HTML_EN,
+        where="combined-infant en: performing-physician callout under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- LOCATION -->",
+        "</section>\n\n" + _APPT_CALLOUT_EN + "\n<!-- LOCATION -->",
+        where="combined-infant en: appt-callout HTML insertion before LOCATION",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+        "<!-- Follow-up appointment (narrow standalone callout) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n"
+        "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+        where="combined-infant en: followup token before procedures section",
+    )
+    out = _replace_unique(
+        out,
+        'see dose table below.<br><span style="font-size: 8.5pt; color: #7a1f00;">'
+        "&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</span></li>",
+        "see dose table below.\n"
+        '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">'
+        "&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</div>\n"
+        "  </li>",
+        where="combined-infant en: MiraLAX warning <br><span> -> <div>",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>',
+        '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &amp; the next day &mdash; MiraLAX dosing">'
+        '<span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>',
+        where="combined-infant en: 3+2-days-before heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Evening">'
+        '<span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        where="combined-infant en: day-before heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Fasting Rules">'
+        '<span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        where="combined-infant en: fasting-rules heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '\n  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR">\n'
+        '    <div class="label"><strong>Tell us what you think</strong><br>of these instructions</div>\n'
+        "  </a>",
+        "",
+        where="combined-infant en: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "\n\n\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+        "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="combined-infant en: DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_combined_infant_print_es(canonical: str) -> str:
+    """Reproduce bowel_prep/combined-infant-print-personalized.es.html."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where="combined-infant es: .performing-physician CSS after .band-label",
+    )
+    out = _strip_legal_footer(out, lang="es")
+    out = _replace_unique(
+        out,
+        _TOPBAR_AND_HEAD_EXTRAS,
+        "\n" + _INFANT_NEW_CSS_AND_HEAD_ES,
+        where="combined-infant es: topbar/head -> appt/followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n' + _PERFORMING_PHYSICIAN_HTML_ES,
+        where="combined-infant es: performing-physician callout under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- UBICACIÓN -->",
+        "</section>\n\n" + _APPT_CALLOUT_ES + "\n<!-- UBICACIÓN -->",
+        where="combined-infant es: appt-callout HTML insertion before UBICACIÓN",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+        "<!-- Cita de seguimiento (callout estrecho independiente) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n"
+        "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+        where="combined-infant es: followup token before procedures section",
+    )
+    out = _replace_unique(
+        out,
+        "vea la tabla de dosis abajo.<br>"
+        '<span style="font-size: 8.5pt; color: #7a1f00;">'
+        "&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</span></li>",
+        "vea la tabla de dosis abajo.\n"
+        '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">'
+        "&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</div>\n"
+        "  </li>",
+        where="combined-infant es: MiraLAX warning <br><span> -> <div>",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="-3" data-pz-suffix=" y el día siguiente &mdash; Dosis de MiraLAX">'
+        '<span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>',
+        where="combined-infant es: 3+2-days-before heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Bajo en residuos hasta la noche">'
+        '<span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        where="combined-infant es: day-before heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Reglas de ayuno">'
+        '<span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        where="combined-infant es: fasting-rules heading stamp",
+    )
+    out = _replace_unique(
+        out,
+        '\n  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="QR de comentarios">\n'
+        '    <div class="label"><strong>Díganos qué piensa</strong><br>de estas instrucciones</div>\n'
+        "  </a>",
+        "",
+        where="combined-infant es: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "\n\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+        "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="combined-infant es: REVIEW + DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_lactulose_infant_print_en(canonical: str) -> str:
+    """Reproduce bowel_prep/lactulose-infant-print-personalized.en.html."""
+    out = canonical
+    out = _strip_legal_footer(out, lang="en")
+    out = _replace_unique(
+        out,
+        _TOPBAR_AND_HEAD_EXTRAS,
+        "</style>\n</head>",
+        where="lactulose infant en: strip topbar CSS + favicon + mobile meta",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n  </div>\n</section>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n'
+        '    ' + _PERFORMING_PHYSICIAN_HTML_EN.strip() + '\n'
+        '  </div>\n</section>',
+        where="lactulose infant en: performing-physician callout under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- LOCATION -->",
+        "</section>\n\n" + _APPT_CALLOUT_EN + "\n<!-- LOCATION -->",
+        where="lactulose infant en: appt-callout insertion before LOCATION",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- WEIGHT-BAND NOTICE -->",
+        "</section>\n\n<!-- Follow-up appointment (narrow standalone callout) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- WEIGHT-BAND NOTICE -->",
+        where="lactulose infant en: followup token after location box",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR">\n'
+        '    <div class="label"><strong>Tell us what you think</strong><br>of these instructions</div>\n'
+        '  </a>\n',
+        "",
+        where="lactulose infant en: remove feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="lactulose infant en: replace DOCTORS_BLOCK with PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_lactulose_infant_print_es(canonical: str) -> str:
+    """Reproduce bowel_prep/lactulose-infant-print-personalized.es.html."""
+    out = canonical
+    out = _strip_legal_footer(out, lang="es")
+    out = _replace_unique(
+        out,
+        _TOPBAR_AND_HEAD_EXTRAS,
+        "</style>\n</head>",
+        where="lactulose infant es: strip topbar CSS + favicon + mobile meta",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n  </div>\n</section>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n'
+        '    ' + _PERFORMING_PHYSICIAN_HTML_ES.strip() + '\n'
+        '  </div>\n</section>',
+        where="lactulose infant es: performing-physician callout under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- UBICACIÓN -->",
+        "</section>\n\n" + _APPT_CALLOUT_ES + "\n<!-- UBICACIÓN -->",
+        where="lactulose infant es: appt-callout insertion before UBICACIÓN",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- AVISO DE PESO -->",
+        "</section>\n\n<!-- Cita de seguimiento (callout estrecho independiente) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- AVISO DE PESO -->",
+        where="lactulose infant es: followup token after location box",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="QR de comentarios">\n'
+        '    <div class="label"><strong>Díganos qué piensa</strong><br>de estas instrucciones</div>\n'
+        '  </a>\n',
+        "",
+        where="lactulose infant es: remove feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="lactulose infant es: replace ES review comment + DOCTORS_BLOCK with PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_infant_enema_print_en(canonical: str) -> str:
+    """Reproduce bowel_prep/infant-enema-print-personalized.en.html (enema prep,
+    no low-residue diet section)."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where="infant-enema en: .performing-physician CSS after .band-label",
+    )
+    out = _replace_unique(
+        out, _STD_DISCLAIMER_FOOTER_HEAD_EN, _INFANT_NEW_CSS_AND_HEAD,
+        where="infant-enema en: disclaimer/footer/head -> appt+followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n  </div>\n</section>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n'
+        '    ' + _PERFORMING_PHYSICIAN_HTML_EN.strip() + '\n'
+        '  </div>\n</section>',
+        where="infant-enema en: performing-physician div under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- LOCATION -->",
+        "</section>\n\n" + _APPT_CALLOUT_EN + "\n<!-- LOCATION -->",
+        where="infant-enema en: appt-callout before LOCATION",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- SAFETY CALLOUT",
+        "</section>\n\n"
+        "<!-- Follow-up appointment (narrow standalone callout) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- SAFETY CALLOUT",
+        where="infant-enema en: followup token after location box",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Clear Liquids Day"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        where="infant-enema en: day-before heading data-pz",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Fasting Rules"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        where="infant-enema en: fasting-rules heading data-pz",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR">\n'
+        '    <div class="label"><strong>Tell us what you think</strong><br>of these instructions</div>\n'
+        '  </a>\n',
+        "",
+        where="infant-enema en: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="infant-enema en: DOCTORS_BLOCK+FOOTER_LEGAL -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_infant_enema_print_es(canonical: str) -> str:
+    """Reproduce bowel_prep/infant-enema-print-personalized.es.html."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where="infant-enema es: .performing-physician CSS after .band-label",
+    )
+    out = _replace_unique(
+        out, _STD_DISCLAIMER_FOOTER_HEAD_EN, _INFANT_NEW_CSS_AND_HEAD_ES,
+        where="infant-enema es: disclaimer/footer/head -> appt+followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n  </div>\n</section>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n'
+        '    ' + _PERFORMING_PHYSICIAN_HTML_ES.strip() + '\n'
+        '  </div>\n</section>',
+        where="infant-enema es: performing-physician div under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- UBICACIÓN -->",
+        "</section>\n\n" + _APPT_CALLOUT_ES + "\n<!-- UBICACIÓN -->",
+        where="infant-enema es: appt-callout before UBICACIÓN",
+    )
+    out = _replace_unique(
+        out,
+        "</section>\n\n<!-- AVISO DE SEGURIDAD -->",
+        "</section>\n\n"
+        "<!-- Cita de seguimiento (callout estrecho independiente) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- AVISO DE SEGURIDAD -->",
+        where="infant-enema es: followup token after location box",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Día de líquidos claros"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        where="infant-enema es: day-before heading data-pz",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Reglas de ayuno"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        where="infant-enema es: fasting-rules heading data-pz",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="QR de comentarios">\n'
+        '    <div class="label"><strong>Díganos qué piensa</strong><br>de estas instrucciones</div>\n'
+        '  </a>\n',
+        "",
+        where="infant-enema es: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="infant-enema es: DOCTORS_BLOCK+FOOTER_LEGAL -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_combined_infant_enema_print_en(canonical: str) -> str:
+    """Reproduce bowel_prep/combined-infant-enema-print-personalized.en.html."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    margin-top: 2pt;\n  }\n  .option-tag {",
+        "    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK + "  .option-tag {",
+        where="combined-infant-enema en: .performing-physician CSS after .band-label",
+    )
+    out = _replace_unique(
+        out, _STD_DISCLAIMER_FOOTER_HEAD_EN, _INFANT_NEW_CSS_AND_HEAD,
+        where="combined-infant-enema en: legal-footer block -> appt/followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n    <div class="performing-physician">Performing physician:<br>{{PERFORMING_PHYSICIAN}}</div>',
+        where="combined-infant-enema en: performing-physician div under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- LOCATION -->",
+        "<!-- ============================================================= -->\n"
+        "<!-- APPOINTMENT CALLOUT (personalized handout only)               -->\n"
+        "<!-- ============================================================= -->\n"
+        '<section class="appt-callout">\n'
+        '  <div class="appt-row">\n'
+        '    <div class="appt-block appt-block-date">\n'
+        '      <div class="appt-label">Procedure date</div>\n'
+        '      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>\n'
+        "    </div>\n"
+        '    <div class="appt-block">\n'
+        '      <div class="appt-label">Arrival</div>\n'
+        '      <div class="appt-value">{{ARRIVAL_TIME}}</div>\n'
+        "    </div>\n"
+        '    <div class="appt-block">\n'
+        '      <div class="appt-label">Procedure time</div>\n'
+        '      <div class="appt-value">{{APPT_TIME}}</div>\n'
+        "    </div>\n"
+        "  </div>\n"
+        "</section>\n\n"
+        "<!-- LOCATION -->",
+        where="combined-infant-enema en: appt-callout before LOCATION comment",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+        "<!-- Follow-up appointment (narrow standalone callout) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n"
+        "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+        where="combined-infant-enema en: followup token before procedures intro",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Clear Liquids Day"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+        where="combined-infant-enema en: day-before heading data-pz stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Fasting Rules"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+        where="combined-infant-enema en: fasting-rules heading data-pz stamp",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="Feedback QR">\n'
+        '    <div class="label"><strong>Tell us what you think</strong><br>of these instructions</div>\n'
+        "  </a>\n",
+        "",
+        where="combined-infant-enema en: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="combined-infant-enema en: tail -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
+def patch_combined_infant_enema_print_es(canonical: str) -> str:
+    """Reproduce bowel_prep/combined-infant-enema-print-personalized.es.html."""
+    out = canonical
+    out = _replace_unique(
+        out,
+        "    margin-top: 2pt;\n  }\n  .option-tag {",
+        "    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK + "  .option-tag {",
+        where="combined-infant-enema es: .performing-physician CSS after .band-label",
+    )
+    out = _replace_unique(
+        out, _STD_DISCLAIMER_FOOTER_HEAD_EN, _INFANT_NEW_CSS_AND_HEAD_ES,
+        where="combined-infant-enema es: legal-footer block -> appt/followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '    <div class="band-label">{{BAND_LABEL}}</div>',
+        '    <div class="band-label">{{BAND_LABEL}}</div>\n    <div class="performing-physician">Médico que realiza el procedimiento:<br>{{PERFORMING_PHYSICIAN}}</div>',
+        where="combined-infant-enema es: performing-physician div under band-label",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- UBICACIÓN -->",
+        "<!-- ============================================================= -->\n"
+        "<!-- CALLOUT DE LA CITA (solo en versión personalizada)            -->\n"
+        "<!-- ============================================================= -->\n"
+        '<section class="appt-callout">\n'
+        '  <div class="appt-row">\n'
+        '    <div class="appt-block appt-block-date">\n'
+        '      <div class="appt-label">Fecha del procedimiento</div>\n'
+        '      <div class="appt-value">{{APPT_DATE_HUMAN}}</div>\n'
+        "    </div>\n"
+        '    <div class="appt-block">\n'
+        '      <div class="appt-label">Llegada</div>\n'
+        '      <div class="appt-value">{{ARRIVAL_TIME}}</div>\n'
+        "    </div>\n"
+        '    <div class="appt-block">\n'
+        '      <div class="appt-label">Hora del procedimiento</div>\n'
+        '      <div class="appt-value">{{APPT_TIME}}</div>\n'
+        "    </div>\n"
+        "  </div>\n"
+        "</section>\n\n"
+        "<!-- UBICACIÓN -->",
+        where="combined-infant-enema es: appt-callout before UBICACION comment",
+    )
+    out = _replace_unique(
+        out,
+        "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+        "<!-- Cita de seguimiento (callout estrecho independiente) -->\n"
+        "{{FOLLOWUP_BLOCK_HTML}}\n\n"
+        "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+        where="combined-infant-enema es: followup token before procedures intro",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Día de líquidos claros"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+        where="combined-infant-enema es: day-before heading data-pz stamp",
+    )
+    out = _replace_unique(
+        out,
+        '<h2 class="step"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Reglas de ayuno"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+        where="combined-infant-enema es: fasting-rules heading data-pz stamp",
+    )
+    out = _replace_unique(
+        out,
+        '  <a class="resource-card" href="{{FEEDBACK_URL}}" data-cta-v2="1" target="_blank" rel="noopener">\n'
+        '    <img id="qr-feedback" src="qr-placeholder.png" alt="QR de comentarios">\n'
+        '    <div class="label"><strong>Díganos qué piensa</strong><br>de estas instrucciones</div>\n'
+        "  </a>\n",
+        "",
+        where="combined-infant-enema es: drop feedback resource-card",
+    )
+    out = _replace_unique(
+        out,
+        "</p>\n\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{DOCTORS_BLOCK}}\n\n{{PARTIAL_FOOTER_LEGAL}}\n\n\n</body>",
+        "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+        where="combined-infant-enema es: tail -> PARTIAL_FEEDBACK_BAR",
+    )
+    return out
+
+
 VARIANTS = [
     # --- combined EGD+colonoscopy (bowel-prep skill) ---
     ("bowel-prep-generator", "combined-print.en.html", "bowel_prep", "combined-print-personalized.en.html", patch_combined_print_en),
@@ -3414,6 +4182,17 @@ VARIANTS = [
     # --- standard MiraLAX standalone colonoscopy (bowel-prep skill) ---
     ("bowel-prep-generator", "standard-print.en.html", "bowel_prep", "print-personalized.en.html", patch_standard_print_en),
     ("bowel-prep-generator", "standard-print.es.html", "bowel_prep", "print-personalized.es.html", patch_standard_print_es),
+    # --- infant forks (de-fork 2026-06-29, de-drift Phase 4) ---
+    ("bowel-prep-generator", "infant-print.en.html", "bowel_prep", "infant-print-personalized.en.html", patch_infant_print_en),
+    ("bowel-prep-generator", "infant-print.es.html", "bowel_prep", "infant-print-personalized.es.html", patch_infant_print_es),
+    ("bowel-prep-generator", "combined-infant-print.en.html", "bowel_prep", "combined-infant-print-personalized.en.html", patch_combined_infant_print_en),
+    ("bowel-prep-generator", "combined-infant-print.es.html", "bowel_prep", "combined-infant-print-personalized.es.html", patch_combined_infant_print_es),
+    ("bowel-prep-generator", "lactulose-infant-print.en.html", "bowel_prep", "lactulose-infant-print-personalized.en.html", patch_lactulose_infant_print_en),
+    ("bowel-prep-generator", "lactulose-infant-print.es.html", "bowel_prep", "lactulose-infant-print-personalized.es.html", patch_lactulose_infant_print_es),
+    ("bowel-prep-generator", "infant-enema-print.en.html", "bowel_prep", "infant-enema-print-personalized.en.html", patch_infant_enema_print_en),
+    ("bowel-prep-generator", "infant-enema-print.es.html", "bowel_prep", "infant-enema-print-personalized.es.html", patch_infant_enema_print_es),
+    ("bowel-prep-generator", "combined-infant-enema-print.en.html", "bowel_prep", "combined-infant-enema-print-personalized.en.html", patch_combined_infant_enema_print_en),
+    ("bowel-prep-generator", "combined-infant-enema-print.es.html", "bowel_prep", "combined-infant-enema-print-personalized.es.html", patch_combined_infant_enema_print_es),
     # --- EGD family (egd-handout skill) ---
     ("egd-handout-generator", "egd-print.en.html", "egd", "print-personalized.en.html", patch_egd_print_en),
     ("egd-handout-generator", "egd-print.es.html", "egd", "print-personalized.es.html", patch_egd_print_es),
