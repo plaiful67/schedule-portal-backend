@@ -513,8 +513,6 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
         procedure_placeholders = build_egd_placeholders(procedure, lang, location=location)
 
     # Composition overlay: assemble title + add-on blurbs from the registry.
-    # Scoped to the plain-EGD base: egdph uses a different title (built by
-    # build_egdph_placeholders) and its template has no {{ADDON_BLURBS}} slot.
     if procedure_id == "egd":
         import compose as _compose
         comp = _compose.compose("egd", add_ons or [], knob_picks or {}, lang)
@@ -522,6 +520,16 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
             procedure_placeholders["{{HTML_TITLE}}"] = comp.title
             procedure_placeholders["{{PROCEDURE_LABEL}}"] = comp.title
         procedure_placeholders["{{ADDON_BLURBS}}"] = comp.blurbs_html
+        procedure_placeholders["{{ADDON_TITLE_SUFFIX}}"] = (
+            (" + " + comp.addon_title) if comp.addon_title else ""
+        )
+    elif procedure_id == "egdph":
+        # The egdph template has {{ADDON_TITLE_SUFFIX}} and {{ADDON_BLURBS}} slots
+        # for the personalized (backend) render path, where team add-ons (e.g. DLB)
+        # can be injected alongside the full pH content. The static-site render never
+        # has add-ons, so both slots resolve to empty string here.
+        procedure_placeholders["{{ADDON_TITLE_SUFFIX}}"] = ""
+        procedure_placeholders["{{ADDON_BLURBS}}"] = ""
 
     replacements = {
         **build_practice_placeholders(lang),

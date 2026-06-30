@@ -20,7 +20,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
-from ._paths import is_live_dev, shared_dir, skill_dir
+from ._paths import is_live_dev, load_compose_module, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
 SKILL_ROOT = skill_dir("egd-handout-generator")
@@ -32,6 +32,8 @@ TEMPLATE_BY_LANG = {
 }
 
 PROCEDURE_ID = "egdph"
+
+compose_module = load_compose_module()
 
 
 def _load_skill_module():
@@ -115,11 +117,35 @@ def render_pdf(
     followup_block_html: str,
     appt_dt: datetime,
     include_directions: bool = True,
+    add_ons: list[str] | None = None,
+    knob_picks: dict[str, str] | None = None,
 ) -> bytes:
-    """Produce a personalized EGD + pH-MII PDF as bytes."""
+    """Produce a personalized EGD + pH-MII PDF as bytes.
+
+    add_ons: optional list of team/ride add-on IDs (e.g. ["dlb", "bal"]).
+        "ph_mii" is always excluded before resolution — pH content already
+        lives in this rich template. Empty or omitted → no add-on text injected.
+    knob_picks: optional knob overrides forwarded to the composition resolver.
+    """
     from weasyprint import HTML
 
     _reset_caches_for_live_dev()
+
+    # Resolve team add-ons (excluding ph_mii — its content is already in this
+    # template). Empty add-ons → empty slots so the unreplaced-placeholder guard
+    # never fires on the new tokens.
+    _add_ons = [a for a in (add_ons or []) if a != "ph_mii"]
+    _knob_picks = knob_picks or {}
+    if _add_ons:
+        if is_live_dev():
+            compose_module.reset_registry_cache()
+        comp = compose_module.compose("egd", _add_ons, _knob_picks, lang)
+        addon_title_suffix = (" + " + comp.addon_title) if comp.addon_title else ""
+        addon_blurbs_html = comp.team_blurbs_html
+    else:
+        addon_title_suffix = ""
+        addon_blurbs_html = ""
+
     location = _location_block(location_id)
     procedure = _procedure_block()
 
@@ -164,6 +190,10 @@ def render_pdf(
         "{{APPT_TIME}}":            appt_time_display,
         "{{ARRIVAL_TIME}}":         arrival_time_display,
         "{{FOLLOWUP_BLOCK_HTML}}":  followup_block_html,
+        # Add-on slots: filled to "" when no add-ons, so the unreplaced-
+        # placeholder guard never fires on these tokens.
+        "{{ADDON_TITLE_SUFFIX}}":   addon_title_suffix,
+        "{{ADDON_BLURBS}}":         addon_blurbs_html,
     }
 
     template_path = TEMPLATE_BY_LANG.get(lang)

@@ -115,9 +115,17 @@ class EGDRequest(_Base):
 class EGDPhMiiRequest(_Base):
     """EGD + 24-hr pH impedance monitoring. PMCH only (motility nurses staff
     only St. Vincent 86th St — see project_pmch_only_procedures memory).
-    location_id is narrowed at the schema layer so SCC submissions 422 cleanly."""
+    location_id is narrowed at the schema layer so SCC submissions 422 cleanly.
+
+    add_ons: optional team/ride add-on procedure IDs (e.g. ["dlb", "bal"]).
+        "ph_mii" need not be included — it is implicit in this procedure type
+        and the adapter strips it before resolution to avoid duplication.
+    knob_picks: optional knob overrides forwarded to the composition resolver.
+    """
     procedure_type: Literal["egd_phmii"]
     location_id: Literal["pmch"] = "pmch"  # type: ignore[assignment]
+    add_ons: list[str] = Field(default_factory=list, max_length=10)
+    knob_picks: dict[str, str] = Field(default_factory=dict)
 
 
 class CombinedRequest(_BowelPrepBase):

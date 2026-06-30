@@ -190,7 +190,9 @@ def _render_impl(req: RenderRequest):
     elif req.procedure_type == "egd":
         pdf_bytes = egd.render_pdf(**common)
     elif req.procedure_type == "egd_phmii":
-        pdf_bytes = egd_phmii.render_pdf(**common)
+        pdf_bytes = egd_phmii.render_pdf(
+            add_ons=req.add_ons, knob_picks=req.knob_picks, **common
+        )
     elif req.procedure_type == "composed":
         try:
             pdf_bytes = composed.render_pdf(
