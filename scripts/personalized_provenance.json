@@ -163,12 +163,12 @@
     },
     "egd_phmii/print-personalized.en.html": {
       "canonical": "egd-handout-generator/templates/egdph-print.en.html",
-      "canonical_sha256": "090fc575f6762777bf8d0f56fd320c93f864e3c869374eb78238a24da6f1edcb",
+      "canonical_sha256": "e4fd054d02c9af70cd2f6aa5b0834e01bbc15d5f9ed6224911e621a187f62a1d",
       "status": "forked"
     },
     "egd_phmii/print-personalized.es.html": {
       "canonical": "egd-handout-generator/templates/egdph-print.es.html",
-      "canonical_sha256": "795bd85ba057a57c70d149de6f371a84dd1f46536db73313329a07b5733cbbea",
+      "canonical_sha256": "6f3f1c7a6ca594da33a3427666c9f917fa98408fb64367baa21d12581b3bc54b",
       "status": "forked"
     },
     "flexsig/print-personalized.en.html": {

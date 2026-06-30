@@ -78,8 +78,23 @@ CASES = [
     # EGD / EGD+pH-MII carry no weight band. egd_phmii is PMCH-only.
     ("egd en",       dict(procedure_type="egd", language="en")),
     ("egd es",       dict(procedure_type="egd", language="es")),
-    ("egdph en",     dict(procedure_type="egd_phmii", language="en", location_id="pmch")),
-    ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch")),
+    # egd_phmii (PMCH-only) MUST carry the full pH mandatory-action content + the
+    # enriched med box (WS1). These expect-lists are the no-under-description proof
+    # on the LIVE scheduler PDF — the per-booking complement to the offline
+    # mandatory-actions gate (which proves the static markup + render tokens).
+    ("egdph en",     dict(procedure_type="egd_phmii", language="en", location_id="pmch",
+                          expect=["Returning the Device", "diary", "24-Hour Monitoring",
+                                  "Sucralfate", "can be continued as usual"])),
+    ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch",
+                          expect=["Devolver el Dispositivo", "diario", "Monitoreo de 24 Horas",
+                                  "Sucralfato", "continuarse como de costumbre"])),
+    # WS1 base-promoter — EGD + pH + a team add-on (BAL): the EXACT 2026-06
+    # regression (then pH collapsed to one sentence). Must now render full pH
+    # content AND the BAL line on the rich egdph base.
+    ("egdph+bal en", dict(procedure_type="egd_phmii", language="en", location_id="pmch",
+                          add_ons=["bal"],
+                          expect=["Bronchoalveolar Lavage", "Returning the Device",
+                                  "Sucralfate", "can be continued as usual"])),
     # Composed base cases — real registry add-on ids dlb/dise.
     # composed egd has no weight_band/prep_type (egd base forbids them).
     # `expect` key: whitespace-normalized substring that must appear in the PDF text —
@@ -215,11 +230,13 @@ def main() -> int:
                 reader = PdfReader(BytesIO(pdf))
                 text_ws = re.sub(r"\s+", " ", "\n".join(
                     (p.extract_text() or "") for p in reader.pages))
-                if expect_substr not in text_ws:
-                    problems.append(
-                        f"add-on text missing: expected {expect_substr!r} in PDF text "
-                        f"(add-on blurb silently dropped?)"
-                    )
+                wants = expect_substr if isinstance(expect_substr, (list, tuple)) else [expect_substr]
+                for w in wants:
+                    if w not in text_ws:
+                        problems.append(
+                            f"expected text missing: {w!r} in PDF text "
+                            f"(content silently dropped?)"
+                        )
             if problems:
                 failed += 1
                 print(f"  ✗ {label:13s} {len(pdf):7d}B  — {'; '.join(problems)}")

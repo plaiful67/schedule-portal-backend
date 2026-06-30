@@ -336,6 +336,31 @@ def _format_stop_days(days, lang):
     return f"{days} days before"
 
 
+def _join_names(names, conj):
+    """Join 1–N names with the given conjunction ('and'/'y'): 'A', 'A and B',
+    'A, B, and C'."""
+    if len(names) == 1:
+        return names[0]
+    if len(names) == 2:
+        return f"{names[0]} {conj} {names[1]}"
+    return ", ".join(names[:-1]) + f", {conj} {names[-1]}"
+
+
+def _format_continue_names(names, lang):
+    """Render the optional 'safe to keep taking' line for the Medications
+    callout from `action: continue` entries. Returns '' when there are none, so
+    the callout collapses cleanly and the unreplaced-token guard stays happy."""
+    if not names:
+        return ""
+    if lang == "es":
+        joined = _join_names(names, "y")
+        return (f'<p style="margin: 3pt 0 0;">Medicamentos como '
+                f'<strong>{joined}</strong> pueden continuarse como de costumbre.</p>')
+    joined = _join_names(names, "and")
+    return (f'<p style="margin: 3pt 0 0;">Medicines such as '
+            f'<strong>{joined}</strong> can be continued as usual.</p>')
+
+
 # Short-form weekday + month names, duplicated from schedule-portal-backend's
 # personalization.py so the skill stays self-contained but produces the same
 # format used elsewhere in the personalized handout ("Wed, May 28" / "mié, 28 may").
@@ -371,7 +396,15 @@ def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph
     import datetime as _dt
     base = build_egd_placeholders(procedure, lang, location=location)
     rows = []
+    continue_names = []
     for entry in _med_stops_for(procedure_id):
+        # `action: continue` entries are NOT stops — they surface as named
+        # "safe to keep taking" meds in the Medications callout, never a row.
+        if entry.get("action") == "continue":
+            name = entry.get(f"name_{lang}", entry.get("name_en", ""))
+            if name:
+                continue_names.append(name)
+            continue
         label = entry.get(f"label_{lang}", entry.get("label_en", ""))
         examples = entry.get(f"examples_{lang}", entry.get("examples_en", ""))
         stop_days = int(entry.get("stop_days", 0))
@@ -397,6 +430,7 @@ def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph
             "</tr>"
         )
     base["{{MED_STOPS_TBODY}}"] = "\n".join(rows)
+    base["{{MED_CONTINUE_NAMES}}"] = _format_continue_names(continue_names, lang)
     return base
 
 

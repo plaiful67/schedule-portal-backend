@@ -161,6 +161,13 @@ medication_stops:
     label_es: "Procinéticos"
     examples_en: "metoclopramide (Reglan), erythromycin (when used for motility)"
     examples_es: "metoclopramida (Reglan), eritromicina (cuando se usa para motilidad)"
+  - id: sucralfate
+    stop_days: 3
+    consumed_by: [egdph]
+    label_en: "Sucralfate"
+    label_es: "Sucralfato"
+    examples_en: "Carafate"
+    examples_es: "Carafate"
   - id: glp1
     stop_days: 7
     consumed_by: [egdph]
@@ -168,3 +175,45 @@ medication_stops:
     label_es: "Medicamentos GLP-1"
     examples_en: "Ozempic, Wegovy, Mounjaro, Trulicity"
     examples_es: "Ozempic, Wegovy, Mounjaro, Trulicity"
+  # action: continue — NOT stopped; named on the "Other medications" callout as
+  # explicitly safe to keep taking (renders via {{MED_CONTINUE_NAMES}}, never a
+  # stop-table row). Gaviscon is called out so families don't mistake it for the
+  # antacids/alginates they must hold; ondansetron has no effect on pH-impedance.
+  - id: alginate
+    action: continue
+    consumed_by: [egdph]
+    name_en: "Gaviscon"
+    name_es: "Gaviscon"
+  - id: ondansetron
+    action: continue
+    consumed_by: [egdph]
+    name_en: "ondansetron (Zofran)"
+    name_es: "ondansetrón (Zofran)"
+
+# ---------------------------------------------------------------------------
+# Mandatory patient-action content (depth rule / no-under-description gate).
+# Every handout that includes pH-MII must render this in FULL — it is exactly
+# what a one-line "blurb" version omits. Asserted by
+# scripts/verify_mandatory_actions.py across both the static egdph site and the
+# scheduler's egd_phmii template, so an EGD + pH (+ team add-on) booking can
+# never silently collapse pH to a single sentence again (the 2026-06 regression
+# that prompted WS1). Markers are plain case-sensitive substrings.
+mandatory_actions:
+  egdph:
+    # Section-level markers — present as static text on EVERY pH surface (these
+    # are the sections a skimpy blurb drops).
+    sections:
+      - {en: "Returning the Device",        es: "Devolver el Dispositivo"}
+      - {en: "diary",                       es: "diario"}
+      - {en: "24-Hour Monitoring",          es: "Monitoreo de 24 Horas"}
+      - {en: "Medications to Stop",          es: "Medicamentos a Suspender"}
+    # Enriched med box (T3) — proven by RENDERED content where the table is baked
+    # at build time (the static egdph site) ...
+    med_box_rendered:
+      - {en: "Sucralfate",                  es: "Sucralfato"}
+      - {en: "can be continued as usual",   es: "continuarse como de costumbre"}
+    # ... and by the render TOKENS where the table fills per-booking (the backend
+    # egd_phmii template; the live EGD+pH smoke proves the filled rows).
+    med_box_tokens:
+      - "{{MED_STOPS_TBODY}}"
+      - "{{MED_CONTINUE_NAMES}}"
