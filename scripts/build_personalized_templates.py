@@ -3197,6 +3197,20 @@ def patch_egd_phmii_print_en(canonical: str) -> str:
         '</body>',
         where='en: replace PARTIAL_FOOTER_LEGAL with PARTIAL_FEEDBACK_BAR at end')
 
+    # 12. Collapse the extra blank line after {{ADDON_BLURBS}}.
+    #     Canonical: </p>\n{{ADDON_BLURBS}}\n\n<!-- NPO -->
+    #     Fork:      </p>\n{{ADDON_BLURBS}}\n<!-- NPO -->
+    #     When add_ons=[] the adapter fills {{ADDON_BLURBS}} with ""; removing
+    #     one trailing newline here ensures the no-add-on render is
+    #     </p>\n\n<!-- NPO --> (one blank line), matching the pre-slot baseline.
+    out = _replace_unique(out,
+        '{{ADDON_BLURBS}}\n'
+        '\n'
+        '<!-- NPO -->',
+        '{{ADDON_BLURBS}}\n'
+        '<!-- NPO -->',
+        where='en: collapse extra blank line after ADDON_BLURBS slot')
+
     return BANNER + out
 
 
@@ -3389,6 +3403,20 @@ def patch_egd_phmii_print_es(canonical: str) -> str:
         '\n'
         '</body>',
         where='es: replace PARTIAL_FOOTER_LEGAL with feedback bar at end')
+
+    # 12. Collapse the extra blank line after {{ADDON_BLURBS}}.
+    #     Canonical: </p>\n{{ADDON_BLURBS}}\n\n<!-- NPO -->
+    #     Fork:      </p>\n{{ADDON_BLURBS}}\n<!-- NPO -->
+    #     When add_ons=[] the adapter fills {{ADDON_BLURBS}} with ""; removing
+    #     one trailing newline here ensures the no-add-on render is
+    #     </p>\n\n<!-- NPO --> (one blank line), matching the pre-slot baseline.
+    out = _replace_unique(out,
+        '{{ADDON_BLURBS}}\n'
+        '\n'
+        '<!-- NPO -->',
+        '{{ADDON_BLURBS}}\n'
+        '<!-- NPO -->',
+        where='es: collapse extra blank line after ADDON_BLURBS slot')
 
     return BANNER + out
 

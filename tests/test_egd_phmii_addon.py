@@ -63,13 +63,59 @@ def test_egd_phmii_no_addons_no_addon_markup():
 
 
 def test_egd_phmii_no_addons_no_unreplaced_slots():
-    """No unreplaced {{}} placeholders in the no-add-on render (including the new slots)."""
+    """No unreplaced {{...}} tokens in the pre-WeasyPrint HTML for the no-add-on case.
+
+    Uses _build_html() — the seam that returns the fully-substituted HTML string
+    just before WeasyPrint renders it (after the unreplaced-placeholder guard).
+    Asserts directly on the HTML so the test is NOT vacuous: a leftover token
+    (e.g. a new {{ADDON_BLURBS}} or {{ADDON_TITLE_SUFFIX}} that the adapter
+    forgot to fill) would be caught here even if the guard somehow missed it.
+
+    Negative control: temporarily inserting a fake token into the rendered HTML
+    would make this assertion fail — confirming the regex actually exercises the
+    right invariant.
+    """
     import re
-    pdf = egd_phmii.render_pdf(add_ons=[], knob_picks={}, **_COMMON)
-    # We test the adapter internals by checking no RuntimeError was raised (render succeeded)
-    # and the PDF is valid — the unreplaced-placeholder guard in egd_phmii.py:196 would
-    # have raised RuntimeError before this if any token was left unfilled.
-    assert pdf[:4] == b"%PDF"
+    html = egd_phmii._build_html(add_ons=[], knob_picks={}, **_COMMON)
+    unreplaced = re.findall(r"\{\{[^}]+\}\}", html)
+    assert unreplaced == [], (
+        f"Unreplaced {{{{}}}} tokens found in no-add-on egd_phmii HTML: {unreplaced}"
+    )
+    # Explicitly confirm the add-on slots are absent (not just replaced-to-empty):
+    # an empty string replacement is invisible to the regex above, but we can
+    # confirm the slot KEYS themselves are gone.
+    assert "{{ADDON_BLURBS}}" not in html, "{{ADDON_BLURBS}} token not substituted"
+    assert "{{ADDON_TITLE_SUFFIX}}" not in html, "{{ADDON_TITLE_SUFFIX}} token not substituted"
+
+
+def test_egd_phmii_no_addons_no_double_blank_around_addon_slot():
+    """Empty {{ADDON_BLURBS}} slot leaves no double-blank-line artifact in the HTML.
+
+    Before the blank-line fix the template had:
+        </p>\\n{{ADDON_BLURBS}}\\n\\n<!-- NPO -->
+    which collapsed to </p>\\n\\n\\n<!-- NPO --> (three newlines) when the slot
+    was filled with "". The fix normalised the template to:
+        </p>\\n{{ADDON_BLURBS}}\\n<!-- NPO -->
+    so the no-addon case produces </p>\\n\\n<!-- NPO --> — matching the pre-slot
+    baseline byte-for-byte at that location.
+
+    This test is a positive control: it asserts the CORRECT pattern is present
+    and would fail immediately if the extra blank line reappeared (e.g. after an
+    accidental vendor-sync that re-introduced the double blank).
+    """
+    for lang in ("en", "es"):
+        common = {**_COMMON, "lang": lang}
+        html = egd_phmii._build_html(add_ons=[], knob_picks={}, **common)
+        # The artifact: three consecutive newlines at the slot location.
+        # HTML blocks around the slot: </p>\n...\n<!-- NPO --> — the
+        # only run of \n\n\n here would be from a double-blank slot artefact.
+        assert "<!-- NPO -->" in html, f"lang={lang}: NPO comment missing from HTML"
+        npo_idx = html.find("<!-- NPO -->")
+        # Grab the 30 chars leading up to <!-- NPO --> to check for the artifact.
+        prefix = html[max(0, npo_idx - 10):npo_idx]
+        assert "\n\n\n" not in prefix, (
+            f"lang={lang}: double-blank-line artifact detected before <!-- NPO -->: {prefix!r}"
+        )
 
 
 # ── Test B: add_ons=["dlb"] → DLB blurb present in rendered text ────────────

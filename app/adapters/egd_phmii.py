@@ -106,7 +106,7 @@ def _procedure_block() -> dict[str, Any]:
     return proc
 
 
-def render_pdf(
+def _build_html(
     *,
     location_id: str,
     lang: str,
@@ -119,16 +119,17 @@ def render_pdf(
     include_directions: bool = True,
     add_ons: list[str] | None = None,
     knob_picks: dict[str, str] | None = None,
-) -> bytes:
-    """Produce a personalized EGD + pH-MII PDF as bytes.
+) -> str:
+    """Build the final HTML string for an EGD + pH-MII personalized handout.
 
-    add_ons: optional list of team/ride add-on IDs (e.g. ["dlb", "bal"]).
-        "ph_mii" is always excluded before resolution — pH content already
-        lives in this rich template. Empty or omitted → no add-on text injected.
-    knob_picks: optional knob overrides forwarded to the composition resolver.
+    Returns the fully-substituted HTML just before WeasyPrint renders it.
+    The unreplaced-placeholder guard runs inside this function; it raises
+    RuntimeError if any ``{{TOKEN}}`` survives substitution.
+
+    This is the canonical seam for unit-testing token substitution — callers
+    that only need to inspect the HTML (e.g. tests asserting no leftover
+    ``{{...}}`` tokens) should call this instead of ``render_pdf``.
     """
-    from weasyprint import HTML
-
     _reset_caches_for_live_dev()
 
     # Resolve team add-ons (excluding ph_mii — its content is already in this
@@ -229,9 +230,49 @@ def render_pdf(
 
     html = skill._inject_shared_print_css(html)
 
-    base_url = (SKILL_ROOT / "templates").as_uri() + "/"
     if include_directions:
         from ..directions_inline import inject_into_handout
         html = inject_into_handout(html, location_id, lang)
+
+    return html
+
+
+def render_pdf(
+    *,
+    location_id: str,
+    lang: str,
+    physician_id: str,
+    appt_date_human: str,
+    appt_time_display: str,
+    arrival_time_display: str,
+    followup_block_html: str,
+    appt_dt: datetime,
+    include_directions: bool = True,
+    add_ons: list[str] | None = None,
+    knob_picks: dict[str, str] | None = None,
+) -> bytes:
+    """Produce a personalized EGD + pH-MII PDF as bytes.
+
+    add_ons: optional list of team/ride add-on IDs (e.g. ["dlb", "bal"]).
+        "ph_mii" is always excluded before resolution — pH content already
+        lives in this rich template. Empty or omitted → no add-on text injected.
+    knob_picks: optional knob overrides forwarded to the composition resolver.
+    """
+    from weasyprint import HTML
+
+    html = _build_html(
+        location_id=location_id,
+        lang=lang,
+        physician_id=physician_id,
+        appt_date_human=appt_date_human,
+        appt_time_display=appt_time_display,
+        arrival_time_display=arrival_time_display,
+        followup_block_html=followup_block_html,
+        appt_dt=appt_dt,
+        include_directions=include_directions,
+        add_ons=add_ons,
+        knob_picks=knob_picks,
+    )
+    base_url = (SKILL_ROOT / "templates").as_uri() + "/"
     from ..pdf_tagging import write_pdf_tagged
     return write_pdf_tagged(HTML(string=html, base_url=base_url))
