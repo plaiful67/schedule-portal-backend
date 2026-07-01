@@ -155,7 +155,10 @@ def _build_html(
         **skill.build_location_placeholders(location, lang),
         # appt_dt drives the per-row "by {date}" line under each medication stop.
         # Without it the builder emits the same rows the public handout uses.
-        **skill.build_egdph_placeholders(procedure, lang, location=location, procedure_id=PROCEDURE_ID, appt_dt=appt_dt),
+        # ppi_handling drives {{PPI_HANDLING_BOX}} + whether the acid-blocker row
+        # appears: "hold" keeps it (stop-7-days box), "continue" drops it
+        # (keep-taking box). Sourced from the scheduler's acid-blocker checkbox.
+        **skill.build_egdph_placeholders(procedure, lang, location=location, procedure_id=PROCEDURE_ID, appt_dt=appt_dt, ppi_handling=_knob_picks.get("ppi_handling", "hold")),
     }
 
     physician = physicians.lookup(physician_id)

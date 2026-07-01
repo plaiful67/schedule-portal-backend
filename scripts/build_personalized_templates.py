@@ -3211,6 +3211,18 @@ def patch_egd_phmii_print_en(canonical: str) -> str:
         '<!-- NPO -->',
         where='en: collapse extra blank line after ADDON_BLURBS slot')
 
+    # 13. Personalized PPI handling: the static handout carries a fixed
+    #     default-plus-safety-line warning (one URL serves everyone), but the
+    #     personalized PDF knows the scheduler's acid-blocker checkbox, so swap
+    #     the static warning for {{PPI_HANDLING_BOX}} — the adapter fills it with
+    #     the decisive "stop 7 days" or "keep taking" narrative per booking.
+    out = _replace_unique(out,
+        '<div class="warning">&#9888;&#65039; <strong>Stop your child\'s acid blocker 7 days before this study.</strong> '
+        'Stop giving the acid blocker (omeprazole/Prilosec, esomeprazole/Nexium, lansoprazole/Prevacid, and similar) '
+        '7 days before the study date. If your doctor told you to keep giving it, follow your doctor\'s instructions.</div>',
+        '{{PPI_HANDLING_BOX}}',
+        where='en: swap static PPI warning for {{PPI_HANDLING_BOX}} token')
+
     return BANNER + out
 
 
@@ -3417,6 +3429,15 @@ def patch_egd_phmii_print_es(canonical: str) -> str:
         '{{ADDON_BLURBS}}\n'
         '<!-- NPO -->',
         where='es: collapse extra blank line after ADDON_BLURBS slot')
+
+    # 13. Personalized PPI handling — swap the static default warning for the
+    #     {{PPI_HANDLING_BOX}} token (see EN step 13).
+    out = _replace_unique(out,
+        '<div class="warning">&#9888;&#65039; <strong>Suspenda el bloqueador de ácido de su hijo(a) 7 días antes de este estudio.</strong> '
+        'Deje de dar el bloqueador de ácido (omeprazol/Prilosec, esomeprazol/Nexium, lansoprazol/Prevacid, y similares) '
+        '7 días antes de la fecha del estudio. Si su médico le indicó que continúe dándolo, siga las instrucciones de su médico.</div>',
+        '{{PPI_HANDLING_BOX}}',
+        where='es: swap static PPI warning for {{PPI_HANDLING_BOX}} token')
 
     return BANNER + out
 

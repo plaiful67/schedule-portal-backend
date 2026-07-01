@@ -175,20 +175,10 @@ medication_stops:
     label_es: "Medicamentos GLP-1"
     examples_en: "Ozempic, Wegovy, Mounjaro, Trulicity"
     examples_es: "Ozempic, Wegovy, Mounjaro, Trulicity"
-  # action: continue — NOT stopped; named on the "Other medications" callout as
-  # explicitly safe to keep taking (renders via {{MED_CONTINUE_NAMES}}, never a
-  # stop-table row). Gaviscon is called out so families don't mistake it for the
-  # antacids/alginates they must hold; ondansetron has no effect on pH-impedance.
-  - id: alginate
-    action: continue
-    consumed_by: [egdph]
-    name_en: "Gaviscon"
-    name_es: "Gaviscon"
-  - id: ondansetron
-    action: continue
-    consumed_by: [egdph]
-    name_en: "ondansetron (Zofran)"
-    name_es: "ondansetrón (Zofran)"
+  # NOTE: `action: continue` entries were removed 2026-06-30. The handout no
+  # longer name-drops specific "safe to keep taking" meds (Gaviscon, Zofran) —
+  # those live on meds.giready.com, which the "Other medications" callout points
+  # to generically. {{MED_CONTINUE_NAMES}} now always renders empty for egdph.
 
 # ---------------------------------------------------------------------------
 # Mandatory patient-action content (depth rule / no-under-description gate).
@@ -211,7 +201,7 @@ mandatory_actions:
     # at build time (the static egdph site) ...
     med_box_rendered:
       - {en: "Sucralfate",                  es: "Sucralfato"}
-      - {en: "can be continued as usual",   es: "continuarse como de costumbre"}
+      - {en: "Continue all other daily medications", es: "todos los demás medicamentos diarios"}
     # ... and by the render TOKENS where the table fills per-booking (the backend
     # egd_phmii template; the live EGD+pH smoke proves the filled rows).
     med_box_tokens:

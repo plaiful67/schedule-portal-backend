@@ -141,6 +141,40 @@ def test_egd_phmii_with_dlb_addon_contains_ent_blurb():
     )
 
 
+# ── PPI handling knob: two decisive narratives (regression for the bug where ──
+#    the scheduler's acid-blocker checkbox never reached the rendered PDF) ─────
+
+def test_egd_phmii_ppi_hold_shows_stop_box_and_ppi_row():
+    """ppi_handling="hold" (default) → stop-7-days box + acid-blocker row present."""
+    html = egd_phmii._build_html(add_ons=[], knob_picks={"ppi_handling": "hold"}, **_COMMON)
+    assert "Stop your child's acid blocker before this study" in html
+    assert "Keep giving your child's acid blocker" not in html
+    assert "Proton pump" in html, "PPI stop-table row should be present when holding"
+
+
+def test_egd_phmii_ppi_continue_shows_keep_box_and_drops_ppi_row():
+    """ppi_handling="continue" → keep-taking box, and the PPI row is removed so
+    the table never contradicts the box."""
+    html = egd_phmii._build_html(add_ons=[], knob_picks={"ppi_handling": "continue"}, **_COMMON)
+    assert "Keep giving your child's acid blocker" in html
+    assert "Stop your child's acid blocker before this study" not in html
+    assert "Proton pump" not in html, "PPI row must be dropped when continuing the acid blocker"
+
+
+def test_egd_phmii_ppi_default_is_hold():
+    """Omitting the knob entirely behaves like 'hold' (safe default)."""
+    html = egd_phmii._build_html(add_ons=[], knob_picks={}, **_COMMON)
+    assert "Stop your child's acid blocker before this study" in html
+
+
+def test_egd_phmii_no_gaviscon_zofran_namedrop():
+    """A3: the handout no longer names Gaviscon/Zofran; those live on meds.giready.com."""
+    html = egd_phmii._build_html(add_ons=[], knob_picks={}, **_COMMON)
+    assert "Gaviscon" not in html
+    assert "Zofran" not in html
+    assert "meds.giready.com" in html
+
+
 # ── Test C: endpoint accepts add_ons; SCC still rejects ─────────────────────
 
 def test_egd_phmii_endpoint_with_dlb_returns_pdf():
@@ -149,6 +183,35 @@ def test_egd_phmii_endpoint_with_dlb_returns_pdf():
     r = client.post("/render", json=payload)
     assert r.status_code == 200, r.text
     assert r.content[:4] == b"%PDF"
+
+
+def _extract_pdf_text(pdf_bytes):
+    import pypdf, io
+    reader = pypdf.PdfReader(io.BytesIO(pdf_bytes))
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+
+def test_egd_phmii_endpoint_ppi_continue_end_to_end():
+    """END-TO-END through POST /render: this is the exact path the reported bug
+    lived on (checkbox value dropped between request and PDF). Proves main.py +
+    schema + adapter + render.py + WeasyPrint all forward ppi_handling, by
+    extracting text from the RETURNED PDF bytes — not an internal HTML seam."""
+    payload = {**_ENDPOINT_PAYLOAD, "knob_picks": {"ppi_handling": "continue"}}
+    r = client.post("/render", json=payload)
+    assert r.status_code == 200, r.text
+    text = _extract_pdf_text(r.content)
+    assert "Keep giving" in text, f"continue box missing from PDF. Excerpt: {text[:600]!r}"
+    assert "Proton pump" not in text, "PPI row leaked into PDF when continuing"
+
+
+def test_egd_phmii_endpoint_ppi_hold_end_to_end():
+    """END-TO-END: hold (explicit) keeps the PPI row and shows the stop box."""
+    payload = {**_ENDPOINT_PAYLOAD, "knob_picks": {"ppi_handling": "hold"}}
+    r = client.post("/render", json=payload)
+    assert r.status_code == 200, r.text
+    text = _extract_pdf_text(r.content)
+    assert "Proton pump" in text, "PPI row missing from PDF when holding"
+    assert "Keep giving" not in text, "continue box wrongly present when holding"
 
 
 def test_egd_phmii_endpoint_scc_still_422():
@@ -170,9 +233,15 @@ if __name__ == "__main__":
         test_egd_phmii_no_addons_returns_pdf,
         test_egd_phmii_no_addons_no_addon_markup,
         test_egd_phmii_no_addons_no_unreplaced_slots,
+        test_egd_phmii_ppi_hold_shows_stop_box_and_ppi_row,
+        test_egd_phmii_ppi_continue_shows_keep_box_and_drops_ppi_row,
+        test_egd_phmii_ppi_default_is_hold,
+        test_egd_phmii_no_gaviscon_zofran_namedrop,
         test_egd_phmii_with_dlb_addon_returns_pdf,
         test_egd_phmii_with_dlb_addon_contains_ent_blurb,
         test_egd_phmii_endpoint_with_dlb_returns_pdf,
+        test_egd_phmii_endpoint_ppi_continue_end_to_end,
+        test_egd_phmii_endpoint_ppi_hold_end_to_end,
         test_egd_phmii_endpoint_scc_still_422,
         test_egd_phmii_endpoint_no_addons_still_works,
     ]

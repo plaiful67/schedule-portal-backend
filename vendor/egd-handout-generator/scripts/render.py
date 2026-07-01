@@ -380,7 +380,58 @@ def _format_short_date(d, lang):
     return f"{_EN_WEEKDAYS_SHORT[d.weekday()]}, {_EN_MONTHS_SHORT[d.month]} {d.day}"
 
 
-def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph", appt_dt=None):
+def _ppi_handling_box(ppi_handling, lang, appt_dt=None):
+    """Build the {{PPI_HANDLING_BOX}} HTML for the PERSONALIZED handout, where
+    the scheduler's acid-blocker checkbox (ppi_handling = "hold" | "continue")
+    drives which of two decisive narratives the family sees. This is the fix
+    for the bug where the checkbox never reached the rendered PDF.
+
+    "hold"     → red .warning box: stop the acid blocker 7 days before (with the
+                 personalized calendar date when appt_dt is known).
+    "continue" → teal box (inline hex so it survives the print CSS swap): keep
+                 giving the acid blocker; the PPI row is dropped from the stop
+                 table by the caller so the two never contradict each other.
+
+    The public static site does NOT use this token — its templates carry their
+    own fixed default-plus-safety-line wording, since one URL serves everyone.
+    """
+    import datetime as _dt
+    _teal = ("background:#e8f4f4;border:1px solid #2E7C8A;border-left:4px solid "
+             "#2E7C8A;border-radius:8px;padding:11px 14px;margin:10px 0 14px;"
+             "color:#12303a;font-weight:600")
+    if ppi_handling == "continue":
+        if lang == "es":
+            return (f'<div style="{_teal}">💊 <strong>Siga dando el bloqueador de '
+                    "ácido de su hijo(a) para este estudio.</strong> Continúe el "
+                    "bloqueador de ácido (omeprazol/Prilosec, etc.) como de costumbre. "
+                    "NO lo suspenda. Su médico quiere ver qué tan bien está controlando "
+                    "el reflujo el medicamento, por lo que la prueba se hace mientras su "
+                    "hijo(a) lo sigue tomando.</div>")
+        return (f'<div style="{_teal}">💊 <strong>Keep giving your child\'s acid '
+                "blocker for this study.</strong> Continue the acid blocker "
+                "(omeprazole/Prilosec, etc.) as usual. Do NOT stop it. Your doctor "
+                "wants to see how well the medicine is controlling reflux, so the "
+                "test is done while your child is still taking it.</div>")
+    # "hold" (default)
+    date_clause = ""
+    if appt_dt is not None:
+        target = appt_dt.date() - _dt.timedelta(days=7)
+        lead = "antes del" if lang == "es" else "by"
+        date_clause = f" — {lead} {_format_short_date(target, lang)}"
+    if lang == "es":
+        return ('<div class="warning">⚠️ <strong>Suspenda el bloqueador de ácido de '
+                "su hijo(a) antes de este estudio.</strong> Deje de dar el bloqueador "
+                "de ácido (omeprazol/Prilosec, esomeprazol/Nexium, lansoprazol/Prevacid, "
+                f"u otro) 7 días antes{date_clause}. Esta prueba mide el ácido del "
+                "estómago, por lo que debe hacerse sin el bloqueador de ácido.</div>")
+    return ('<div class="warning">⚠️ <strong>Stop your child\'s acid blocker before '
+            "this study.</strong> Stop giving the acid blocker (omeprazole/Prilosec, "
+            "esomeprazole/Nexium, lansoprazole/Prevacid, or similar) 7 days before"
+            f"{date_clause}. This test measures stomach acid, so it must be done off "
+            "the acid blocker.</div>")
+
+
+def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph", appt_dt=None, ppi_handling="hold"):
     """Extends `build_egd_placeholders` with the pH-MII–specific tokens.
 
     {{MED_STOPS_TBODY}} renders the inner <tbody> rows of the medication-stop
@@ -392,9 +443,15 @@ def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph
     small second line under the "X days before" text showing the calendar
     date by which the family must stop (appt_date - stop_days). The public
     static handout doesn't know an appointment date so this line is omitted.
+
+    `ppi_handling` ("hold" | "continue") drives {{PPI_HANDLING_BOX}} and whether
+    the acid-blocker (PPI) row appears in the stop table. "hold" (default) keeps
+    the row and shows a stop-7-days box; "continue" removes the row and shows a
+    keep-taking box. Static-site builds pass the default "hold".
     """
     import datetime as _dt
     base = build_egd_placeholders(procedure, lang, location=location)
+    base["{{PPI_HANDLING_BOX}}"] = _ppi_handling_box(ppi_handling, lang, appt_dt)
     rows = []
     continue_names = []
     for entry in _med_stops_for(procedure_id):
@@ -404,6 +461,10 @@ def build_egdph_placeholders(procedure, lang, location=None, procedure_id="egdph
             name = entry.get(f"name_{lang}", entry.get("name_en", ""))
             if name:
                 continue_names.append(name)
+            continue
+        # When the doctor said continue the acid blocker, drop the PPI row so the
+        # table never contradicts the {{PPI_HANDLING_BOX}} "keep taking" message.
+        if ppi_handling == "continue" and entry.get("id") == "ppi":
             continue
         label = entry.get(f"label_{lang}", entry.get("label_en", ""))
         examples = entry.get(f"examples_{lang}", entry.get("examples_en", ""))
@@ -542,7 +603,8 @@ def render_pdf(procedure_id, procedure, location, location_id, lang, theme, out_
 
     # Variant-specific placeholder builders: egdph adds {{MED_STOPS_TBODY}}.
     if procedure_id == "egdph":
-        procedure_placeholders = build_egdph_placeholders(procedure, lang, location=location, procedure_id=procedure_id)
+        ppi_handling = (knob_picks or {}).get("ppi_handling", "hold")
+        procedure_placeholders = build_egdph_placeholders(procedure, lang, location=location, procedure_id=procedure_id, ppi_handling=ppi_handling)
     else:
         procedure_placeholders = build_egd_placeholders(procedure, lang, location=location)
 
