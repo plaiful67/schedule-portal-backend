@@ -14,12 +14,13 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
+from ._office import all_doctors_block_html, to_office
 from ._paths import is_live_dev, load_compose_module, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -110,12 +111,13 @@ def _build_html(
     *,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
     include_directions: bool = True,
     add_ons: list[str] | None = None,
     knob_picks: dict[str, str] | None = None,
@@ -130,6 +132,12 @@ def _build_html(
     that only need to inspect the HTML (e.g. tests asserting no leftover
     ``{{...}}`` tokens) should call this instead of ``render_pdf``.
     """
+    office = audience == "office"
+    if not office and physician_id == "":
+        raise ValueError("audience='patient' requires physician_id")
+    if office and add_ons:
+        raise ValueError("audience='office' does not support composed add_ons")
+
     _reset_caches_for_live_dev()
 
     # Resolve team add-ons (excluding ph_mii — its content is already in this
@@ -161,16 +169,20 @@ def _build_html(
         **skill.build_egdph_placeholders(procedure, lang, location=location, procedure_id=PROCEDURE_ID, appt_dt=appt_dt, ppi_handling=_knob_picks.get("ppi_handling", "hold")),
     }
 
-    physician = physicians.lookup(physician_id)
-    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
-    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
+    # Office (canonical) renders keep the group footer and drop the physician
+    # callout (to_office below); per-doctor override is patient-only.
+    if not office:
+        physician = physicians.lookup(physician_id)
+        replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+        replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # Mobile URL points at the egdph subdomain (procedure-level mobile_subdomain
     # override in procedure.yaml — wins over the location's default "egd86").
     # FEEDBACK_URL appends ?feedback=1&source=print so the survey modal auto-opens.
     sub = procedure.get("mobile_subdomain") or location.get("mobile_subdomain", "egdph")
     lang_seg = "es/" if lang == "es" else ""
-    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
+    # Office (canonical) handouts carry no appointment: bare generic mobile URL.
+    hash_params = "" if office else f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
     feedback_url = f"https://{sub}.giready.com/{lang_seg}?feedback=1&source=print{hash_params}"
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
@@ -207,6 +219,10 @@ def _build_html(
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization + EGD-table rules) before substitution.
     html = swap_calm(html, include_egd=True)
+    # Office (canonical) variant: strip per-patient chrome + swap in all-doctors
+    # roster BEFORE substitution.
+    if office:
+        html = to_office(html, lang=lang, doctors_block_html=all_doctors_block_html(lang))
     # Expand shared partials first (feedback bar / NPO table); inner tokens like
     # {{FEEDBACK_URL}} resolve in the main pass below.
     for token, value in skill._load_shared_partials(lang).items():
@@ -225,7 +241,9 @@ def _build_html(
     }
     html = skill._inject_qr_into_imgs(html, qr_uris)
 
-    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
+    # Office renders have no appointment: skip pz substitution.
+    if not office:
+        html = personalization.apply_pz_substitutions(html, appt_dt, lang)
 
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
@@ -244,12 +262,13 @@ def render_pdf(
     *,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
     include_directions: bool = True,
     add_ons: list[str] | None = None,
     knob_picks: dict[str, str] | None = None,
@@ -272,6 +291,7 @@ def render_pdf(
         arrival_time_display=arrival_time_display,
         followup_block_html=followup_block_html,
         appt_dt=appt_dt,
+        audience=audience,
         include_directions=include_directions,
         add_ons=add_ons,
         knob_picks=knob_picks,

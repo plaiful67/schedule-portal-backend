@@ -9,12 +9,13 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
+from ._office import all_doctors_block_html, to_office
 from ._paths import is_live_dev, load_compose_module, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -112,12 +113,13 @@ def render_pdf(
     *,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
     include_directions: bool = True,
     add_ons: list[str] | None = None,
     knob_picks: dict[str, str] | None = None,
@@ -133,6 +135,15 @@ def render_pdf(
     """
     from weasyprint import HTML
 
+    office = audience == "office"
+    if not office:
+        if not physician_id:
+            raise ValueError("render_pdf(audience='patient') requires physician_id")
+        if appt_dt is None:
+            raise ValueError("render_pdf(audience='patient') requires appt_dt")
+    if office and add_ons:
+        raise ValueError("audience='office' does not support composed add_ons")
+
     _reset_caches_for_live_dev()
     data = _load_procedure_data()  # one parse per request; shared by all blocks
     location = _location_block(location_id, data)
@@ -147,9 +158,13 @@ def render_pdf(
     # Performing-physician personalization: same model as bowel_prep adapter.
     # Doctors list is sourced from the bowel-prep skill's practice.yaml (the
     # EGD skill's practice.yaml doesn't carry a doctors block today).
-    physician = physicians.lookup(physician_id)
-    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
-    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
+    # Office (canonical) renders keep the group footer and drop the physician
+    # callout entirely (to_office below), so this per-doctor override is
+    # patient-only.
+    if not office:
+        physician = physicians.lookup(physician_id)
+        replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+        replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # Composition overlay (EGD base + add-on procedures). Only active when the
     # caller passes add_ons; plain EGD renders exactly as before.
@@ -173,7 +188,8 @@ def render_pdf(
     # variant. Query string must come BEFORE the URL fragment.
     sub = location.get("mobile_subdomain", "") or data.get("mobile_site", {}).get("subdomain", "egd")
     lang_seg = "es/" if lang == "es" else ""
-    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
+    # Office (canonical) handouts carry no appointment: bare generic mobile URL.
+    hash_params = "" if office else f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
     feedback_url = f"https://{sub}.giready.com/{lang_seg}?feedback=1&source=print{hash_params}"
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
@@ -221,6 +237,11 @@ def render_pdf(
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization + EGD-table rules) before substitution.
     html = swap_calm(html, include_egd=True)
+    # Office (canonical) variant: strip per-patient chrome + swap in all-doctors
+    # roster BEFORE substitution (removes the {{APPT_*}} / {{PERFORMING_PHYSICIAN}}
+    # tokens with their blocks).
+    if office:
+        html = to_office(html, lang=lang, doctors_block_html=all_doctors_block_html(lang))
     # Expand shared partials first (feedback bar / NPO table); inner tokens like
     # {{FEEDBACK_URL}} resolve in the main pass below.
     for token, value in skill._load_shared_partials(lang).items():
@@ -243,7 +264,9 @@ def render_pdf(
     html = skill._inject_qr_into_imgs(html, qr_uris)
 
     # Procedure-time-driven clock-time substitutions (mirrors mobile pz-only JS).
-    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
+    # Office renders have no appointment: skip so pz-only date spans stay empty.
+    if not office:
+        html = personalization.apply_pz_substitutions(html, appt_dt, lang)
 
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:

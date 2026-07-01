@@ -15,6 +15,7 @@ import yaml
 
 from .. import personalization, physicians
 from ._calm import swap_calm
+from ._office import all_doctors_block_html, to_office
 from ._paths import is_live_dev, shared_dir, skill_dir
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
@@ -286,12 +287,13 @@ def render_pdf(
     band_id: str,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
     variant: Literal["standard", "combined"] = "standard",
     prep_type: Literal["miralax", "lactulose", "clenpiq", "suprep"] = "miralax",
     include_directions: bool = True,
@@ -327,6 +329,13 @@ def render_pdf(
     egdcolonsuprep{,86} subdomains.
     """
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
+
+    office = audience == "office"
+    if not office:
+        if not physician_id:
+            raise ValueError("render_pdf(audience='patient') requires physician_id")
+        if appt_dt is None:
+            raise ValueError("render_pdf(audience='patient') requires appt_dt")
 
     _reset_caches_for_live_dev()
 
@@ -437,10 +446,13 @@ def render_pdf(
 
     # Performing-physician personalization: override the group-footer line
     # with a single-doctor line, and supply the {{PERFORMING_PHYSICIAN}} token
-    # used by the top callout in the print template.
-    physician = physicians.lookup(physician_id)
-    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
-    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
+    # used by the top callout in the print template. Office (canonical) renders
+    # keep the group footer and drop the physician callout entirely (see
+    # to_office below), so this per-doctor override is patient-only.
+    if not office:
+        physician = physicians.lookup(physician_id)
+        replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+        replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # MOBILE_URL is the cover-row QR's clickable href AND the QR image's encoded
     # target. We point both at the per-procedure mobile site with
@@ -460,7 +472,9 @@ def render_pdf(
         subdomain = location.get(subdomain_key) or location.get("mobile_subdomain", "prep")
     mobile_path = band.get("mobile_path", "")
     lang_seg = "es/" if lang == "es" else ""
-    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
+    # Office (canonical) handouts carry no appointment, so the QR/mobile URL
+    # points at the bare generic mobile page — no `#d=…&t=…` date/time hash.
+    hash_params = "" if office else f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{subdomain}.giready.com/{lang_seg}{mobile_path}/{hash_params}"
     # FEEDBACK_URL splices ?feedback=1&source=print BEFORE the hash so
     # survey.js auto-opens on arrival and tags the D1 row as PDF-origin.
@@ -619,6 +633,12 @@ def render_pdf(
     # Calm theme: swap the forked template's navy <style> for the shared Calm
     # stylesheet (+ personalization rules) before any token substitution.
     html = swap_calm(html)
+    # Office (canonical) variant: strip the per-patient chrome (appt-callout
+    # date box + single-physician credit) and swap in the all-doctors roster,
+    # BEFORE token substitution so the removed blocks carry their {{APPT_*}} /
+    # {{PERFORMING_PHYSICIAN}} tokens out with them.
+    if office:
+        html = to_office(html, lang=lang, doctors_block_html=all_doctors_block_html(lang))
     # Shared partials (feedback bar; footer is stripped here) first, local override.
     partials = {**skill._load_shared_partials(lang), **skill._load_partials(lang)}
     # Pass 1: expand partials FIRST so any tokens they introduce
@@ -650,7 +670,10 @@ def render_pdf(
     # Server-side equivalent of the mobile-page pz-only JS: walk every
     # <span class="pz-only" data-pz-time-mins=...> and substitute the
     # back-calculated clock time so the print PDF gets concrete times too.
-    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
+    # Office (canonical) renders have no appointment: skip substitution so the
+    # empty additive pz-only date spans stay empty and the copy reads dateless.
+    if not office:
+        html = personalization.apply_pz_substitutions(html, appt_dt, lang)
 
     # Strip any time-box wrapper containing the omit marker (mirror skill behavior).
     if skill.REMOVE_PARAGRAPH_MARKER in html:

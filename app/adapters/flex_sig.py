@@ -20,13 +20,14 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
 from . import bowel_prep
 from .. import personalization, physicians
 from ._calm import swap_calm
+from ._office import all_doctors_block_html, to_office
 from ._paths import is_live_dev, load_compose_module, shared_dir, skill_dir
 
 _compose = load_compose_module()
@@ -185,18 +186,26 @@ def _render_enema(
     weight_band: str,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
-    include_directions: bool,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
+    include_directions: bool = True,
 ) -> bytes:
     """Render the personalized flex-sig ENEMA handout. Mirrors the bowel_prep /
     egd render bodies: Calm swap, shared-partial expansion, QR injection, pz
     clock substitutions, unreplaced-token guard, tagged-PDF write."""
     from weasyprint import HTML  # imported here so failures are 500s, not import-time crashes
+
+    office = audience == "office"
+    if not office:
+        if not physician_id:
+            raise ValueError("_render_enema(audience='patient') requires physician_id")
+        if appt_dt is None:
+            raise ValueError("_render_enema(audience='patient') requires appt_dt")
 
     _reset_caches_for_live_dev()
 
@@ -222,9 +231,11 @@ def _render_enema(
     }
 
     # Performing-physician personalization: same model as bowel_prep / egd.
-    physician = physicians.lookup(physician_id)
-    replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
-    replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
+    # Office (canonical) keeps the group footer + drops the physician callout.
+    if not office:
+        physician = physicians.lookup(physician_id)
+        replacements["{{PRACTICE_FOOTER}}"] = physicians.footer_line(physician_id, lang)
+        replacements["{{PERFORMING_PHYSICIAN}}"] = physician["name_short"]
 
     # Procedure-level relabel tokens (heading / about / "the {procedure}").
     title = _flexsig_title(lang)
@@ -237,7 +248,8 @@ def _render_enema(
     # plus ?feedback=1&source=print so survey.js auto-opens and tags the row.
     sub = location.get("mobile_subdomain", "flexsig") or "flexsig"
     lang_seg = "es/" if lang == "es" else ""
-    hash_params = f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
+    # Office (canonical) handouts carry no appointment: bare generic mobile URL.
+    hash_params = "" if office else f"#d={appt_dt.date().isoformat()}&t={appt_dt.strftime('%H%M')}"
     mobile_url = f"https://{sub}.giready.com/{lang_seg}{hash_params}"
     feedback_url = f"https://{sub}.giready.com/{lang_seg}?feedback=1&source=print{hash_params}"
     maps_url = location.get(f"maps_url_{lang}") or location.get("maps_url_en") or ""
@@ -283,6 +295,10 @@ def _render_enema(
     # Calm theme: swap the navy <style> for the shared Calm stylesheet (+ EGD
     # NPO-table rules, which flex-sig shares) before any token substitution.
     html = swap_calm(html, include_egd=True)
+    # Office (canonical) variant: strip per-patient chrome + swap in all-doctors
+    # roster BEFORE substitution.
+    if office:
+        html = to_office(html, lang=lang, doctors_block_html=all_doctors_block_html(lang))
 
     # Expand shared partials first (feedback bar / NPO table); inner tokens like
     # {{FEEDBACK_URL}} / {{NPO_*}} resolve in the main pass below.
@@ -308,8 +324,10 @@ def _render_enema(
 
     # Procedure-time-driven clock-time substitutions (mirrors mobile pz-only JS).
     # The flex-sig enema template carries no pz-only spans today, but run it for
-    # parity so any future timing spans personalize uniformly.
-    html = personalization.apply_pz_substitutions(html, appt_dt, lang)
+    # parity so any future timing spans personalize uniformly. Office renders
+    # have no appointment: skip.
+    if not office:
+        html = personalization.apply_pz_substitutions(html, appt_dt, lang)
 
     unreplaced = re.findall(r"\{\{[A-Z_]+\}\}", html)
     if unreplaced:
@@ -334,12 +352,13 @@ def render_pdf(
     prep_type: str,
     location_id: str,
     lang: str,
-    physician_id: str,
-    appt_date_human: str,
-    appt_time_display: str,
-    arrival_time_display: str,
-    followup_block_html: str,
-    appt_dt: datetime,
+    physician_id: str = "",
+    appt_date_human: str = "",
+    appt_time_display: str = "",
+    arrival_time_display: str = "",
+    followup_block_html: str = "",
+    appt_dt: datetime | None = None,
+    audience: Literal["patient", "office"] = "patient",
     include_directions: bool = True,
     include_egd: bool = False,
 ) -> bytes:
@@ -358,6 +377,7 @@ def render_pdf(
             arrival_time_display=arrival_time_display,
             followup_block_html=followup_block_html,
             appt_dt=appt_dt,
+            audience=audience,
             variant="combined",
             prep_type=prep_type,
             include_directions=include_directions,
@@ -377,6 +397,7 @@ def render_pdf(
             arrival_time_display=arrival_time_display,
             followup_block_html=followup_block_html,
             appt_dt=appt_dt,
+            audience=audience,
             include_directions=include_directions,
         )
 
@@ -392,6 +413,7 @@ def render_pdf(
         arrival_time_display=arrival_time_display,
         followup_block_html=followup_block_html,
         appt_dt=appt_dt,
+        audience=audience,
         variant="standard",
         prep_type=prep_type,
         include_directions=include_directions,
