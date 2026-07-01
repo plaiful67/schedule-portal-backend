@@ -84,17 +84,19 @@ CASES = [
     # mandatory-actions gate (which proves the static markup + render tokens).
     ("egdph en",     dict(procedure_type="egd_phmii", language="en", location_id="pmch",
                           expect=["Returning the Device", "diary", "24-Hour Monitoring",
-                                  "Sucralfate", "can be continued as usual"])),
+                                  "Sucralfate", "Continue all other daily medications",
+                                  "Stop your child's acid blocker"])),
     ("egdph es",     dict(procedure_type="egd_phmii", language="es", location_id="pmch",
                           expect=["Devolver el Dispositivo", "diario", "Monitoreo de 24 Horas",
-                                  "Sucralfato", "continuarse como de costumbre"])),
+                                  "Sucralfato", "todos los demás medicamentos diarios",
+                                  "Suspenda el bloqueador de ácido"])),
     # WS1 base-promoter — EGD + pH + a team add-on (BAL): the EXACT 2026-06
     # regression (then pH collapsed to one sentence). Must now render full pH
     # content AND the BAL line on the rich egdph base.
     ("egdph+bal en", dict(procedure_type="egd_phmii", language="en", location_id="pmch",
                           add_ons=["bal"],
                           expect=["Bronchoalveolar Lavage", "Returning the Device",
-                                  "Sucralfate", "can be continued as usual"])),
+                                  "Sucralfate", "Continue all other daily medications"])),
     # Composed base cases — real registry add-on ids dlb/dise.
     # composed egd has no weight_band/prep_type (egd base forbids them).
     # `expect` key: whitespace-normalized substring that must appear in the PDF text —
