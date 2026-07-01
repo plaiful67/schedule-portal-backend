@@ -18,6 +18,12 @@
 #             spaced around each bowel-prep dose for CLENPIQ or SUPREP.
 # colonoscopy_only: when true, the patient-facing site hides the row
 #             unless the user picks "colonoscopy" in the procedure banner.
+# ph_impedance_only: when true, the patient-facing site hides the row unless
+#             the user picks "pH-impedance study" in the procedure banner. These
+#             are acid-reducing / reflux / motility meds that must stop before a
+#             pH-impedance probe so it measures true reflux. Stop-days MIRROR
+#             egd-handout-generator/data/procedure.yaml `medication_stops`
+#             (ppi 7d; h2/antacid/sucralfate/prokinetic 3d) — keep the two in sync.
 # timed_with_per_dose_window: when true, the patient-facing site shows
 #             a per-dose timing callout for the affected drug when the
 #             user selects CLENPIQ or SUPREP as their prep type. The
@@ -83,6 +89,12 @@ categories:
   - { id: cardiac_glycoside,           label: "Cardiac Glycosides" }
   - { id: antipsychotic_phenothiazine, label: "Antipsychotics — Phenothiazines" }
   - { id: chelating_agent,             label: "Chelating Agents" }
+  # pH-impedance study (2026-06-30) — acid-reducing / reflux / motility meds that
+  # must stop before a pH-impedance probe. Gated behind the "pH-impedance study"
+  # procedure choice. Stop-days mirror procedure.yaml `medication_stops`.
+  - { id: acid_reducers, label: "Acid Reducers & Reflux Medicines", ph_impedance_only: true }
+  - { id: prokinetics,   label: "Prokinetics (Motility Medicines)",  ph_impedance_only: true }
+  - { id: antiemetics,   label: "Anti-Nausea Medicines",             ph_impedance_only: true }
 
 meds:
   # ---------- Anticoagulants / Antiplatelets ----------
@@ -612,3 +624,138 @@ meds:
     hold_days: null
     note: "For MiraLAX or lactulose preps, continue as prescribed — no timing change needed."
     timed_with_per_dose_window: true
+
+  # ===========================================================================
+  # pH-impedance study meds (2026-06-30). ph_impedance_only: shown only when the
+  # family picks "pH-impedance study" in the procedure banner. Stop-days MIRROR
+  # egd-handout-generator/data/procedure.yaml `medication_stops` — keep in sync.
+  # These must stop so the probe measures true acid reflux (not suppressed acid).
+  # ===========================================================================
+
+  # ---------- Proton pump inhibitors (PPIs) — stop 7 days ----------
+  - id: omeprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Omeprazole"
+    search_aliases: ["omeprazole", "Prilosec", "Prilosec OTC", "Zegerid"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+  - id: esomeprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Esomeprazole"
+    search_aliases: ["esomeprazole", "Nexium", "Nexium 24HR"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+  - id: lansoprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Lansoprazole"
+    search_aliases: ["lansoprazole", "Prevacid", "Prevacid 24HR"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+  - id: pantoprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Pantoprazole"
+    search_aliases: ["pantoprazole", "Protonix"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+  - id: rabeprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Rabeprazole"
+    search_aliases: ["rabeprazole", "Aciphex"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+  - id: dexlansoprazole
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Dexlansoprazole"
+    search_aliases: ["dexlansoprazole", "Dexilant"]
+    hold_text: "Stop 7 days before your pH study"
+    hold_days: 7
+
+  # ---------- H2 blockers — stop 3 days ----------
+  - id: famotidine
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Famotidine"
+    search_aliases: ["famotidine", "Pepcid", "Pepcid AC", "Pepcid Complete"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+  - id: nizatidine
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Nizatidine"
+    search_aliases: ["nizatidine", "Axid"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+  - id: cimetidine
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Cimetidine"
+    search_aliases: ["cimetidine", "Tagamet", "Tagamet HB"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+
+  # ---------- Antacids — stop 3 days ----------
+  - id: calcium_carbonate_antacid
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Calcium Carbonate (antacid)"
+    search_aliases: ["calcium carbonate", "Tums", "Rolaids", "Maalox chewable"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+  - id: aluminum_magnesium_hydroxide
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Aluminum / Magnesium Hydroxide (antacid)"
+    search_aliases: ["aluminum hydroxide", "magnesium hydroxide", "Maalox", "Mylanta", "Milk of Magnesia"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+
+  # ---------- Alginate — stop the night before ----------
+  - id: gaviscon
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Gaviscon (alginate)"
+    search_aliases: ["Gaviscon", "alginate", "alginic acid"]
+    hold_text: "Stop the night before your pH study"
+    hold_days: 1
+
+  # ---------- Sucralfate — stop 3 days ----------
+  - id: sucralfate
+    category: acid_reducers
+    ph_impedance_only: true
+    primary_name: "Sucralfate"
+    search_aliases: ["sucralfate", "Carafate"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+
+  # ---------- Prokinetics (motility) — stop 3 days ----------
+  - id: metoclopramide
+    category: prokinetics
+    ph_impedance_only: true
+    primary_name: "Metoclopramide"
+    search_aliases: ["metoclopramide", "Reglan"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+  - id: erythromycin_motility
+    category: prokinetics
+    ph_impedance_only: true
+    primary_name: "Erythromycin (for motility)"
+    search_aliases: ["erythromycin", "EES", "Ery-Tab", "Eryc"]
+    hold_text: "Stop 3 days before your pH study"
+    hold_days: 3
+    note: "Applies when erythromycin is used to help the stomach empty. If it was prescribed as an antibiotic, ask your doctor."
+
+  # ---------- Anti-nausea — OK to continue ----------
+  - id: ondansetron
+    category: antiemetics
+    ph_impedance_only: true
+    primary_name: "Ondansetron"
+    search_aliases: ["ondansetron", "Zofran", "Zofran ODT"]
+    action: continue
+    hold_text: "OK to continue — does not affect the pH study"
+    hold_days: null
