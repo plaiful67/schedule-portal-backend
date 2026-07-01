@@ -74,6 +74,24 @@ BP_RENDER = {
     "clenpiq": {"prep": "clenpiq", "variant": "standard", "bands": ["31-40"], "simple": False},
 }
 
+# Office-only combined alt-prep sets — combined (EGD+colonoscopy) is the primary
+# peds handout, so the alternative preps need combined variants too. These had no
+# color-set precedent (no dosing.yaml::consolidate entry), so their EGDcolon
+# option-folder routing lives here. Same lactulose/clenpiq/suprep band rules as
+# the standalone-colonoscopy entries, but variant="combined".
+BP_OFFICE_ONLY = [
+    {"id": "combined_suprep", "prep": "suprep", "variant": "combined", "bands": ["over-50"],
+     "simple": False, "drive_folder": "EGDcolon (SUPREP option)", "drive_filename": "EGDcolon SUPREP",
+     "has_bands": False},
+    {"id": "combined_clenpiq", "prep": "clenpiq", "variant": "combined", "bands": ["31-40"],
+     "simple": False, "drive_folder": "EGDcolon (CLENPIQ option)", "drive_filename": "EGDcolon CLENPIQ",
+     "has_bands": False},
+    {"id": "combined_lactulose", "prep": "lactulose", "variant": "combined",
+     "bands": ["under-15", "15-20", "21-30"], "simple": True,
+     "drive_folder": "EGDcolon (Lactulose option)", "drive_filename": "EGDcolon Lactulose",
+     "has_bands": True},
+]
+
 
 def band_label(band_id: str, *, simple: bool) -> str:
     """Friendly weight-band label for the output filename. Matches the labels
@@ -128,31 +146,45 @@ class Job:
         return target / f"{self.drive_filename}{self.band_suffix} {self.loc}{es}.pdf"
 
 
+def _bp_jobs(rid, *, prep, variant, bands, simple, drive_folder, drive_filename, has_bands) -> list[Job]:
+    jobs: list[Job] = []
+    for band in bands:
+        suffix = f" {band_label(band, simple=simple)}" if has_bands else ""
+        for loc in LOCATIONS:
+            for lang in LANGS:
+                def make(band=band, loc=loc, lang=lang, variant=variant, prep=prep):
+                    return bowel_prep.render_pdf(
+                        band_id=band, location_id=loc.lower(), lang=lang,
+                        variant=variant, prep_type=prep, audience="office",
+                    )
+                jobs.append(Job(
+                    family=f"bp:{rid}", drive_folder=drive_folder,
+                    drive_filename=drive_filename, band_suffix=suffix,
+                    loc=loc, lang=lang, render=make,
+                ))
+    return jobs
+
+
 def bowel_prep_jobs() -> list[Job]:
     data = _load_yaml(DOSING_YAML)
     jobs: list[Job] = []
+    # Colonoscopy-family + combined-miralax — routing (drive_folder / filename /
+    # has_bands) comes from dosing.yaml::consolidate; render params from BP_RENDER.
     for entry in data.get("consolidate") or []:
         rid = entry["id"]
         cfg = BP_RENDER.get(rid)
         if cfg is None:
             print(f"  [bowel_prep] no office render mapping for consolidate id {rid!r} — skipping")
             continue
-        has_bands = entry.get("drive_has_bands", True)
-        for band in cfg["bands"]:
-            suffix = f" {band_label(band, simple=cfg['simple'])}" if has_bands else ""
-            for loc in LOCATIONS:
-                for lang in LANGS:
-                    def make(band=band, loc=loc, lang=lang, cfg=cfg):
-                        return bowel_prep.render_pdf(
-                            band_id=band, location_id=loc.lower(), lang=lang,
-                            variant=cfg["variant"], prep_type=cfg["prep"],
-                            audience="office",
-                        )
-                    jobs.append(Job(
-                        family=f"bp:{rid}", drive_folder=entry["drive_folder"],
-                        drive_filename=entry["drive_filename"], band_suffix=suffix,
-                        loc=loc, lang=lang, render=make,
-                    ))
+        jobs += _bp_jobs(rid, prep=cfg["prep"], variant=cfg["variant"], bands=cfg["bands"],
+                         simple=cfg["simple"], drive_folder=entry["drive_folder"],
+                         drive_filename=entry["drive_filename"],
+                         has_bands=entry.get("drive_has_bands", True))
+    # Office-only combined alt-preps (no color-set precedent; routing inline).
+    for spec in BP_OFFICE_ONLY:
+        jobs += _bp_jobs(spec["id"], prep=spec["prep"], variant=spec["variant"], bands=spec["bands"],
+                         simple=spec["simple"], drive_folder=spec["drive_folder"],
+                         drive_filename=spec["drive_filename"], has_bands=spec["has_bands"])
     return jobs
 
 
