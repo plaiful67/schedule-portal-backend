@@ -66,7 +66,10 @@ def all_doctors_block_html(lang: str) -> str:
     slot with the existing (Calm) styling — just multi-name instead of one.
     """
     label = _ROSTER_LABEL.get(lang, _ROSTER_LABEL["en"])
-    names = " · ".join(_roster_names())
+    # Non-breaking space INSIDE each name so it never wraps after "Dr." (which
+    # would orphan "Dr." at a line end). Breaks are allowed only at the " · "
+    # separators between doctors.
+    names = " · ".join(n.replace(" ", "\u00A0") for n in _roster_names())
     return f'    <div class="performing-physician">{label}<br>{names}</div>'
 
 
