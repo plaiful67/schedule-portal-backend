@@ -61,12 +61,27 @@ from render import (  # noqa: E402
     _load_shared_partials,
 )
 
-# Per-location target repo. Subdomains come from procedure.yaml's
-# locations[*].mobile_subdomain.
+# Per-location legacy target repo. Subdomains come from procedure.yaml's
+# locations[*].mobile_subdomain. Used only when the build is NOT driven by the
+# giready-sites monorepo (see _repo_out_dir below).
 SITES = {
     "scc":  Path.home() / "Desktop" / "peds-gi-system" / "flexsig-giready",
     "pmch": Path.home() / "Desktop" / "peds-gi-system" / "flexsig86-giready",
 }
+
+# Default delivery target: the two legacy `flexsig*-giready` site repos on the
+# Desktop (SITES above). When the giready-sites monorepo drives the build it
+# sets GIREADY_SITES_OUT to its `sites/` root; then output goes to
+# `<root>/<subdomain>/` (bare subdomain, one dir per subdomain) — matching the
+# bowel-prep / egd builders. Content is identical either way; only the
+# destination path changes. See giready-sites/data/sites.yaml (Item 5).
+_SITES_OUT_ROOT = os.environ.get("GIREADY_SITES_OUT", "").strip()
+
+
+def _repo_out_dir(location_id: str, subdomain: str) -> Path:
+    if _SITES_OUT_ROOT:
+        return Path(_SITES_OUT_ROOT) / subdomain
+    return SITES[location_id]
 
 # Order of bands as they appear in the landing picker (light -> heavy).
 BAND_ORDER = ["under-15kg", "20-40kg", "over-40kg"]
@@ -513,11 +528,14 @@ def main():
     landing_template_es = TEMPLATES / "flex-sig-mobile-landing.es.html"
 
     written_total = 0
-    for location_id, repo_dir in SITES.items():
+    for location_id in SITES:
         if location_id not in locations:
             sys.exit(f"location {location_id!r} missing from data/procedure.yaml")
         location = locations[location_id]
         subdomain = location.get("mobile_subdomain", location_id)
+        # Legacy Desktop repo, OR <GIREADY_SITES_OUT>/<subdomain> when the
+        # monorepo drives the build (Item 5).
+        repo_dir = _repo_out_dir(location_id, subdomain)
 
         written = build_for_repo(
             repo_dir, location_id, location, practice_cfg, procedure,

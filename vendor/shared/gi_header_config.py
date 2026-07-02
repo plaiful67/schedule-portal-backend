@@ -47,14 +47,26 @@ _CSP_TEMPLATE = (
     "object-src 'none'; base-uri 'none'; frame-ancestors 'none'"
 )
 
-_HEADERS_TEMPLATE = """/*
-  Content-Security-Policy: {csp}
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: DENY
-  X-Robots-Tag: noindex, nofollow, noarchive, nosnippet
-  Referrer-Policy: no-referrer
-  Permissions-Policy: geolocation=(), microphone=(), camera=()
-"""
+# The `/*` block is assembled line-by-line so a per-surface override can OMIT a
+# specific header (e.g. the apex + schedule Workers intentionally drop
+# X-Robots-Tag — apex is the indexed public landing; schedule is login-gated and
+# noindex would be redundant/misleading). Everything else stays identical.
+_HEADER_LINES = (
+    ("Content-Security-Policy", "{csp}"),
+    ("X-Content-Type-Options", "nosniff"),
+    ("X-Frame-Options", "DENY"),
+    ("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet"),
+    ("Referrer-Policy", "no-referrer"),
+    ("Permissions-Policy", "geolocation=(), microphone=(), camera=()"),
+)
+
+# Back-compat: the former single-string template, kept so external importers
+# (bowel-prep's header_config shim re-exports it) don't break. Derived from
+# _HEADER_LINES so it can't drift from the line-by-line assembly below.
+_HEADERS_TEMPLATE = (
+    "/*\n"
+    + "".join(f"  {n}: {v}\n" for n, v in _HEADER_LINES)
+)
 
 # --- inline-script hashing -------------------------------------------------
 # Browsers compute a CSP script hash over the exact UTF-8 bytes between the
@@ -100,8 +112,35 @@ def build_csp(script_hashes=()):
     return _CSP_TEMPLATE.format(script_hashes=joined)
 
 
-def build_headers_content(script_hashes=()):
-    return _HEADERS_TEMPLATE.format(csp=build_csp(script_hashes))
+def build_headers_content(script_hashes=(), omit=(), extra_lines=(), tail=""):
+    """Assemble a full ``_headers`` file body from the single-source directives.
+
+    ``omit``        — header names to DROP from the ``/*`` block (per-surface
+                      intent, e.g. ``("X-Robots-Tag",)`` for the indexed apex).
+    ``extra_lines`` — additional ``"Header: value"`` strings appended to the
+                      ``/*`` block (e.g. the apex ``Link:`` service-doc headers).
+    ``tail``        — verbatim text appended after the ``/*`` block (path-scoped
+                      cache / content-type rules the hand-owned Workers carry).
+
+    The body is byte-reproducible from (script_hashes + omit + extra_lines + tail),
+    which is exactly what ``data/headers_manifest.yaml`` records per surface — so
+    this function is the true single source for ALL giready ``_headers``, not just
+    the skill-rendered ones.
+    """
+    omit_set = set(omit)
+    csp = build_csp(script_hashes)
+    lines = ["/*"]
+    for name, value in _HEADER_LINES:
+        if name in omit_set:
+            continue
+        lines.append(f"  {name}: {value.format(csp=csp) if '{csp}' in value else value}")
+    for extra in extra_lines:
+        lines.append(f"  {extra}")
+    body = "\n".join(lines) + "\n"
+    if tail:
+        # tail already carries its own leading blank line + block(s), verbatim.
+        body += tail
+    return body
 
 
 def write_headers(repo_dir):
