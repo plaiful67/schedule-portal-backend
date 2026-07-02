@@ -12,14 +12,14 @@
       "status": "forked"
     },
     "bowel_prep/combined-clenpiq-standard-print-personalized.en.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-clenpiq-standard-print.en.html",
+      "canonical_sha256": "cfb712f0e927a3c0f638f5aa9787bf10a5be3c662b6a7693f35092e595a205ee",
+      "status": "forked"
     },
     "bowel_prep/combined-clenpiq-standard-print-personalized.es.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-clenpiq-standard-print.es.html",
+      "canonical_sha256": "3f73fdde3f6d292891c0d415d6c97c5b0079c314e8bf91e7e8d9830ceecb748a",
+      "status": "forked"
     },
     "bowel_prep/combined-infant-enema-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-infant-enema-print.en.html",
@@ -42,24 +42,24 @@
       "status": "forked"
     },
     "bowel_prep/combined-lactulose-infant-print-personalized.en.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-lactulose-infant-print.en.html",
+      "canonical_sha256": "f65697a7ace120abde5f413f8931e3448708fec2983bae842a1d8f2a598ed037",
+      "status": "forked"
     },
     "bowel_prep/combined-lactulose-infant-print-personalized.es.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-lactulose-infant-print.es.html",
+      "canonical_sha256": "e01ad02f501d8a50622b6809d9fccbb83ecc1fa7f1fcc8ccec6609bb2b4fc85e",
+      "status": "forked"
     },
     "bowel_prep/combined-lactulose-standard-print-personalized.en.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-lactulose-standard-print.en.html",
+      "canonical_sha256": "29156c576868e6e201b73bc740b8b6dcf783ba6c3d486b9ad724fc14b3c0ced5",
+      "status": "forked"
     },
     "bowel_prep/combined-lactulose-standard-print-personalized.es.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-lactulose-standard-print.es.html",
+      "canonical_sha256": "51ed7e3935c6bf2f3778428b56cb331f7233729dbdd8b88a60d7efdcc531682b",
+      "status": "forked"
     },
     "bowel_prep/combined-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/combined-print.en.html",
@@ -72,14 +72,14 @@
       "status": "forked"
     },
     "bowel_prep/combined-suprep-standard-print-personalized.en.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-suprep-standard-print.en.html",
+      "canonical_sha256": "51bdedcddc02679f9b1256fc044138fe523fa69ea4550979ab566e9a736b976e",
+      "status": "forked"
     },
     "bowel_prep/combined-suprep-standard-print-personalized.es.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "bowel-prep-generator/templates/combined-suprep-standard-print.es.html",
+      "canonical_sha256": "a8e35d3d9366be85be132b165b38fa358c4bfd8a7cf609fbe650d9c7ae88a204",
+      "status": "forked"
     },
     "bowel_prep/infant-enema-print-personalized.en.html": {
       "canonical": "bowel-prep-generator/templates/infant-enema-print.en.html",

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>{{HTML_TITLE}}</title>
+<style>
+  /* ---------------------------------------------------------------
+     Hoja de estilos para WeasyPrint (versión imprimible).
+     Espejo del diseño aprobado en combined-print.en.html.
+     --------------------------------------------------------------- */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&display=swap');
+
+  @page {
+    size: letter;
+    margin: 0.55in 0.65in 0.5in 0.65in;
+    @bottom-right {
+      content: "Página " counter(page) " de " counter(pages);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 9pt;
+      color: #666;
+    }
+    @bottom-left {
+      content: "{{PRACTICE_FOOTER}}";
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 9pt;
+      color: #666;
+    }
+  }
+  @page :first { @top-center { content: ""; } }
+  @page {
+    @top-center {
+      content: string(band-label);
+      font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+      font-size: 9pt;
+      color: #555;
+      letter-spacing: 0.02em;
+    }
+  }
+
+  html { font-size: 10.5pt; }
+  /* Slightly tighter line-height for Spanish: Spanish text runs ~10–15%
+     longer than English, and the extra leading pushes the warning callout
+     off page 2. Compacting body leading to 1.28 recovers ~10–15pt across
+     the page so the day-of-procedure warning fits below the bullets. */
+  body {
+    margin: 0;
+    font-family: "Source Serif 4", Georgia, "Times New Roman", Times, serif;
+    color: #1a1a1a;
+    line-height: 1.28;
+  }
+
+  h1, h2, h3, h4, .ui {
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #0e2233;
+  }
+  h1 { font-size: 20pt; margin: 0 0 3pt 0; font-weight: 700; letter-spacing: -0.01em; }
+  h2 { font-size: 12.5pt; margin: 10pt 0 3pt 0; font-weight: 600; break-after: avoid; }
+  h3 { font-size: 11pt; margin: 6pt 0 2pt 0; font-weight: 600; break-after: avoid; }
+  p { margin: 3pt 0; orphans: 2; widows: 2; }
+  ul, ol { margin: 3pt 0 3pt 16pt; padding: 0; }
+  li { margin: 1pt 0; }
+  strong { font-weight: 700; }
+  a { color: #0e4a82; text-decoration: underline; text-decoration-color: #b9c7d8; text-underline-offset: 1.5pt; }
+  a.qr-caption { color: inherit; text-decoration: none; }
+  .qr-block { display: block; color: inherit; text-decoration: none; }
+  a.resource-card { color: inherit; text-decoration: none; }
+  a.qr-caption:hover { text-decoration: underline; }
+  .location-text a { color: inherit; text-decoration: none; }
+  .location-text a:hover { text-decoration: underline; }
+
+  /* Cover */
+  .cover {
+    string-set: band-label "{{BAND_LABEL}}";
+    border-bottom: 2pt solid #0e2233;
+    padding-bottom: 8pt;
+    margin-bottom: 10pt;
+  }
+  .cover-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14pt;
+    margin-bottom: 4pt;
+  }
+  .practice-logo {
+    height: 0.65in;
+    width: auto;
+    flex: 0 0 auto;
+  }
+  .practice-stack {
+    flex: 1 1 auto;
+    text-align: center;
+    font-family: "Inter", sans-serif;
+    font-size: 11pt;
+    font-weight: 600;
+    color: #0e2233;
+    line-height: 1.3;
+  }
+  .practice-stack .phone {
+    margin-top: 1pt;
+    font-size: 10pt;
+    font-weight: 500;
+    color: #555;
+  }
+  .cover-qr { flex: 0 0 auto; }
+  .cover-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .cover-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .cover-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.85in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+  .cover-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12pt;
+    margin-top: 2pt;
+  }
+  .practice {
+    font-family: "Inter", sans-serif;
+    font-size: 9pt;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2pt;
+  }
+  .doc-title {
+    font-size: 16pt;
+    font-weight: 600;
+    color: #0e2233;
+    margin: 1pt 0 1pt 0;
+    white-space: nowrap;
+  }
+  .band-label {
+    font-family: "Inter", sans-serif;
+    font-size: 13pt;
+    font-weight: 600;
+    color: #b03a00;
+    margin-top: 2pt;
+  }
+
+  /* Location */
+  .location {
+    display: flex;
+    gap: 10pt;
+    align-items: flex-start;
+    border: 1pt solid #c9d3dd;
+    background: #f4f7fa;
+    border-radius: 4pt;
+    padding: 5pt 9pt;
+    margin-bottom: 6pt;
+    break-inside: avoid;
+  }
+  .location-text { flex: 1 1 auto; font-size: 9.5pt; }
+  .location-text .label {
+    font-family: "Inter", sans-serif;
+    font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #555;
+    margin-bottom: 1pt;
+  }
+  .location-text .name { font-weight: 700; font-size: 11pt; color: #0e2233; }
+  .location-text .addr { margin-top: 1pt; }
+  .location-text .arrival {
+    margin-top: 3pt;
+    font-family: "Inter", sans-serif;
+    font-weight: 600;
+    color: #b03a00;
+  }
+  .location-qr { flex: 0 0 auto; }
+  .location-qr a.qr-block { white-space: nowrap; display: inline-block; }
+  .location-qr a.qr-block img {
+    display: inline-block; vertical-align: middle;
+    width: 0.7in; height: 0.7in;
+  }
+  .location-qr .qr-caption {
+    display: inline-block; vertical-align: middle;
+    width: 0.95in; text-align: right;
+    font-family: "Inter", sans-serif;
+    font-size: 8pt; color: #555; line-height: 1.18;
+    white-space: normal; margin-right: 5pt;
+  }
+/* Section headings */
+  h2.step, h2.section-heading {
+    background: #0e2233;
+    color: #ffffff;
+    padding: 3pt 8pt;
+    border-radius: 3pt;
+    margin: 7pt 0 3pt 0;
+    font-size: 11.5pt;
+    break-after: avoid;
+    font-family: "Inter", sans-serif;
+  }
+  /* Belt-and-braces: keep the dark fill on every printer/PDF backend
+     so step headings stay visually consistent (BIG PREP especially). */
+  h2.step, h2.section-heading {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  /* BIG PREP — extra breathing room above so the most-important section
+     visually separates from the 1-Day-Before content. */
+  h2.step.big-prep { margin-top: 14pt; }
+  /* Keep BIG PREP heading + intro + first time-box on the same page.
+     Without break-after:avoid here the renderer can split between the intro
+     and the time-box, leaving the heading orphaned at the bottom of a page
+     with a big empty gap below. */
+  h2.step.big-prep + p.note { margin: 4pt 0 6pt; }
+  h2.step .icon, h2.section-heading .icon {
+    display: inline-block;
+    margin-right: 4pt;
+  }
+  p.note {
+    font-size: 9.5pt;
+    color: #555;
+    font-style: italic;
+    margin: 3pt 0 0 0;
+  }
+  h3.sub {
+    color: #0e2233;
+    border-bottom: 1pt solid #c9d3dd;
+    padding-bottom: 1pt;
+    break-after: avoid;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 4pt 0 8pt 0;
+    font-size: 10pt;
+    break-inside: auto;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+  th {
+    background: #e3eaf1;
+    color: #0e2233;
+    font-family: "Inter", sans-serif;
+    font-size: 9.5pt;
+    text-align: left;
+    padding: 4pt 6pt;
+    border-bottom: 1pt solid #c9d3dd;
+    font-weight: 600;
+  }
+  td {
+    padding: 4pt 6pt;
+    border-bottom: 0.5pt solid #d8dee5;
+    vertical-align: top;
+  }
+  tr { break-inside: avoid; }
+
+  table.avoid-allowed {
+    border: 1pt solid #c9d3dd;
+    border-radius: 4pt;
+    overflow: hidden;
+  }
+  table.avoid-allowed td { width: 50%; background: #ffffff; }
+  table.avoid-allowed td.col-avoid { border-right: 0.5pt solid #e6d8d4; }
+  table.avoid-allowed th { background: #f4f7fa; }
+  table.avoid-allowed th.col-avoid {
+    color: #7a1f00; border-bottom: 1.5pt solid #c0392b;
+  }
+  table.avoid-allowed th.col-allowed {
+    color: #1f4d12; border-bottom: 1.5pt solid #2e7d32; border-left: 0.5pt solid #c9d3dd;
+  }
+
+  /* Time-boxed dose lines — badge time-label at top, content below */
+  .time-box {
+    display: block;
+    box-sizing: border-box; width: 100%;
+    background: #e8f1fb;
+    border-left: 3pt solid #1565c0;
+    border-radius: 3pt;
+    padding: 5pt 10pt;
+    margin: 3pt 0;
+    break-inside: avoid;
+    font-size: 10.5pt;
+  }
+  .time-box .when {
+    display: inline-block;
+    background: #1565c0;
+    color: #fff;
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    padding: 1.5pt 6pt;
+    border-radius: 3pt;
+    font-size: 10pt;
+    margin-bottom: 0; margin-right: 6pt;
+  }
+  .time-box .what {
+    display: inline;
+  }
+
+  /* Callouts & warnings */
+  .callout, .warning {
+    border-radius: 4pt;
+    padding: 6pt 9pt;
+    margin: 6pt 0;
+    break-inside: avoid;
+  }
+  .callout {
+    background: #fffaeb;
+    border: 1pt solid #d4a017;
+  }
+  /* Tip box — blue info card, less alarming than .callout (yellow). */
+  .tip {
+    background: #f3f7fc; border: 0.5pt solid #c4d4e6; border-left: 2pt solid #5a8ec2;
+    border-radius: 3pt; padding: 4pt 9pt; margin: 4pt 0 6pt;
+    font-size: 9pt; line-height: 1.4;
+    break-inside: avoid;
+  }
+  .tip-title { font-family: "Inter", sans-serif; font-weight: 700; color: #0d3a6b; margin-bottom: 2pt; font-size: 9pt; }
+  .tip p, .tip li { font-size: 9pt; line-height: 1.4; margin: 0; }
+  /* Rescue / backup-plan tip — warm amber tint to distinguish from the
+     blue drinking-tips block. */
+  .tip.rescue {
+    background: #fff8ee; border-color: #e6c397; border-left-color: #d4900b;
+  }
+  .tip.rescue .contingency-lead { margin: 0 0 3pt 0; }
+  .tip.rescue .rescue-heading {
+    display: inline-block;
+    background: #d4900b; color: white;
+    font-size: 9pt; font-weight: 700;
+    padding: 1pt 5pt; border-radius: 3pt;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    margin-right: 2pt;
+  }
+  .tip.rescue .contingency-body ul { margin: 0; padding-left: 12pt; }
+  .tip.rescue ul { margin: 2pt 0 0; padding-left: 14pt; }
+  .tip.rescue li { font-size: 8.5pt; line-height: 1.3; margin: 0; }
+  .tip.rescue strong { color: #1a1a1a; }
+  /* Keep callout body text at the callout's intended 14px, not the body 17px. */
+  .callout p, .callout li { font-size: 12px; line-height: 1.4; }
+  .callout-title {
+    font-family: "Inter", sans-serif;
+    font-weight: 700;
+    color: #7a4f00;
+    margin-bottom: 3pt;
+  }
+  .warning {
+    background: #fdecea;
+    border: 1pt solid #c0392b;
+    font-weight: 600;
+    color: #7a1f00;
+  }
+  .warning.compact {
+    padding: 4pt 8pt;
+    margin: 4pt 0;
+    font-size: 9pt;
+    line-height: 1.3;
+    break-before: avoid;
+  }
+
+  /* Two-column resources / packing */
+  .two-col {
+    display: flex;
+    gap: 8pt;
+    align-items: flex-start;
+    margin: 6pt 0;
+  }
+  .two-col > * { flex: 1 1 0; }
+
+  .resource-card {
+    display: flex;
+    align-items: center;
+    gap: 5pt;
+    border: 1pt solid #c9d3dd;
+    border-radius: 4pt;
+    padding: 4pt 6pt;
+    background: #f8fafc;
+    break-inside: avoid;
+  }
+  .resource-card img {
+    width: 0.55in; height: 0.55in;
+    flex: 0 0 auto;
+  }
+  .resource-card .label {
+    font-family: "Inter", sans-serif;
+    font-size: 8pt;
+    color: #333;
+    line-height: 1.3;
+    flex: 1 1 auto;
+  }
+
+  /* Page break helpers */
+  .page-break { break-before: page; }
+  .keep-together { break-inside: avoid; }
+
+  /* Toner-friendly theme */
+  body.theme-print-light h2.step {
+    background: #ffffff;
+    color: #0e2233;
+    border: 1pt solid #0e2233;
+    border-left: 4pt solid #0e2233;
+  }
+  body.theme-print-light th {
+    background: #ffffff;
+    color: #0e2233;
+    border-bottom: 1.5pt solid #0e2233;
+  }
+  body.theme-print-light table.avoid-allowed .col-avoid,
+  body.theme-print-light table.avoid-allowed .col-allowed { background: #ffffff; }
+  body.theme-print-light table.avoid-allowed th.col-avoid {
+    background: #ffffff; color: #7a1f00; border-bottom: 1.5pt solid #c0392b;
+  }
+  body.theme-print-light table.avoid-allowed th.col-allowed {
+    background: #ffffff; color: #1f4d12; border-bottom: 1.5pt solid #2e7d32;
+  }
+  body.theme-print-light .time-box {
+    background: #ffffff; border: 0.75pt solid #1565c0; border-left: 3pt solid #1565c0;
+  }
+  body.theme-print-light .callout {
+    background: #ffffff; border: 1pt solid #d4a017; border-left: 3pt solid #d4a017;
+  }
+  body.theme-print-light .warning {
+    background: #ffffff; border: 1pt solid #c0392b; border-left: 3pt solid #c0392b;
+  }
+  body.theme-print-light .location { background: #ffffff; }
+  body.theme-print-light .resource-card { background: #ffffff; }
+  body.theme-print-light .meals .meal { background: #ffffff; border: 1pt solid #b9b3a3; }
+
+  /* Sample meals grid */
+  .meals { display: flex; gap: 10pt; margin: 4pt 0; }
+  .meals .meal {
+    flex: 1 1 0;
+    background: #f6f4ee;
+    border: 1pt solid #d8d2c2;
+    border-radius: 4pt;
+    padding: 6pt 8pt;
+    break-inside: avoid;
+    font-size: 10pt;
+  }
+  .meals .meal h4 {
+    font-family: "Inter", sans-serif;
+    font-size: 10pt;
+    margin: 0 0 3pt 0;
+    color: #5a4500;
+  }
+  .meals .meal ul { margin: 0 0 0 14pt; }
+
+  .fineprint {
+    font-size: 9pt;
+    color: #555;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================= -->
+<!-- PORTADA / PÁGINA 1                                            -->
+<!-- ============================================================= -->
+<section class="cover">
+  <div class="cover-row">
+    <img class="practice-logo" src="{{PRACTICE_LOGO_FILE}}" alt="{{PRACTICE_LOGO_ALT}}">
+    <div class="practice-stack">
+      <div>{{PRACTICE_STACK_LINE_1}}</div>
+      <div>{{PRACTICE_STACK_LINE_2}}</div>
+      <div class="phone">{{PRACTICE_STACK_LINE_3}}</div>
+    </div>
+    <div class="cover-qr">
+    <a class="qr-block" href="{{MOBILE_URL}}">
+      <span class="qr-caption">Escanee o visite<br>giready.com</span>
+      <img id="qr-mobile" src="qr-placeholder.png" alt="Versión móvil — código QR">
+    </a>
+  </div>
+  </div>
+  <div class="cover-title-row">
+    <h1 class="doc-title">Preparación para EGD y Colonoscopia</h1>
+    <div class="band-label">{{BAND_LABEL}}</div>
+  </div>
+</section>
+<!-- LOCALIZACIÓN -->
+<section class="location">
+  <div class="location-text">
+    <div class="label">Lugar del Procedimiento</div>
+    <div class="name">{{LOCATION_NAME}}</div>
+    <div class="addr"><a href="{{MAPS_URL}}" target="_blank" rel="noopener">{{LOCATION_ADDRESS}}</a></div>
+    <div class="addr">{{LOCATION_PHONE_LABEL}}: <a href="tel:{{LOCATION_PHONE_TEL}}"><strong>{{LOCATION_PHONE}}</strong></a></div>
+    <div class="arrival">{{LOCATION_ARRIVAL}}</div>
+  </div>
+  <div class="location-qr">
+    <a class="qr-block" href="{{MAPS_URL}}" target="_blank" rel="noopener">
+      <span class="qr-caption">Escanee para Google Maps</span>
+      <img id="qr-maps" src="qr-placeholder.png" alt="Indicaciones en Google Maps — código QR">
+    </a>
+  </div>
+</section>
+
+<!-- ============================================================= -->
+<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado)  -->
+<!-- ============================================================= -->
+<h2 class="step"><span class="icon">&#128269;</span> ¿Qué Son Estos Procedimientos?</h2>
+<p>Su niño tiene programados <strong>dos procedimientos seguidos</strong> mientras está dormido bajo anestesia:</p>
+<ul>
+  <li><strong>EGD (endoscopia superior)</strong> &mdash; se pasa una cámara delgada por la boca para examinar el esófago, el estómago y la primera parte del intestino delgado. Generalmente se toman pequeñas biopsias.</li>
+  <li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>
+</ul>
+<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>
+
+<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>
+<p>El colon debe estar limpio para que el médico pueda ver bien durante la colonoscopia. Los medicamentos a continuación limpian el colon (lo vacían) el día anterior. La EGD no necesita preparación intestinal &mdash; solo las reglas de ayuno.</p>
+
+<div class="callout">
+  <div class="callout-title">&#9888;&#65039; &#128138; Medicamentos</div>
+  <div style="display:flex;align-items:flex-start;gap:10px;">
+    <div style="flex:1;">
+      <p style="margin: 0;">
+        Prepare una lista de los medicamentos y esté listo para discutirlos con la enfermera o el secretario cuando lo llamen.<br>
+        <strong>Suspenda {{HTML_MEDICATIONS_DRUGS}} 7 días antes.</strong><br>
+        Si toma antibióticos tetraciclinas o fluoroquinolonas, hierro, digoxina, clorpromazina o penicilamina &mdash; tómelos al menos <strong>2 horas antes y no menos de 6 horas después</strong> de cada dosis de CLENPIQ.<br>
+        Administre todos los demás medicamentos orales al menos <strong>1 hora antes</strong> de comenzar cada dosis de CLENPIQ.<br>
+        Puede verificar qué medicamentos pueden necesitar suspenderse en <a href="https://meds.giready.com"><strong>meds.giready.com</strong></a>.
+      </p>
+    </div>
+    <a href="https://meds.giready.com"><img src="{{MEDS_GIREADY_QR}}" alt="código QR meds.giready.com" style="width:48px;height:48px;flex-shrink:0;"></a>
+  </div>
+</div>
+
+{{HTML_PRECLEANOUT_BLOCK}}
+
+<!-- ============================================================= -->
+<!-- PLANIFIQUE CON ANTICIPACIÓN                                   -->
+<!-- ============================================================= -->
+<h2 class="step"><span class="icon">&#9989;</span> Medicamentos y Suministros necesarios</h2>
+
+<p>Recoja cualquier receta lo antes posible después de programar la cita. Compre todos los demás artículos al menos 5 días antes del procedimiento<span class="pz-only" data-pz-day="-5" data-pz-template=" (para el {date})"></span>.</p>
+<table class="keep-together">
+  <thead>
+    <tr><th scope="col" style="width: 68%;">Ingrediente activo / Artículo</th><th scope="col" style="text-align: right;">Qué comprar</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>CLENPIQ</strong> (picosulfato de sodio, óxido de magnesio y ácido cítrico) &mdash; <strong>se requiere receta</strong><br><span style="font-size: 0.78em; color: #666;">Llame al consultorio si no ha recibido una receta. CLENPIQ está listo para beber &mdash; no se necesita mezclar.</span></td>
+      <td style="text-align: right;"><strong>{{HTML_CLENPIQ_TOTAL_BOTTLES}} botellas</strong><br><span style="font-size: 0.78em; color: #666;">{{HTML_CLENPIQ_BOTTLE_OZ}} oz / {{HTML_CLENPIQ_BOTTLE_ML}} mL cada una</span></td>
+    </tr>
+    <tr>
+      <td><strong>Líquidos claros</strong> &mdash; agua, Gatorade o Powerade <em>(cualquier color excepto rojo o morado)</em>, jugo de manzana, jugo de uva blanca</td>
+      <td style="text-align: right;">Al menos <strong>72 oz (~2 L)</strong> en total. Incluya una bebida electrolítica balanceada (Gatorade, Pedialyte o similar).</td>
+    </tr>
+    <tr>
+      <td>Protección de la piel &mdash; pomada protectora (Desitin o Vaseline) para la comodidad del área anal</td>
+      <td style="text-align: right;">1 tubo</td>
+    </tr>
+  </tbody>
+</table>
+<div class="warning">&#9888;&#65039; <strong>CLENPIQ ya contiene un laxante estimulante (picosulfato de sodio).</strong> NO dé Dulcolax (bisacodilo) ni ningún otro laxante con esta preparación a menos que su médico se lo indique específicamente.</div>
+
+<!-- ============================================================= -->
+<!-- 3 DÍAS ANTES                                                  -->
+<!-- ============================================================= -->
+{{PARTIAL_DIET_CLEAR_PRINT}}<!-- ============================================================= -->
+<!-- DOSIS 1 (tarde antes)                                         -->
+<!-- ============================================================= -->
+<h2 class="section-heading step big-prep"><span class="icon">&#129380;</span> DOSIS 1 &mdash; La Tarde Antes del Procedimiento<span class="pz-only" data-pz-day="-1" data-pz-template=" ({date})"></span></h2>
+<p class="note"><em>Mejor refrigerar las botellas con anticipación &mdash; CLENPIQ sabe mejor frío.</em></p>
+
+<div class="time-box">
+  <div class="when">{{HTML_CLENPIQ_DOSE1_WINDOW}}</div>
+  <div class="what">Beba <strong>1 botella completa ({{HTML_CLENPIQ_BOTTLE_OZ}} oz / {{HTML_CLENPIQ_BOTTLE_ML}} mL)</strong> de CLENPIQ. Tiene sabor a arándano y está lista para beber &mdash; no se necesita mezclar.</div>
+</div>
+<div class="time-box">
+  <div class="when">Después de la dosis</div>
+  <div class="what">Beba al menos <strong>{{HTML_CLENPIQ_DOSE1_CLEARS_CUPS}} &times; {{HTML_DRINK_CUP}} vasos ({{HTML_CLENPIQ_DOSE1_CLEARS_OZ}} oz en total)</strong> de líquidos claros durante las próximas {{HTML_CLENPIQ_DOSE1_CLEARS_HOURS}} horas. Incluya Gatorade, Pedialyte u otra bebida electrolítica entre ellos.</div>
+</div>
+
+<div class="tip">
+  <div class="tip-title">💡 Consejos</div>
+  <ul>
+    <li>Refrigere las botellas con anticipación &mdash; CLENPIQ sabe mejor frío.</li>
+    <li>Beba cada vaso de líquido claro de manera constante &mdash; no espere hasta el final.</li>
+    <li>Espere diarrea dentro de 1&ndash;3 horas &mdash; esto es normal y significa que la preparación está funcionando.</li>
+    <li>Aplique pomada protectora en el área inferior antes de que comience la diarrea.</li>
+    <li>Si ocurre distensión abdominal severa o dolor abdominal después de la Dosis 1, retrase la Dosis 2 hasta que los síntomas se resuelvan.</li>
+  </ul>
+</div>
+
+<!-- ============================================================= -->
+<!-- DOSIS 2 (mañana del procedimiento, 5-9 h antes)               -->
+<!-- ============================================================= -->
+<h2 class="section-heading step big-prep"><span class="icon">&#129380;</span> DOSIS 2 &mdash; La Mañana del Procedimiento<span class="pz-only" data-pz-day="0" data-pz-template=" ({date})"></span></h2>
+
+<div class="time-box">
+  <div class="when">{{HTML_CLENPIQ_DOSE2_HOURS_BEFORE_MIN}}&ndash;{{HTML_CLENPIQ_DOSE2_HOURS_BEFORE_MAX}} horas antes del procedimiento</div>
+  <div class="what">Beba <strong>1 botella completa ({{HTML_CLENPIQ_BOTTLE_OZ}} oz / {{HTML_CLENPIQ_BOTTLE_ML}} mL)</strong> de CLENPIQ.</div>
+</div>
+<div class="time-box">
+  <div class="when">Después de la dosis</div>
+  <div class="what">Beba al menos <strong>{{HTML_CLENPIQ_DOSE2_CLEARS_CUPS}} &times; {{HTML_DRINK_CUP}} vasos ({{HTML_CLENPIQ_DOSE2_CLEARS_OZ}} oz en total)</strong> de líquidos claros, terminando al menos <strong>{{NPO_CLEARS_HOURS}} horas antes del procedimiento</strong>.</div>
+</div>
+
+<div class="callout">
+  <p style="margin: 0;">&#9888;&#65039; <strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong> Si su niño vomita dentro de los 30 minutos posteriores a una dosis, espere 30 minutos e intente dar la dosis nuevamente lentamente.</p>
+</div>
+
+<!-- ============================================================= -->
+<!-- DÍA DEL PROCEDIMIENTO (CLENPIQ: líquidos claros TODO el día)  -->
+<!-- ============================================================= -->
+<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Día del Procedimiento"><span class="icon">&#128197;</span> Día del Procedimiento</h2>
+
+<ul>
+  <li><strong>Solo líquidos claros.</strong> Sin alimentos sólidos.</li>
+  <li><strong>Suspenda todos los líquidos claros {{NPO_CLEARS_HOURS}} horas antes del procedimiento.</strong></li>
+  <li>Traiga objetos de comodidad para su niño (juguete, manta, tableta, etc.).</li>
+  <li>La EGD se realiza primero (por la boca), luego la colonoscopia. Ambas suceden durante la misma siesta.</li>
+</ul>
+
+<div class="warning compact">&#9888;&#65039; Si la preparación intestinal no se sigue exactamente, la colonoscopia puede retrasarse o cancelarse. La EGD no requiere preparación intestinal, pero las reglas de ayuno aplican a ambos procedimientos.</div>
+</div>
+
+<!-- ============================================================= -->
+<!-- RECURSOS ÚTILES                                               -->
+<!-- ============================================================= -->
+<h2 class="step">Recursos Útiles y Preguntas</h2>
+
+<div class="two-col">
+  <a class="resource-card" href="{{YOUTUBE_URL}}" target="_blank" rel="noopener">
+    <img id="qr-youtube" src="qr-placeholder.png" alt="Video de preparación — código QR">
+    <div class="label"><strong>Video de preparación</strong><br>Solo como ejemplo — siga este folleto, no el video.</div>
+  </a>
+  <a class="resource-card" href="{{PORTAL_URL}}" target="_blank" rel="noopener">
+    <img id="qr-portal" src="qr-placeholder.png" alt="Portal del paciente — código QR">
+    <div class="label"><strong>Portal del paciente</strong><br>Envíenos un mensaje<br>Urgente: (317) 338-9450</div>
+  </a>
+  <a class="resource-card" href="{{GIKIDS_URL}}" target="_blank" rel="noopener">
+    <img id="qr-gikids" src="qr-placeholder.png" alt="GIKids — código QR">
+    <div class="label"><strong>GIKids.org</strong><br>Información general sobre procedimientos de GI pediátrica.</div>
+  </a>
+</div>
+
+<!-- ============================================================= -->
+<!-- COMIDAS DE MUESTRA                                            -->
+<!-- ============================================================= -->
+
+{{PARTIAL_FEEDBACK_BAR}}
+</body>
+</html>

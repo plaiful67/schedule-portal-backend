@@ -121,13 +121,16 @@ def render_combo(band_id, lang, variant, out_dir):
     return result.returncode, result.stdout, result.stderr
 
 
-# render.py builds a `combined` (EGD+colonoscopy) print ONLY for the MiraLAX-family
-# protocols — standard / infant / infant-enema (render_band, render.py ~L2518-2526).
-# The scheduler-only alternative preps (SUPREP, CLENPIQ, lactulose) have no combined
-# print template by design, so `combined × {those}` is unbuildable: render.py raises
-# "Unknown protocol for combined variant". Sweeping them produced 10 expected-red
-# failures that masked real regressions, so validate SKIPS (and logs) them instead.
-COMBINED_BUILDABLE_PROTOCOLS = ("standard", "infant", "infant-enema")
+# render.py builds a `combined` (EGD+colonoscopy) print for the MiraLAX-family
+# protocols (standard / infant / infant-enema) AND the scheduler alternative preps
+# (SUPREP, CLENPIQ, lactulose) — the latter via the combined-{suprep,clenpiq,
+# lactulose}-standard-print + combined-lactulose-infant-print canonicals added in the
+# drift-hardening program (Item 1, 2026-07-02). Every protocol below has a combined
+# print template, so `combined × <protocol>` is fully buildable — nothing is skipped.
+COMBINED_BUILDABLE_PROTOCOLS = (
+    "standard", "infant", "infant-enema",
+    "suprep-standard", "clenpiq-standard", "lactulose-standard", "lactulose-infant",
+)
 
 
 def _combo_buildable(protocol: str, variant: str) -> bool:

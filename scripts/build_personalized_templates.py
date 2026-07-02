@@ -4217,10 +4217,255 @@ def patch_combined_infant_enema_print_es(canonical: str) -> str:
     return out
 
 
+# -----------------------------------------------------------------------------
+# Combined EGD+colonoscopy × alternative-prep print templates (drift-hardening
+# Item 1, 2026-07-02). These were backend-only "orphans" — the scheduler served
+# combined × {suprep, clenpiq, lactulose} but the skill had no canonical, so the
+# provenance gate reported them as backend-only and they couldn't be drift-checked.
+#
+# The 4 new skill canonicals (combined-{suprep,clenpiq,lactulose}-standard-print +
+# combined-lactulose-infant-print) were authored by inverse-patching these exact
+# committed orphans, so the patch functions below reproduce them byte-identical.
+#
+# suprep / clenpiq are the "standard combined" personalization schema MINUS the
+# composed/addon token modernization: inject the (old) appt-callout CSS, the
+# performing-physician div, the one-row appt-callout, the follow-up token, and the
+# pz "day before" wrap; static heading kept as-is; end at {{PARTIAL_FEEDBACK_BAR}}
+# (these orphans predate the legal-footer/DOCTORS_BLOCK tail refactor). lactulose-
+# standard additionally re-tokenizes the combined heading + lower-procedure slots
+# (the canonical carries their combined defaults). lactulose-infant follows the
+# infant personalization schema (new .appt-row CSS, no BANNER).
+# -----------------------------------------------------------------------------
+
+def _combined_altprep_std_forward(canonical: str, lang: str) -> str:
+    """Shared personalization for combined × suprep/clenpiq/lactulose-standard.
+
+    Reproduces the frozen orphan schema: old _CSS_APPT_CALLOUT + _APPT_CALLOUT_HTML,
+    performing-physician div, follow-up token, pz day-before wrap; BANNER prepended.
+    These orphans carry no legal footer / DOCTORS_BLOCK (they predate that refactor),
+    and their canonicals likewise end at {{PARTIAL_FEEDBACK_BAR}} — so no
+    _strip_legal_footer call here (its anchors are absent).
+    """
+    out = _inject_personalization_css(canonical)
+    perf = _PERFORMING_PHYSICIAN_HTML_EN if lang == "en" else _PERFORMING_PHYSICIAN_HTML_ES
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n' + perf,
+        where=f"combined-altprep {lang}: performing-physician under band-label",
+    )
+    appt = _APPT_CALLOUT_HTML_EN if lang == "en" else _APPT_CALLOUT_HTML_ES
+    if lang == "en":
+        out = _replace_unique(
+            out, "<!-- LOCATION -->",
+            appt + "<!-- LOCATION (under the appointment callout) -->",
+            where="combined-altprep en: appt-callout before LOCATION",
+        )
+        out = _replace_unique(
+            out,
+            "<!-- ============================================================= -->\n<!-- WHAT ARE THESE PROCEDURES (combined-handout intro)           -->",
+            "<!-- Follow-up appointment (narrow standalone callout, personalized) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- ============================================================= -->\n<!-- WHAT ARE THESE PROCEDURES (combined-handout intro)           -->",
+            where="combined-altprep en: followup before procedures section",
+        )
+        out = _replace_unique(
+            out,
+            "The medicines below clean the colon (empty it) over the day before.",
+            'The medicines below clean the colon (empty it) over <span class="pz-only" data-pz-day="-1" data-pz-template="the day before ({date})">the day before</span>.',
+            where="combined-altprep en: bowel prep 'day before' wrap",
+        )
+    else:
+        out = _replace_unique(
+            out, "<!-- LOCALIZACIÓN -->",
+            appt + "<!-- LOCALIZACIÓN (bajo el aviso de cita) -->",
+            where="combined-altprep es: appt-callout before LOCALIZACIÓN",
+        )
+        out = _replace_unique(
+            out,
+            "<!-- ============================================================= -->\n<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado)  -->",
+            "<!-- Aviso de cita de seguimiento (personalizado) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- ============================================================= -->\n<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado)  -->",
+            where="combined-altprep es: followup before procedures section",
+        )
+        out = _replace_unique(
+            out,
+            "Los medicamentos a continuación limpian el colon (lo vacían) el día anterior.",
+            'Los medicamentos a continuación limpian el colon (lo vacían) <span class="pz-only" data-pz-day="-1" data-pz-template="el día anterior ({date})">el día anterior</span>.',
+            where="combined-altprep es: bowel prep 'day before' wrap",
+        )
+    return BANNER + out
+
+
+def patch_combined_suprep_standard_print_en(canonical: str) -> str:
+    return _combined_altprep_std_forward(canonical, "en")
+
+
+def patch_combined_suprep_standard_print_es(canonical: str) -> str:
+    return _combined_altprep_std_forward(canonical, "es")
+
+
+def patch_combined_clenpiq_standard_print_en(canonical: str) -> str:
+    return _combined_altprep_std_forward(canonical, "en")
+
+
+def patch_combined_clenpiq_standard_print_es(canonical: str) -> str:
+    return _combined_altprep_std_forward(canonical, "es")
+
+
+# lactulose-standard combined: same schema, plus re-tokenize the combined heading +
+# lower-procedure slots (the canonical carries their combined defaults so the skill
+# render is placeholder-clean; the adapter re-fills the tokens at request time).
+_COMBINED_LACT_HEADING = {"en": "EGD and Colonoscopy Prep",
+                          "es": "Preparación para EGD y Colonoscopia"}
+_COMBINED_LACT_LOWER_DESC = {
+    "en": ('<li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed '
+           'through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>'),
+    "es": ('<li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa por el '
+           'recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>'),
+}
+_COMBINED_LACT_SEQ = {
+    "en": ("then the colonoscopy. Both happen during the same nap.",
+           "then the {{COMBINED_LOWER_WORD}}. Both happen during the same nap."),
+    "es": ("luego la colonoscopia. Ambas suceden durante la misma siesta.",
+           "luego la {{COMBINED_LOWER_WORD}}. Ambas suceden durante la misma siesta."),
+}
+
+
+def _combined_lactulose_standard_forward(canonical: str, lang: str) -> str:
+    out = _replace_unique(
+        canonical,
+        f'<h1 class="doc-title">{_COMBINED_LACT_HEADING[lang]}</h1>',
+        '<h1 class="doc-title">{{PROCEDURE_HEADING}}</h1>',
+        where=f"combined-lactulose-std {lang}: heading -> PROCEDURE_HEADING token",
+    )
+    out = _replace_unique(
+        out, _COMBINED_LACT_LOWER_DESC[lang], "{{COMBINED_LOWER_DESC}}",
+        where=f"combined-lactulose-std {lang}: colonoscopy <li> -> COMBINED_LOWER_DESC token",
+    )
+    seq_old, seq_new = _COMBINED_LACT_SEQ[lang]
+    out = _replace_unique(
+        out, seq_old, seq_new,
+        where=f"combined-lactulose-std {lang}: sequencing word -> COMBINED_LOWER_WORD token",
+    )
+    return _combined_altprep_std_forward(out, lang)
+
+
+def patch_combined_lactulose_standard_print_en(canonical: str) -> str:
+    return _combined_lactulose_standard_forward(canonical, "en")
+
+
+def patch_combined_lactulose_standard_print_es(canonical: str) -> str:
+    return _combined_lactulose_standard_forward(canonical, "es")
+
+
+# lactulose-infant combined: infant personalization schema (new .appt-row CSS via
+# _APPT_CALLOUT_{EN,ES}, LOCATION/UBICACIÓN short comment, heading-stamp data-pz-day
+# on the 3 diet/fasting headings, no BANNER). Mirrors patch_combined_infant_print_*.
+_COMBINED_LACT_INFANT_HEADS_EN = [
+    ('<h2 class="step"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>',
+     '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &amp; the next day &mdash; lactulose dosing">'
+     '<span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>'),
+    ('<h2 class="step"><span class="icon">&#128197;</span> Day Before the Procedure</h2>',
+     '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Low-Residue Through Evening">'
+     '<span class="icon">&#128197;</span> Day Before the Procedure</h2>'),
+    ('<h2 class="step"><span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>',
+     '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Fasting Rules">'
+     '<span class="icon">&#9200;</span> Fasting Rules &mdash; Day of Procedure</h2>'),
+]
+_COMBINED_LACT_INFANT_HEADS_ES = [
+    ('<h2 class="step"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>',
+     '<h2 class="step" data-pz-day="-3" data-pz-suffix=" y el día siguiente &mdash; Dosis de lactulosa">'
+     '<span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>'),
+    ('<h2 class="step"><span class="icon">&#128197;</span> Día antes del procedimiento</h2>',
+     '<h2 class="step" data-pz-day="-1" data-pz-suffix=" &mdash; Bajo en residuos hasta la noche">'
+     '<span class="icon">&#128197;</span> Día antes del procedimiento</h2>'),
+    ('<h2 class="step"><span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>',
+     '<h2 class="step" data-pz-day="0" data-pz-suffix=" &mdash; Reglas de ayuno">'
+     '<span class="icon">&#9200;</span> Reglas de ayuno &mdash; día del procedimiento</h2>'),
+]
+
+
+def _combined_lactulose_infant_forward(canonical: str, lang: str) -> str:
+    out = canonical
+    perf = _PERFORMING_PHYSICIAN_HTML_EN if lang == "en" else _PERFORMING_PHYSICIAN_HTML_ES
+    appt = _APPT_CALLOUT_EN if lang == "en" else _APPT_CALLOUT_ES
+    new_css = _INFANT_NEW_CSS_AND_HEAD if lang == "en" else _INFANT_NEW_CSS_AND_HEAD_ES
+    out = _replace_unique(
+        out,
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n",
+        "    color: #b03a00;\n    margin-top: 2pt;\n  }\n" + _INFANT_PERF_CSS_BLOCK,
+        where=f"combined-lactulose-infant {lang}: .performing-physician CSS",
+    )
+    out = _replace_unique(
+        out, _TOPBAR_AND_HEAD_EXTRAS, "\n" + new_css,
+        where=f"combined-lactulose-infant {lang}: topbar/head -> appt/followup CSS",
+    )
+    out = _replace_unique(
+        out,
+        '<div class="band-label">{{BAND_LABEL}}</div>',
+        '<div class="band-label">{{BAND_LABEL}}</div>\n' + perf,
+        where=f"combined-lactulose-infant {lang}: performing-physician under band-label",
+    )
+    loc = "<!-- LOCATION -->" if lang == "en" else "<!-- UBICACIÓN -->"
+    out = _replace_unique(
+        out, "</section>\n\n" + loc, "</section>\n\n" + appt + "\n" + loc,
+        where=f"combined-lactulose-infant {lang}: appt-callout before LOCATION",
+    )
+    if lang == "en":
+        out = _replace_unique(
+            out,
+            "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+            "<!-- Follow-up appointment (narrow standalone callout) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
+            where="combined-lactulose-infant en: followup before procedures section",
+        )
+        heads = _COMBINED_LACT_INFANT_HEADS_EN
+    else:
+        out = _replace_unique(
+            out,
+            "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+            "<!-- Cita de seguimiento (callout estrecho independiente) -->\n{{FOLLOWUP_BLOCK_HTML}}\n\n<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
+            where="combined-lactulose-infant es: followup before procedures section",
+        )
+        heads = _COMBINED_LACT_INFANT_HEADS_ES
+    for plain, stamped in heads:
+        out = _replace_unique(out, plain, stamped,
+                              where=f"combined-lactulose-infant {lang}: heading stamp")
+    out = _strip_legal_footer(out, lang=lang)
+    if lang == "en":
+        out = _replace_unique(
+            out, "\n\n\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+            "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+            where="combined-lactulose-infant en: DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
+        )
+    else:
+        out = _replace_unique(
+            out,
+            "\n\n\n<!-- REVIEW: native ES review pending on disclaimer_es -->\n{{DOCTORS_BLOCK}}\n\n\n\n\n</body>",
+            "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
+            where="combined-lactulose-infant es: REVIEW + DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
+        )
+    return out
+
+
+def patch_combined_lactulose_infant_print_en(canonical: str) -> str:
+    return _combined_lactulose_infant_forward(canonical, "en")
+
+
+def patch_combined_lactulose_infant_print_es(canonical: str) -> str:
+    return _combined_lactulose_infant_forward(canonical, "es")
+
+
 VARIANTS = [
     # --- combined EGD+colonoscopy (bowel-prep skill) ---
     ("bowel-prep-generator", "combined-print.en.html", "bowel_prep", "combined-print-personalized.en.html", patch_combined_print_en),
     ("bowel-prep-generator", "combined-print.es.html", "bowel_prep", "combined-print-personalized.es.html", patch_combined_print_es),
+    # --- combined EGD+colonoscopy × alt-prep (drift-hardening Item 1, 2026-07-02) ---
+    ("bowel-prep-generator", "combined-suprep-standard-print.en.html", "bowel_prep", "combined-suprep-standard-print-personalized.en.html", patch_combined_suprep_standard_print_en),
+    ("bowel-prep-generator", "combined-suprep-standard-print.es.html", "bowel_prep", "combined-suprep-standard-print-personalized.es.html", patch_combined_suprep_standard_print_es),
+    ("bowel-prep-generator", "combined-clenpiq-standard-print.en.html", "bowel_prep", "combined-clenpiq-standard-print-personalized.en.html", patch_combined_clenpiq_standard_print_en),
+    ("bowel-prep-generator", "combined-clenpiq-standard-print.es.html", "bowel_prep", "combined-clenpiq-standard-print-personalized.es.html", patch_combined_clenpiq_standard_print_es),
+    ("bowel-prep-generator", "combined-lactulose-standard-print.en.html", "bowel_prep", "combined-lactulose-standard-print-personalized.en.html", patch_combined_lactulose_standard_print_en),
+    ("bowel-prep-generator", "combined-lactulose-standard-print.es.html", "bowel_prep", "combined-lactulose-standard-print-personalized.es.html", patch_combined_lactulose_standard_print_es),
+    ("bowel-prep-generator", "combined-lactulose-infant-print.en.html", "bowel_prep", "combined-lactulose-infant-print-personalized.en.html", patch_combined_lactulose_infant_print_en),
+    ("bowel-prep-generator", "combined-lactulose-infant-print.es.html", "bowel_prep", "combined-lactulose-infant-print-personalized.es.html", patch_combined_lactulose_infant_print_es),
     # --- alt-prep standalone colonoscopy (bowel-prep skill) ---
     ("bowel-prep-generator", "suprep-standard-print.en.html", "bowel_prep", "suprep-standard-print-personalized.en.html", patch_suprep_standard_print_en),
     ("bowel-prep-generator", "suprep-standard-print.es.html", "bowel_prep", "suprep-standard-print-personalized.es.html", patch_suprep_standard_print_es),

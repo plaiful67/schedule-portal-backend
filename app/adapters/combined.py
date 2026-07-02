@@ -24,7 +24,7 @@ def render_pdf(
     arrival_time_display: str,
     followup_block_html: str,
     appt_dt: datetime,
-    prep_type: Literal["miralax", "lactulose", "clenpiq"] = "miralax",
+    prep_type: Literal["miralax", "lactulose", "clenpiq", "suprep"] = "miralax",
     include_directions: bool = True,
 ) -> bytes:
     return bowel_prep.render_pdf(

@@ -24,11 +24,19 @@ exact personalized file that now needs review.
 
 ORPHANS
 -------
-Some personalized templates (combined x {suprep,clenpiq,lactulose}) have NO
-skill canonical — the skill refuses to build those combos, but the scheduler
-serves them (procedure_type=combined + prep_type=suprep/...). They are recorded
-with "canonical": null and reported as ORPHAN (backend-only, hand-maintained) —
-honest, not a failure.
+A personalized template with NO skill canonical is an ORPHAN — a scheduler-served
+handout with no single source of truth in the authoring skills. Per the
+digital-twin doctrine (docs/superpowers/plans/2026-07-02-drift-hardening-program.md,
+Item 1), orphans are a HARD gate FAILURE by default: every served handout MUST have
+a skill canonical.
+
+The combined x {suprep,clenpiq,lactulose} orphans were retired in Item 1
+(2026-07-02): they now have skill canonicals + build_personalized_templates.py
+VARIANTS rows, so they are ordinary "forked" templates.
+
+The only remaining allowed orphans are enumerated in ALLOWED_ORPHANS below, each
+with a pointer to the plan item that will retire it. Anything NOT in that set that
+resolves to no canonical FAILS the gate.
 
 USAGE
 -----
@@ -48,6 +56,18 @@ BACKEND_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR = BACKEND_DIR / "app" / "templates"
 VENDOR_DIR = BACKEND_DIR / "vendor"
 MANIFEST = Path(__file__).resolve().parent / "personalized_provenance.json"
+
+# Personalized templates permitted to have NO skill canonical (backend-only).
+# Per the digital-twin doctrine this set MUST shrink to empty. Each entry names
+# the plan item that will retire it. Anything backend-only NOT listed here FAILS.
+#   flexsig/print-personalized.{en,es}: retired by drift-hardening Item 5
+#   (fold flexsig into the monorepo + add its canonical mapping to
+#   _canonical_rel_for). The flex-sig skill IS vendored; only the gate's naming
+#   rule doesn't map the `flexsig` family yet — Item 5 closes that.
+ALLOWED_ORPHANS = {
+    "flexsig/print-personalized.en.html",
+    "flexsig/print-personalized.es.html",
+}
 
 
 def _sha256(path: Path) -> str:
@@ -150,13 +170,17 @@ def cmd_check() -> int:
     untracked = sorted(on_disk - tracked)
     missing = sorted(tracked - on_disk)
     ok = 0
-    orphans: list[str] = []
+    orphans: list[str] = []          # allowed backend-only (ALLOWED_ORPHANS)
+    bad_orphans: list[str] = []      # backend-only NOT on the allowlist -> FAIL
 
     for rel in sorted(on_disk & tracked):
         entry = recorded[rel]
         canon_rel = entry.get("canonical")
         if not canon_rel:
-            orphans.append(rel)
+            if rel in ALLOWED_ORPHANS:
+                orphans.append(rel)
+            else:
+                bad_orphans.append(rel)
             continue
         canon_path = VENDOR_DIR / canon_rel
         if not canon_path.exists():
@@ -170,9 +194,15 @@ def cmd_check() -> int:
     # Report
     print(f"Personalized-template drift gate — {len(on_disk)} templates")
     print(f"  OK (canonical unchanged):     {ok}")
-    print(f"  ORPHAN (backend-only):        {len(orphans)}")
+    print(f"  ORPHAN (allowed backend-only):{len(orphans)}")
     for o in orphans:
         print(f"      · {o}")
+    if bad_orphans:
+        print(f"  ORPHAN (NO canonical — FAIL): {len(bad_orphans)}")
+        for o in bad_orphans:
+            print(f"      ✗ {o}  — every served handout must have a skill canonical "
+                  f"(add it + a build_personalized_templates VARIANTS row, or list it "
+                  f"in ALLOWED_ORPHANS with a retirement pointer)")
     if untracked:
         print(f"  UNTRACKED (add via --update): {len(untracked)}")
         for u in untracked:
@@ -186,9 +216,10 @@ def cmd_check() -> int:
         for d in drift:
             print(f"      ✗ {d}")
 
-    failed = bool(drift or untracked or missing)
-    print("\n" + ("FAIL — drift/untracked/missing above." if failed
-                  else "PASS — no new drift; orphans are known backend-only."))
+    failed = bool(drift or untracked or missing or bad_orphans)
+    print("\n" + ("FAIL — drift/untracked/missing/unlisted-orphan above." if failed
+                  else "PASS — no new drift; every served handout has a canonical "
+                       "(allowed backend-only orphans are on the shrinking allowlist)."))
     return 1 if failed else 0
 
 
