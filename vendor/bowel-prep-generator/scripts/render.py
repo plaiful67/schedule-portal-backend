@@ -2565,6 +2565,14 @@ def render_band(band, lang, fmt, out_dir, flat=False, location=None, location_id
                 template = TEMPLATES / f"combined-infant-print.{lang}.html"
             elif protocol == "infant-enema":
                 template = TEMPLATES / f"combined-infant-enema-print.{lang}.html"
+            elif protocol == "suprep-standard":
+                template = TEMPLATES / f"combined-suprep-standard-print.{lang}.html"
+            elif protocol == "clenpiq-standard":
+                template = TEMPLATES / f"combined-clenpiq-standard-print.{lang}.html"
+            elif protocol == "lactulose-standard":
+                template = TEMPLATES / f"combined-lactulose-standard-print.{lang}.html"
+            elif protocol == "lactulose-infant":
+                template = TEMPLATES / f"combined-lactulose-infant-print.{lang}.html"
             else:
                 raise ValueError(f"Unknown protocol for combined variant: {protocol!r}")
         elif protocol == "suprep-standard":
