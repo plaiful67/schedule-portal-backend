@@ -56,11 +56,17 @@ LB_PER_KG = 2.20462
 
 
 def _kg_to_lb(kg):
+    """Round a kg weight to whole pounds (used only for display labels)."""
     return int(round(kg * LB_PER_KG))
 
 
 def lb_bounds(band):
-    """Inclusive whole-pound range a band covers (None = open end)."""
+    """Inclusive whole-pound range a band covers, derived from its kg cutpoints.
+
+    Returns (lo, hi) where either may be None for an open end:
+      lo is None  -> open-low  (kg_lo is 0/None)
+      hi is None  -> open-high (kg_hi is None)
+    """
     kg_lo = band.get("kg_lo")
     kg_hi = band.get("kg_hi")
     lo = _kg_to_lb(kg_lo) if kg_lo else None
@@ -69,13 +75,22 @@ def lb_bounds(band):
 
 
 def lb_phrase(band, lang="en", style="plain"):
-    """Localized lb label derived from a band's kg cutpoints.
+    """Localized lb label for a band, derived from its kg cutpoints.
 
-    styles: "plain" -> "33–89 lb" / "Under 33 lb" / "Over 89 lb";
-            "bracket" wraps in []. Spanish swaps the open-end words.
+    styles:
+      "plain"   -> "33–45 lb" / "Under 33 lb" / "Over 111 lb"   (apex, flex-sig)
+      "bracket" -> "[33–45 lb]" / "[Under 33 lb]" / "[Over 111 lb]"  (mobile BAND_LB)
+      "plus"    -> "(112+ lb)"   (open-high only; CLENPIQ / SUPREP BAND_LB cells)
+
+    Spanish swaps the open-end words: "Menos de N lb" / "Más de N lb".
+    The range form is language-neutral (digits + en dash + "lb").
     """
     lo, hi = lb_bounds(band)
     en = lang == "en"
+    if style == "plus":
+        if lo is None:
+            raise ValueError(f"lb_phrase style 'plus' needs an open-high band, got {band.get('id')!r}")
+        return f"({lo}+ lb)"
     if lo is None and hi is not None:
         core = f"Under {hi + 1} lb" if en else f"Menos de {hi + 1} lb"
     elif hi is None and lo is not None:
@@ -83,12 +98,23 @@ def lb_phrase(band, lang="en", style="plain"):
     elif lo is not None and hi is not None:
         core = f"{lo}–{hi} lb"  # en dash
     else:
-        raise ValueError(f"band {band.get('id')!r} has no kg cutpoints")
-    return f"[{core}]" if style == "bracket" else core
+        raise ValueError(f"band {band.get('id')!r} has no kg cutpoints to derive lb from")
+    if style == "bracket":
+        return f"[{core}]"
+    if style == "plain":
+        return core
+    raise ValueError(f"unknown lb_phrase style {style!r}")
 
 
 def select_band(weight_kg, bands):
-    """First band whose half-open [kg_lo, kg_hi) contains weight_kg."""
+    """Return the first band whose half-open [kg_lo, kg_hi) contains weight_kg.
+
+    The canonical kg-only binning primitive: kg is the unit of selection, and a
+    contiguous partition guarantees exactly one interval matches every weight.
+    Used by validate.py / the test sweep (no UX wires weight entry today), so it
+    intentionally ignores protocol/variant — multiple bands may share an
+    interval (e.g. under-15 + under-15-enema) and the first is returned.
+    """
     for b in bands:
         lo = b.get("kg_lo") or 0
         hi = b.get("kg_hi")
