@@ -3535,7 +3535,7 @@ def _patch_infant_print(out: str, *, lang: str) -> str:
     The infant-print fork (standalone MiraLAX colonoscopy, infant taper) has no
     title/about/PROCEDURE_WORD tokenization. Operations: perf-physician CSS, the
     disclaimer/footer/topbar CSS + head-extras swap, the perf-physician div, the
-    appt-callout, the followup token, the "NOT chewables" <br><span> -> <div>
+    appt-callout, the followup token
     re-wrap, data-pz stamps on the three step <h2>s, dropping the duplicate
     feedback resource-card, and the DOCTORS_BLOCK/FOOTER_LEGAL tail ->
     {{PARTIAL_FEEDBACK_BAR}}. Diet/dosing/NPO prose is byte-identical to canonical.
@@ -3547,15 +3547,6 @@ def _patch_infant_print(out: str, *, lang: str) -> str:
         followup_comment = "<!-- Follow-up appointment (narrow standalone callout) -->"
         loc_comment = "<!-- LOCATION -->"
         weight_comment = "<!-- WEIGHT-BAND NOTICE -->"
-        chew_old = (
-            "  <li><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, or other store brand) &mdash; only a small amount needed; see dose table below.<br>"
-            '<span style="font-size: 8.5pt; color: #7a1f00;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</span></li>'
-        )
-        chew_new = (
-            "  <li><strong>Polyethylene glycol 3350</strong> (MiraLAX, LaxaClear, ClearLax, or other store brand) &mdash; only a small amount needed; see dose table below.\n"
-            '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</div>\n'
-            "  </li>"
-        )
         h2_specs = [
             ('<h2 class="step"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>',
              '<h2 class="step" data-pz-day="-3" data-pz-suffix=" &amp; the next day &mdash; MiraLAX dosing"><span class="icon">&#128197;</span> 3 Days and 2 Days Before the Procedure</h2>'),
@@ -3575,15 +3566,6 @@ def _patch_infant_print(out: str, *, lang: str) -> str:
         followup_comment = "<!-- Cita de seguimiento (callout estrecho independiente) -->"
         loc_comment = "<!-- UBICACIÓN -->"
         weight_comment = "<!-- AVISO DE PESO -->"
-        chew_old = (
-            "  <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) &mdash; solo se necesita una cantidad pequeña; vea la tabla de dosis abajo.<br>"
-            '<span style="font-size: 8.5pt; color: #7a1f00;">&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</span></li>'
-        )
-        chew_new = (
-            "  <li><strong>Polietilenglicol 3350</strong> (MiraLAX, LaxaClear, ClearLax, u otra marca de tienda) &mdash; solo se necesita una cantidad pequeña; vea la tabla de dosis abajo.\n"
-            '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</div>\n'
-            "  </li>"
-        )
         h2_specs = [
             ('<h2 class="step"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>',
              '<h2 class="step" data-pz-day="-3" data-pz-suffix=" y el día siguiente &mdash; Dosis de MiraLAX"><span class="icon">&#128197;</span> 3 días y 2 días antes del procedimiento</h2>'),
@@ -3634,8 +3616,9 @@ def _patch_infant_print(out: str, *, lang: str) -> str:
         "</section>\n\n" + followup_comment + "\n{{FOLLOWUP_BLOCK_HTML}}\n\n" + weight_comment,
         where=f"infant {lang}: followup token after location",
     )
-    # 6. "NOT chewables" warning: <br><span> -> <div>.
-    out = _replace_unique(out, chew_old, chew_new, where=f"infant {lang}: chewables br/span -> div")
+    # 6. (removed 2026-07-02) The "NOT chewables" <br><span> -> <div> swap put a Div
+    #    inside an LI in the struct tree, failing PDF/UA-1 7.2 test 20 ("LI element may
+    #    contain only Lbl and LBody"). Personalized now keeps the canonical inline form.
     # 7. data-pz-day stamp the three step <h2> headings.
     for old, new in h2_specs:
         out = _replace_unique(out, old, new, where=f"infant {lang}: data-pz h2 {old[:40]}")
@@ -3690,16 +3673,6 @@ def patch_combined_infant_print_en(canonical: str) -> str:
         "{{FOLLOWUP_BLOCK_HTML}}\n\n"
         "<!-- WHAT ARE THESE PROCEDURES (combined-handout intro) -->",
         where="combined-infant en: followup token before procedures section",
-    )
-    out = _replace_unique(
-        out,
-        'see dose table below.<br><span style="font-size: 8.5pt; color: #7a1f00;">'
-        "&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</span></li>",
-        "see dose table below.\n"
-        '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">'
-        "&#9888;&#65039; <strong>NOT</strong> MiraLAX chewables &mdash; different medication.</div>\n"
-        "  </li>",
-        where="combined-infant en: MiraLAX warning <br><span> -> <div>",
     )
     out = _replace_unique(
         out,
@@ -3775,17 +3748,6 @@ def patch_combined_infant_print_es(canonical: str) -> str:
         "{{FOLLOWUP_BLOCK_HTML}}\n\n"
         "<!-- ¿QUÉ SON ESTOS PROCEDIMIENTOS? (intro del folleto combinado) -->",
         where="combined-infant es: followup token before procedures section",
-    )
-    out = _replace_unique(
-        out,
-        "vea la tabla de dosis abajo.<br>"
-        '<span style="font-size: 8.5pt; color: #7a1f00;">'
-        "&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</span></li>",
-        "vea la tabla de dosis abajo.\n"
-        '    <div style="font-size: 8.5pt; color: #7a1f00; margin-top: 2pt;">'
-        "&#9888;&#65039; <strong>NO</strong> use MiraLAX masticables &mdash; medicamento diferente.</div>\n"
-        "  </li>",
-        where="combined-infant es: MiraLAX warning <br><span> -> <div>",
     )
     out = _replace_unique(
         out,
