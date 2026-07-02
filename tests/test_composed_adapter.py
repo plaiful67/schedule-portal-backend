@@ -81,10 +81,57 @@ def test_composed_combined_no_rsbx_no_stray_list_item():
     assert len(pdf) > 5000
 
 
+def _pdf_text(pdf):
+    import pypdf, io
+    reader = pypdf.PdfReader(io.BytesIO(pdf))
+    return "\n".join(page.extract_text() or "" for page in reader.pages)
+
+
+def test_composed_infant_colonoscopy_rsbx_renders():
+    """under-15 (infant MiraLAX) + rsbx — infant forks are slotted (2026-07-02),
+    so the blurb and title suffix must render."""
+    pdf = _render_prep("colonoscopy", "under-15", ["rsbx"])
+    assert pdf[:4] == b"%PDF"
+    text = _pdf_text(pdf)
+    assert "rectal suction biopsy" in text.lower()
+    assert "Rectal Suction Biopsy" in text  # title suffix
+
+
+def test_composed_infant_combined_rsbx_bal_renders():
+    """combined under-15 + rsbx (procedure <li>) + bal (team blurb) — both split
+    slots must carry content."""
+    pdf = _render_prep("combined", "under-15", ["rsbx", "bal"])
+    assert pdf[:4] == b"%PDF"
+    text = _pdf_text(pdf)
+    assert "rectal suction biopsy" in text.lower()
+    assert "Pulmonary team" in text  # bal team blurb
+
+
+def test_composed_infant_enema_colonoscopy_rsbx_renders():
+    pdf = _render_prep("colonoscopy", "under-15-enema", ["rsbx"])
+    assert pdf[:4] == b"%PDF"
+    assert "rectal suction biopsy" in _pdf_text(pdf).lower()
+
+
+def test_composed_infant_enema_combined_dlb_renders():
+    pdf = _render_prep("combined", "under-15-enema", ["dlb"])
+    assert pdf[:4] == b"%PDF"
+    assert len(pdf) > 5000
+
+
+def test_composed_infant_combined_dise_es_renders():
+    pdf = _render_prep("combined", "under-15", ["dise"], lang="es")
+    assert pdf[:4] == b"%PDF"
+    assert "endoscopia del sue" in _pdf_text(pdf).lower()  # accent-safe fragment
+
+
 if __name__ == "__main__":
     for fn in [test_composed_renders_pdf_bytes, test_composed_with_two_addons_and_knob,
                test_composed_colonoscopy_base_renders, test_composed_combined_base_renders,
                test_composed_deferred_template_fails_loud,
                test_composed_combined_rsbx_renders, test_composed_combined_rsbx_bal_renders,
-               test_composed_colonoscopy_rsbx_renders, test_composed_combined_no_rsbx_no_stray_list_item]:
+               test_composed_colonoscopy_rsbx_renders, test_composed_combined_no_rsbx_no_stray_list_item,
+               test_composed_infant_colonoscopy_rsbx_renders, test_composed_infant_combined_rsbx_bal_renders,
+               test_composed_infant_enema_colonoscopy_rsbx_renders, test_composed_infant_enema_combined_dlb_renders,
+               test_composed_infant_combined_dise_es_renders]:
         fn(); print(f"PASS {fn.__name__}")

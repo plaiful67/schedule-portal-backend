@@ -117,6 +117,16 @@ CASES = [
     ("composed egd en",      dict(procedure_type="composed", base="egd",
                                   language="en", add_ons=["dise"], knob_picks={},
                                   expect="sleep endoscopy")),
+    # Composed × infant bands (2026-07-02): the <15 kg forks gained add-on slots
+    # so RSBx/airway add-ons work for infants — guard both infant protocols.
+    ("composed infant colon en", dict(procedure_type="composed", base="colonoscopy",
+                                      weight_band="under-15", prep_type="miralax",
+                                      language="en", add_ons=["rsbx"], knob_picks={},
+                                      expect="rectal suction biopsy")),
+    ("composed infant-enema combined es", dict(procedure_type="composed", base="combined",
+                                               weight_band="under-15-enema", prep_type="miralax",
+                                               language="es", add_ons=["dise"], knob_picks={},
+                                               expect="endoscopia del sueño")),
     # Flex sig — Increment 1: MiraLAX only (relabels the standard colonoscopy
     # template). Lactulose/clenpiq/suprep/enema have their own templates (different
     # hardcoded headings) → tokenized in a later increment.

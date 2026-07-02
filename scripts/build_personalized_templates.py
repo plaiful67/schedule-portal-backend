@@ -3528,6 +3528,83 @@ _INFANT_PERF_CSS_BLOCK = (
     "  }\n"
 )
 
+# Composed add-on slots for the infant forks (2026-07-02): the <15 kg bands
+# must stay available when add-ons / ride-alongs are selected in the scheduler
+# (RSBx and airway add-ons are common in exactly this population). Mirrors the
+# slotted standard/combined miralax forks; the infant h1 stays LITERAL (these
+# forks are not heading-tokenized). .addon-suffix CSS is global in
+# shared/calm-personalized.css — no per-fork CSS needed.
+_ADDON_SUFFIX_SPAN = '<span class="addon-suffix">{{ADDON_TITLE_SUFFIX}}</span>'
+
+
+def _insert_infant_addon_slots(out: str, *, lang: str, where_prefix: str) -> str:
+    """Standard-style infant forks (infant, infant-enema): addon-suffix span on
+    the literal h1 + {{ADDON_BLURBS}} before the PLAN AHEAD comment. The infant
+    forks have no About-the-Procedure section, so the standard fork's
+    after-about placement can't be mirrored; the slot lands after the
+    protocol-scope callout, before Medications & Supplies."""
+    if lang == "en":
+        h1_old = '<h1 class="doc-title">Colonoscopy Bowel Prep</h1>'
+        plan_comment = "<!-- PLAN AHEAD -->"
+    else:
+        h1_old = '<h1 class="doc-title">Preparación para Colonoscopia</h1>'
+        plan_comment = "<!-- PLANIFIQUE -->"
+    out = _replace_unique(
+        out,
+        h1_old,
+        h1_old[: -len("</h1>")] + _ADDON_SUFFIX_SPAN + "</h1>",
+        where=f"{where_prefix}: addon-suffix span on h1",
+    )
+    out = _replace_unique(
+        out,
+        plan_comment,
+        "{{ADDON_BLURBS}}\n\n" + plan_comment,
+        where=f"{where_prefix}: ADDON_BLURBS slot before plan-ahead comment",
+    )
+    return out
+
+
+def _insert_combined_infant_addon_slots(out: str, *, lang: str, where_prefix: str) -> str:
+    """Combined-style infant forks (combined-infant, combined-infant-enema):
+    mirror the slotted combined-print fork's steps 0b/7a/7b — addon-suffix span
+    on the literal h1, {{ADDON_PROCEDURE_ITEMS}} after the Colonoscopy <li>,
+    {{ADDON_TEAM_BLURBS}} after the 30–60-minutes closing paragraph."""
+    if lang == "en":
+        h1_old = '<h1 class="doc-title">EGD + Colonoscopy Prep</h1>'
+        li_old = (
+            '  <li><strong>Colonoscopy</strong> &mdash; the same kind of camera is passed'
+            ' through the bottom to look at the large intestine. Biopsies are usually taken here too.</li>\n</ul>'
+        )
+        para = '<p>Both procedures together take about <strong>30&ndash;60 minutes</strong>. Your child will not feel anything.</p>'
+        h2 = '<h2 class="step"><span class="icon">&#128214;</span> About the Bowel Prep</h2>'
+    else:
+        h1_old = '<h1 class="doc-title">Preparación para EGD y Colonoscopia</h1>'
+        li_old = (
+            '  <li><strong>Colonoscopia</strong> &mdash; el mismo tipo de cámara se pasa'
+            ' por el recto para examinar el intestino grueso. Aquí también se suelen tomar biopsias.</li>\n</ul>'
+        )
+        para = '<p>Ambos procedimientos juntos toman aproximadamente <strong>30&ndash;60 minutos</strong>. Su niño no sentirá nada.</p>'
+        h2 = '<h2 class="step"><span class="icon">&#128214;</span> Sobre la Preparación Intestinal</h2>'
+    out = _replace_unique(
+        out,
+        h1_old,
+        h1_old[: -len("</h1>")] + _ADDON_SUFFIX_SPAN + "</h1>",
+        where=f"{where_prefix}: addon-suffix span on h1",
+    )
+    out = _replace_unique(
+        out,
+        li_old,
+        li_old[: -len("\n</ul>")] + "\n{{ADDON_PROCEDURE_ITEMS}}\n</ul>",
+        where=f"{where_prefix}: ADDON_PROCEDURE_ITEMS slot after Colonoscopy <li>",
+    )
+    out = _replace_unique(
+        out,
+        para + "\n\n" + h2,
+        para + "\n{{ADDON_TEAM_BLURBS}}\n" + h2,
+        where=f"{where_prefix}: ADDON_TEAM_BLURBS slot after closing paragraph",
+    )
+    return out
+
 
 def _patch_infant_print(out: str, *, lang: str) -> str:
     """Reproduce the committed bowel_prep/infant-print-personalized.{en,es}.html.
@@ -3627,6 +3704,8 @@ def _patch_infant_print(out: str, *, lang: str) -> str:
     # 9. Tail: DOCTORS_BLOCK + FOOTER_LEGAL -> {{PARTIAL_FEEDBACK_BAR}}.
     out = _replace_unique(out, tail_old, "{{PARTIAL_FEEDBACK_BAR}}\n</body>",
                           where=f"infant {lang}: tail -> PARTIAL_FEEDBACK_BAR")
+    # 10. Composed add-on slots (h1 suffix span + ADDON_BLURBS).
+    out = _insert_infant_addon_slots(out, lang=lang, where_prefix=f"infant {lang}")
     return out
 
 
@@ -3710,6 +3789,7 @@ def patch_combined_infant_print_en(canonical: str) -> str:
         "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="combined-infant en: DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_combined_infant_addon_slots(out, lang="en", where_prefix="combined-infant en")
     return out
 
 
@@ -3785,6 +3865,7 @@ def patch_combined_infant_print_es(canonical: str) -> str:
         "\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="combined-infant es: REVIEW + DOCTORS_BLOCK + footer -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_combined_infant_addon_slots(out, lang="es", where_prefix="combined-infant es")
     return out
 
 
@@ -3947,6 +4028,7 @@ def patch_infant_enema_print_en(canonical: str) -> str:
         "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="infant-enema en: DOCTORS_BLOCK+FOOTER_LEGAL -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_infant_addon_slots(out, lang="en", where_prefix="infant-enema en")
     return out
 
 
@@ -4012,6 +4094,7 @@ def patch_infant_enema_print_es(canonical: str) -> str:
         "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="infant-enema es: DOCTORS_BLOCK+FOOTER_LEGAL -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_infant_addon_slots(out, lang="es", where_prefix="infant-enema es")
     return out
 
 
@@ -4094,6 +4177,7 @@ def patch_combined_infant_enema_print_en(canonical: str) -> str:
         "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="combined-infant-enema en: tail -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_combined_infant_addon_slots(out, lang="en", where_prefix="combined-infant-enema en")
     return out
 
 
@@ -4176,6 +4260,7 @@ def patch_combined_infant_enema_print_es(canonical: str) -> str:
         "</p>\n\n{{PARTIAL_FEEDBACK_BAR}}\n</body>",
         where="combined-infant-enema es: tail -> PARTIAL_FEEDBACK_BAR",
     )
+    out = _insert_combined_infant_addon_slots(out, lang="es", where_prefix="combined-infant-enema es")
     return out
 
 
