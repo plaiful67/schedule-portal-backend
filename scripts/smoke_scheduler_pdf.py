@@ -74,6 +74,11 @@ CASES = [
     # eat normally → low-residue through lunch → clears after 2 PM the day before).
     ("combined suprep en",  dict(procedure_type="combined", weight_band="over-50", language="en", prep_type="suprep")),
     ("combined clenpiq es", dict(procedure_type="combined", weight_band="31-40", language="es", prep_type="clenpiq")),
+    # combined × lactulose — the egdcolonlact family. Item 1 made this combo
+    # buildable (combined×alt-prep canonicals); this case closes the last combined
+    # prep-axis smoke hole the procedure-manifest gate flagged. Lactulose is ≤30 kg,
+    # so the smoke books a low-weight band.
+    ("combined lactulose en", dict(procedure_type="combined", weight_band="15-20", language="en", prep_type="lactulose")),
     ("lactulose en", dict(procedure_type="bowel_prep", weight_band="15-20", language="en", prep_type="lactulose")),
     # EGD / EGD+pH-MII carry no weight band. egd_phmii is PMCH-only.
     ("egd en",       dict(procedure_type="egd", language="en")),
