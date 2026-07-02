@@ -172,14 +172,14 @@
       "status": "forked"
     },
     "flexsig/print-personalized.en.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "flex-sig-handout-generator/templates/flex-sig-print.en.html",
+      "canonical_sha256": "fcb143f46586d520820889673e76aedcfb2530cc164f03462d2eaf0cc20d1767",
+      "status": "forked"
     },
     "flexsig/print-personalized.es.html": {
-      "canonical": null,
-      "status": "backend-only",
-      "note": "no skill canonical (matrix leak / backend-only); reachable via the scheduler but hand-maintained"
+      "canonical": "flex-sig-handout-generator/templates/flex-sig-print.es.html",
+      "canonical_sha256": "aba050f3cceba05bc016f94667e579e762073161f383d54f33f51ed0aa966eee",
+      "status": "forked"
     }
   }
 }

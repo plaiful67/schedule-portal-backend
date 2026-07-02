@@ -60,14 +60,13 @@ MANIFEST = Path(__file__).resolve().parent / "personalized_provenance.json"
 # Personalized templates permitted to have NO skill canonical (backend-only).
 # Per the digital-twin doctrine this set MUST shrink to empty. Each entry names
 # the plan item that will retire it. Anything backend-only NOT listed here FAILS.
-#   flexsig/print-personalized.{en,es}: retired by drift-hardening Item 5
-#   (fold flexsig into the monorepo + add its canonical mapping to
-#   _canonical_rel_for). The flex-sig skill IS vendored; only the gate's naming
-#   rule doesn't map the `flexsig` family yet — Item 5 closes that.
-ALLOWED_ORPHANS = {
-    "flexsig/print-personalized.en.html",
-    "flexsig/print-personalized.es.html",
-}
+#
+# EMPTY as of drift-hardening Item 5 (2026-07-02): the last two orphans
+# (flexsig/print-personalized.{en,es}) were retired by mapping the `flexsig`
+# family to its vendored skill canonical (flex-sig-print.{en,es}.html) in
+# _canonical_rel_for above — they are now tracked as `forked`, not orphaned.
+# The no-orphan gate is now fully closed; any NEW backend-only template FAILS.
+ALLOWED_ORPHANS: set[str] = set()
 
 
 def _sha256(path: Path) -> str:
@@ -94,6 +93,12 @@ def _canonical_rel_for(personalized_rel: str) -> str | None:
         return f"egd-handout-generator/templates/egd-print.{lang_html}"
     if family == "egd_phmii":
         return f"egd-handout-generator/templates/egdph-print.{lang_html}"
+    if family == "flexsig":
+        # The scheduler flex-sig fork derives from the flex-sig skill's canonical
+        # print template. Only one stem (`print`) → the band-agnostic print
+        # canonical. Mapping added by drift-hardening Item 5 (2026-07-02), which
+        # folded flexsig into the monorepo and retired its ALLOWED_ORPHANS entry.
+        return f"flex-sig-handout-generator/templates/flex-sig-print.{lang_html}"
     if family == "bowel_prep":
         # The colonoscopy-only "standard" fork is named just print-personalized.*
         if stem == "print":
